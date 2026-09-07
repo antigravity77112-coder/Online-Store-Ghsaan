@@ -2,12 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Upload, X, Loader2, ImagePlus, AlertCircle, Cloud, CheckCircle, Sparkles, Star } from 'lucide-react';
 import * as api from '../services/api';
-import { useAuth } from '../context/AuthContext';
 import { OptionPicker, BooleanPicker, parseAttrOptions, adminInputClass, adminSelectClass } from '../pages/admin/AdminUI';
 import { ScentPicker } from './ScentPicker';
 
 const AddProductForm = ({ onSuccess, onCancel, editProduct }) => {
-  const { user } = useAuth();
   const [categories, setCategories] = useState([]);
   const [brands, setBrands] = useState([]);
   const [scents, setScents] = useState([]);
@@ -18,7 +16,8 @@ const AddProductForm = ({ onSuccess, onCancel, editProduct }) => {
   const [dragActive, setDragActive] = useState(false);
   const [uploadingIndex, setUploadingIndex] = useState(null);
 
-  const isEdit = !!editProduct;
+  // Duplicate opens the form with cloned fields but no id — must create, not update.
+  const isEdit = Boolean(editProduct?.id);
 
   const getInitialCondition = (cond) => {
     if (cond === 'New') return 1;
@@ -267,8 +266,20 @@ const AddProductForm = ({ onSuccess, onCancel, editProduct }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!form.title?.trim() || !form.price || (!isEdit && !form.categoryId) || !form.description?.trim()) {
-      setError('يرجى ملء جميع الحقول المطلوبة للتأكيد');
+    if (!form.title?.trim() || form.title.trim().length < 3) {
+      setError('عنوان المنتج يجب أن يكون 3 أحرف على الأقل');
+      return;
+    }
+    if (!form.description?.trim() || form.description.trim().length < 10) {
+      setError('وصف المنتج يجب أن يكون 10 أحرف على الأقل');
+      return;
+    }
+    if (!form.price || Number(form.price) <= 0) {
+      setError('يرجى إدخال سعر صحيح');
+      return;
+    }
+    if (!form.categoryId) {
+      setError('يرجى اختيار القسم');
       return;
     }
 
@@ -300,8 +311,8 @@ const AddProductForm = ({ onSuccess, onCancel, editProduct }) => {
           description: form.description,
           price: parseFloat(form.price),
           currency: form.currency,
-          stockQuantity: parseInt(form.stockQuantity),
-          condition: parseInt(form.condition),
+          stockQuantity: parseInt(form.stockQuantity, 10) || 0,
+          condition: parseInt(form.condition, 10) || 1,
           categoryId: form.categoryId || editProduct.categoryId,
           images: form.imageUrls.map(url => ({ url, altText: form.imageAltTexts[url] || null })),
           isPromoted: form.isPromoted,
@@ -314,7 +325,7 @@ const AddProductForm = ({ onSuccess, onCancel, editProduct }) => {
           variants: form.hasVariants ? mapVariantsPayload(form.variants) : [],
           brandId: form.brandId || null,
           scentIds: form.scentIds || [],
-          lowStockThreshold: parseInt(form.lowStockThreshold) || 5,
+          lowStockThreshold: parseInt(form.lowStockThreshold, 10) || 5,
           metaTitle: form.metaTitle || null,
           metaDescription: form.metaDescription || null,
           attributes: Object.entries(form.attributes)
@@ -327,10 +338,9 @@ const AddProductForm = ({ onSuccess, onCancel, editProduct }) => {
           description: form.description,
           price: parseFloat(form.price),
           currency: form.currency,
-          condition: parseInt(form.condition),
-          stockQuantity: parseInt(form.stockQuantity),
+          condition: parseInt(form.condition, 10) || 1,
+          stockQuantity: parseInt(form.stockQuantity, 10) || 0,
           categoryId: form.categoryId,
-          sellerId: user?.id,
           images: form.imageUrls.map(url => ({ url, altText: form.imageAltTexts[url] || null })),
           isPromoted: form.isPromoted,
           isTrending: form.isTrending,
@@ -342,7 +352,7 @@ const AddProductForm = ({ onSuccess, onCancel, editProduct }) => {
           variants: form.hasVariants ? mapVariantsPayload(form.variants) : [],
           brandId: form.brandId || null,
           scentIds: form.scentIds || [],
-          lowStockThreshold: parseInt(form.lowStockThreshold) || 5,
+          lowStockThreshold: parseInt(form.lowStockThreshold, 10) || 5,
           metaTitle: form.metaTitle || null,
           metaDescription: form.metaDescription || null,
           attributes: Object.entries(form.attributes)
@@ -429,7 +439,7 @@ const AddProductForm = ({ onSuccess, onCancel, editProduct }) => {
       {/* ── إعدادات الظهور ── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="p-4 bg-bone dark:bg-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-700">
-          <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">حالة المنتج</label>
+          <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">حالة العرض (الظهور)</label>
           <select
             name="status"
             value={form.status}
@@ -909,24 +919,10 @@ const AddProductForm = ({ onSuccess, onCancel, editProduct }) => {
         </div>
       )}
 
-      {/* حالة المنتج، الحالة، الكمية */}
+      {/* حالة القطعة، الكمية */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <div>
-          <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5">حالة العرض (الظهور)</label>
-          <select
-            name="status"
-            value={form.status || 'Draft'}
-            onChange={handleChange}
-            className="w-full px-4 py-3 border border-slate-200 dark:border-slate-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gold-500/40 focus:border-gold-400 appearance-none cursor-pointer bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
-          >
-            <option value="Draft">مسودة (Draft)</option>
-            <option value="Active">نشط (Active)</option>
-            <option value="OutOfStock">نفدت الكمية (Out Of Stock)</option>
-            <option value="Archived">مؤرشف (Archived)</option>
-          </select>
-        </div>
-        <div>
-          <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5">حالة المنتج</label>
+          <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5">حالة القطعة (جديد / مستعمل)</label>
           <div className="flex gap-2">
             {[
               { val: 1, label: 'جديد' },

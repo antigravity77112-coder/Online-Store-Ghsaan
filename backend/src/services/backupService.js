@@ -399,8 +399,9 @@ async function restoreFromPayload(backupPayload, { adminUserId = null, ipAddress
       await insertMany(tx, 'cartItem', data.cartItems);
       await insertMany(tx, 'favorite', data.favorites);
 
+      const validUserIds = new Set((data.users || []).map((u) => u.id));
+
       if (existingAuditLogs.length > 0) {
-        const validUserIds = new Set((data.users || []).map((u) => u.id));
         const adjustedLogs = existingAuditLogs.map((log) => ({
           ...toPlain(log),
           userId: log.userId && validUserIds.has(log.userId) ? log.userId : null,
@@ -408,10 +409,20 @@ async function restoreFromPayload(backupPayload, { adminUserId = null, ipAddress
         await insertMany(tx, 'auditLog', adjustedLogs);
       }
 
+      // adminUserId is the live session user — often missing from the backup after wipe.
+      // Only attach a userId that exists in the restored User rows (FK AuditLog_userId_fkey).
+      let restoreActorId = null;
+      if (adminUserId && validUserIds.has(adminUserId)) {
+        restoreActorId = adminUserId;
+      } else {
+        const adminFromBackup = (data.users || []).find((u) => u.role === 'Admin');
+        restoreActorId = adminFromBackup?.id || null;
+      }
+
       await tx.auditLog.create({
         data: {
           action: 'DATABASE_RESTORED',
-          userId: adminUserId || null,
+          userId: restoreActorId,
           details: 'Admin restored database from backup file (v2.0)',
           ipAddress: ipAddress || null,
         },

@@ -99,9 +99,19 @@ const AdminProductsTab = ({ openEditProductModal }) => {
   };
 
   const handleDuplicate = (product) => {
-    const { id, createdAt, updatedAt, ...clonedProduct } = product;
-    clonedProduct.title = `${clonedProduct.title} (نسخة)`;
-    openEditProductModal(clonedProduct);
+    const {
+      id,
+      createdAt,
+      updatedAt,
+      slug,
+      ...clonedProduct
+    } = product;
+    openEditProductModal({
+      ...clonedProduct,
+      title: `${clonedProduct.title || 'منتج'} (نسخة)`,
+      sku: '',
+      status: 'Draft',
+    });
   };
 
   const handleBulkStatus = async (isHidden) => {
