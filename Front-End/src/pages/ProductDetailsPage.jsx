@@ -13,6 +13,7 @@ import {
   Minus,
   Plus,
   ChevronDown,
+  FileText,
   Truck,
   ShieldCheck,
   Star,
@@ -22,6 +23,7 @@ import SEO from "../components/SEO";
 import Breadcrumbs from "../components/Breadcrumbs";
 import RelatedProducts from "../components/RelatedProducts";
 import BannerRenderer from "../components/BannerRenderer";
+import ProductDescriptionSheet, { buildProductSpecRows } from "../components/ProductDescriptionSheet";
 import * as api from "../services/api";
 import { useProduct } from "../hooks/useProducts";
 import { useGallerySwipe } from "../hooks/useGallerySwipe";
@@ -38,12 +40,17 @@ import {
 } from "../utils/whatsappOrder";
 import { trackViewItem, trackAddToCart } from "../utils/analytics";
 import { useFormatDisplayPrice } from "../context/CurrencyContext";
+import {
+  buildOptionGroups,
+  findMatchingVariant,
+  isValueAvailable,
+  isSelectionComplete,
+  getVariantOptionsLabelMap,
+  formatVariantLabel,
+  variantsHaveStructuredAttributes,
+} from "../utils/variantOptions";
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-function getVariantLabel(variant) {
-  return variant.attributes?.map((a) => a.value).join(" - ") || variant.sku || "متغير";
-}
 
 function ProductSkeleton() {
   return (
@@ -117,8 +124,9 @@ const ProductDetailsPage = () => {
   const [addedToCart, setAddedToCart] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [selectedVariantId, setSelectedVariantId] = useState(null);
+  const [optionSelections, setOptionSelections] = useState({});
   const [quantity, setQuantity] = useState(1);
-  const [descExpanded, setDescExpanded] = useState(false);
+  const [descSheetOpen, setDescSheetOpen] = useState(false);
   const [brokenGalleryUrls, setBrokenGalleryUrls] = useState(() => new Set());
   const [orderMethod, setOrderMethod] = useState("whatsapp");
   const [feedbackMessage, setFeedbackMessage] = useState("");
@@ -139,7 +147,9 @@ const ProductDetailsPage = () => {
     setSelectedImageIndex(0);
     setBrokenGalleryUrls(new Set());
     setQuantity(1);
-    setDescExpanded(false);
+    setDescSheetOpen(false);
+    setOptionSelections({});
+    setSelectedVariantId(null);
     trackedProductIdRef.current = null;
   }, [slug]);
 
@@ -147,8 +157,14 @@ const ProductDetailsPage = () => {
     if (!product?.id || trackedProductIdRef.current === product.id) return;
     trackedProductIdRef.current = product.id;
     trackViewItem(product);
+    setOptionSelections({});
     if (product.hasVariants && product.variants?.length > 0) {
-      setSelectedVariantId(product.variants[0].id);
+      const structured = variantsHaveStructuredAttributes(product.variants);
+      if (!structured) {
+        setSelectedVariantId(product.variants[0].id);
+      } else {
+        setSelectedVariantId(null);
+      }
     } else {
       setSelectedVariantId(null);
     }
@@ -158,16 +174,55 @@ const ProductDetailsPage = () => {
     setSelectedImageIndex(0);
   }, [selectedVariantId]);
 
+  const optionGroups = useMemo(() => {
+    if (!product?.variants?.length) return [];
+    if (product.optionGroups?.length) return product.optionGroups;
+    return buildOptionGroups(product.variants);
+  }, [product]);
+
+  const useStructuredPickers = useMemo(
+    () => Boolean(product?.hasVariants && variantsHaveStructuredAttributes(product?.variants || [])),
+    [product],
+  );
+
   const selectedVariant = useMemo(() => {
-    if (!product?.variants?.length || !selectedVariantId) return null;
+    if (!product?.variants?.length) return null;
+    if (useStructuredPickers) {
+      if (!isSelectionComplete(optionGroups, optionSelections)) return null;
+      return findMatchingVariant(product.variants, optionSelections);
+    }
+    if (!selectedVariantId) return null;
     return product.variants.find((v) => v.id === selectedVariantId) || null;
-  }, [product, selectedVariantId]);
+  }, [product, selectedVariantId, useStructuredPickers, optionGroups, optionSelections]);
+
+  useEffect(() => {
+    if (useStructuredPickers) {
+      setSelectedVariantId(selectedVariant?.id || null);
+    }
+  }, [useStructuredPickers, selectedVariant?.id]);
+
+  const selectionIncomplete = Boolean(
+    product?.hasVariants &&
+      useStructuredPickers &&
+      !isSelectionComplete(optionGroups, optionSelections),
+  );
+
+  const specRows = useMemo(
+    () => buildProductSpecRows(product, { selectedVariant, optionGroups }),
+    [product, selectedVariant, optionGroups],
+  );
+
+  const hasDescriptionContent = Boolean(
+    product?.description?.trim() || specRows.length > 0,
+  );
 
   const displayPrice = selectedVariant ? Number(selectedVariant.price) : Number(product?.price || 0);
   const displayDiscount = selectedVariant
     ? (selectedVariant.discountPrice ? Number(selectedVariant.discountPrice) : null)
     : (product?.discountPrice ? Number(product.discountPrice) : null);
-  const displayStock = selectedVariant ? selectedVariant.stockQuantity : (product?.stockQuantity || 0);
+  const displayStock = selectedVariant
+    ? selectedVariant.stockQuantity
+    : (product?.hasVariants ? 0 : (product?.stockQuantity || 0));
   const finalPrice = displayDiscount ?? displayPrice;
   const hasDiscount = displayDiscount !== null && displayDiscount < displayPrice;
   const discountPercent = hasDiscount ? Math.round(((displayPrice - displayDiscount) / displayPrice) * 100) : 0;
@@ -184,32 +239,47 @@ const ProductDetailsPage = () => {
     (product?.rating != null && product.rating > 0) ||
     (product?.reviewCount != null && product.reviewCount > 0);
 
+  const handleOptionSelect = (groupId, value) => {
+    setOptionSelections((prev) => {
+      const next = { ...prev, [groupId]: value };
+      // Clear later groups that become invalid after this change
+      const groupIndex = optionGroups.findIndex((g) => g.id === groupId);
+      optionGroups.forEach((g, idx) => {
+        if (idx <= groupIndex) return;
+        if (next[g.id] == null) return;
+        if (!isValueAvailable(product.variants, next, g.id, next[g.id], { requireInStock: false })) {
+          delete next[g.id];
+        }
+      });
+      return next;
+    });
+  };
+
   const buildCartProduct = () => {
     if (!product) return null;
     if (product.hasVariants && selectedVariant) {
-      const label = getVariantLabel(selectedVariant);
+      const options = getVariantOptionsLabelMap(selectedVariant);
       const variantImage = selectedVariant.imageUrl || null;
       return {
         ...product,
         id: `${product.id}::${selectedVariant.id}`,
+        baseProductId: product.id,
+        variantId: selectedVariant.id,
+        options,
         price: selectedVariant.price,
         discountPrice: selectedVariant.discountPrice,
         stockQuantity: selectedVariant.stockQuantity,
-        title: `${product.title} (${label})`,
+        title: product.title,
         imageUrl: variantImage || product.imageUrl,
         mainImageUrl: variantImage || product.mainImageUrl,
       };
     }
-    return product;
-  };
-
-  const handleAddToCart = () => {
-    const cartProduct = buildCartProduct();
-    if (!cartProduct || displayStock <= 0) return;
-    addToCart(cartProduct, quantity);
-    trackAddToCart(cartProduct, quantity);
-    setAddedToCart(true);
-    setTimeout(() => setAddedToCart(false), 2500);
+    return {
+      ...product,
+      baseProductId: product.id,
+      variantId: null,
+      options: null,
+    };
   };
 
   const showFeedback = (message) => {
@@ -219,6 +289,19 @@ const ProductDetailsPage = () => {
       setFeedbackMessage("");
       feedbackTimerRef.current = null;
     }, 2800);
+  };
+
+  const handleAddToCart = () => {
+    if (selectionIncomplete) {
+      showFeedback("يرجى اختيار جميع الخيارات");
+      return;
+    }
+    const cartProduct = buildCartProduct();
+    if (!cartProduct || displayStock <= 0) return;
+    addToCart(cartProduct, quantity);
+    trackAddToCart(cartProduct, quantity);
+    setAddedToCart(true);
+    setTimeout(() => setAddedToCart(false), 2500);
   };
 
   useEffect(() => () => {
@@ -246,13 +329,15 @@ const ProductDetailsPage = () => {
 
   const whatsappMessage = useMemo(() => {
     if (!product) return "";
-    const variantLabel = selectedVariant ? getVariantLabel(selectedVariant) : "";
+    const options = selectedVariant ? getVariantOptionsLabelMap(selectedVariant) : null;
+    const variantLabel = selectedVariant ? formatVariantLabel(selectedVariant) : "";
     return buildProductWhatsAppMessage({
       title: product.title,
       quantity,
       price: finalPrice,
       currencySymbol: api.CurrencySymbol[product.currency] || "",
       variantLabel,
+      options,
       productUrl: typeof window !== "undefined" ? window.location.href : "",
     });
   }, [product, quantity, finalPrice, selectedVariant]);
@@ -363,13 +448,13 @@ const ProductDetailsPage = () => {
     displayStock > 0 ? { icon: ShieldCheck, text: "متوفر للطلب" } : null,
   ].filter(Boolean);
 
-  const descPreview = product.description?.length > 180 && !descExpanded
-    ? `${product.description.slice(0, 180).trim()}...`
-    : product.description;
-
   const purchaseBlock = (
     <div className="flex flex-col px-3 sm:px-0 pt-3 sm:pt-0">
-      <div className="mb-2">
+      <h1 className="text-sm sm:text-base font-medium text-stone-800 dark:text-stone-200 leading-snug mb-2">
+        {product.title}
+      </h1>
+
+      <div className="mb-3">
         <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5" dir="ltr">
           <span className="text-2xl sm:text-3xl font-extrabold text-[#e6533d] dark:text-[#ff7a62] tracking-tight">
             {formatPrice(finalPrice, product.currency)}
@@ -386,10 +471,6 @@ const ProductDetailsPage = () => {
           </p>
         )}
       </div>
-
-      <h1 className="text-sm sm:text-base font-medium text-stone-800 dark:text-stone-200 leading-snug mb-2">
-        {product.title}
-      </h1>
 
       <div className="hidden lg:flex items-center gap-1 flex-shrink-0 mb-3">
         <button
@@ -427,9 +508,13 @@ const ProductDetailsPage = () => {
             -{discountPercent}%
           </span>
         )}
-        {displayStock > 0 ? (
+        {selectionIncomplete ? (
+          <span className="px-1.5 py-0.5 text-[10px] font-semibold text-stone-500 bg-stone-100 rounded-sm">
+            اختر الخيارات
+          </span>
+        ) : displayStock > 0 ? (
           <span className="px-1.5 py-0.5 text-[10px] font-semibold text-emerald-700 bg-emerald-50 rounded-sm border border-emerald-200/70">
-            متوفر
+            متبقي {Number(displayStock).toLocaleString("en-US")}
           </span>
         ) : (
           <span className="px-1.5 py-0.5 text-[10px] font-semibold text-stone-500 bg-stone-100 rounded-sm">
@@ -439,37 +524,112 @@ const ProductDetailsPage = () => {
       </div>
 
       {product.hasVariants && product.variants?.length > 0 && (
-        <div className="mb-4">
-          <p className="text-xs font-extrabold text-stone-900 dark:text-white mb-2">الخيارات</p>
-          <div className="flex flex-wrap gap-2">
-            {product.variants.map((variant) => {
-              const label = getVariantLabel(variant);
-              const isSelected = selectedVariantId === variant.id;
-              const isOutOfStock = variant.stockQuantity <= 0;
-              const vPrice = variant.discountPrice ?? variant.price;
-              return (
-                <button
-                  key={variant.id}
-                  type="button"
-                  disabled={isOutOfStock}
-                  aria-pressed={isSelected}
-                  onClick={() => setSelectedVariantId(variant.id)}
-                  className={`min-h-[40px] px-3 py-1.5 rounded-sm text-xs font-semibold border transition-all ${
-                    isSelected
-                      ? "border-stone-900 dark:border-white bg-stone-900 dark:bg-white text-white dark:text-stone-900"
-                      : "border-stone-300 dark:border-stone-600 text-stone-700 dark:text-stone-300 hover:border-stone-500"
-                  } ${isOutOfStock ? "opacity-40 line-through cursor-not-allowed" : ""}`}
-                >
-                  {label}
-                  <span className="block text-[10px] font-medium opacity-80 mt-0.5">
-                    {formatPrice(vPrice, product.currency)}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
+        <div className="mb-4 space-y-4">
+          {useStructuredPickers && optionGroups.length > 0 ? (
+            optionGroups.map((group) => (
+              <div key={group.id}>
+                <p className="text-xs font-extrabold text-stone-900 dark:text-white mb-2">
+                  {group.name}
+                  {optionSelections[group.id] ? (
+                    <span className="font-semibold text-stone-500 mr-1">: {optionSelections[group.id]}</span>
+                  ) : null}
+                </p>
+                <div className="flex flex-wrap gap-2" role="listbox" aria-label={group.name}>
+                  {group.values.map((value) => {
+                    const isSelected = optionSelections[group.id] === value;
+                    const available = isValueAvailable(
+                      product.variants,
+                      optionSelections,
+                      group.id,
+                      value,
+                      { requireInStock: true },
+                    );
+                    const exists = isValueAvailable(
+                      product.variants,
+                      optionSelections,
+                      group.id,
+                      value,
+                      { requireInStock: false },
+                    );
+                    const isDisabled = !available;
+                    const isOos = exists && !available;
+                    return (
+                      <button
+                        key={`${group.id}-${value}`}
+                        type="button"
+                        role="option"
+                        aria-selected={isSelected}
+                        disabled={isDisabled}
+                        onClick={() => handleOptionSelect(group.id, value)}
+                        className={`min-h-[40px] min-w-[40px] px-3 py-1.5 rounded-sm text-xs font-semibold border transition-all ${
+                          isSelected
+                            ? "border-stone-900 dark:border-white bg-stone-900 dark:bg-white text-white dark:text-stone-900"
+                            : "border-stone-300 dark:border-stone-600 text-stone-700 dark:text-stone-300 hover:border-stone-500"
+                        } ${isDisabled ? "opacity-40 cursor-not-allowed line-through" : ""} ${
+                          isOos ? "decoration-stone-400" : ""
+                        }`}
+                      >
+                        {value}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ))
+          ) : (
+            <div>
+              <p className="text-xs font-extrabold text-stone-900 dark:text-white mb-2">الخيارات</p>
+              <div className="flex flex-wrap gap-2">
+                {product.variants.map((variant) => {
+                  const label = formatVariantLabel(variant);
+                  const isSelected = selectedVariantId === variant.id;
+                  const isOutOfStock = variant.stockQuantity <= 0;
+                  const vPrice = variant.discountPrice ?? variant.price;
+                  return (
+                    <button
+                      key={variant.id}
+                      type="button"
+                      disabled={isOutOfStock}
+                      aria-pressed={isSelected}
+                      onClick={() => setSelectedVariantId(variant.id)}
+                      className={`min-h-[40px] px-3 py-1.5 rounded-sm text-xs font-semibold border transition-all ${
+                        isSelected
+                          ? "border-stone-900 dark:border-white bg-stone-900 dark:bg-white text-white dark:text-stone-900"
+                          : "border-stone-300 dark:border-stone-600 text-stone-700 dark:text-stone-300 hover:border-stone-500"
+                      } ${isOutOfStock ? "opacity-40 line-through cursor-not-allowed" : ""}`}
+                    >
+                      {label}
+                      <span className="block text-[10px] font-medium opacity-80 mt-0.5">
+                        {formatPrice(vPrice, product.currency)}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+          {selectionIncomplete ? (
+            <p className="text-[11px] text-stone-500">اختر جميع الخيارات للمتابعة</p>
+          ) : null}
         </div>
       )}
+
+      {hasDescriptionContent ? (
+        <button
+          type="button"
+          onClick={() => setDescSheetOpen(true)}
+          className="mb-4 w-full flex items-center justify-between gap-3 border-y border-stone-100 dark:border-stone-800 py-3.5 text-right min-h-[48px]"
+        >
+          <span className="inline-flex items-center gap-2 text-sm font-extrabold text-stone-900 dark:text-white">
+            <FileText className="w-4 h-4 text-stone-500" aria-hidden="true" />
+            الوصف
+          </span>
+          <span className="inline-flex items-center gap-1 text-xs font-semibold text-stone-500">
+            المواصفات والتفاصيل
+            <ChevronDown className="w-4 h-4 -rotate-90" aria-hidden="true" />
+          </span>
+        </button>
+      ) : null}
 
       <div className="mb-4 flex items-center justify-between gap-3">
         <p className="text-xs font-extrabold text-stone-900 dark:text-white">الكمية</p>
@@ -500,16 +660,20 @@ const ProductDetailsPage = () => {
         <button
           type="button"
           onClick={handleAddToCart}
-          disabled={displayStock <= 0 || addedToCart}
+          disabled={(!selectionIncomplete && displayStock <= 0) || addedToCart}
           className={`w-full min-h-12 px-4 py-2.5 rounded-sm font-bold text-sm flex items-center justify-center gap-2 transition-all ${
             addedToCart
               ? "bg-emerald-600 text-white"
-              : displayStock <= 0
-                ? "bg-stone-200 text-stone-400 cursor-not-allowed"
-                : "bg-stone-900 hover:bg-stone-800 text-white"
+              : selectionIncomplete
+                ? "bg-stone-900 hover:bg-stone-800 text-white"
+                : displayStock <= 0
+                  ? "bg-stone-200 text-stone-400 cursor-not-allowed"
+                  : "bg-stone-900 hover:bg-stone-800 text-white"
           }`}
         >
-          {displayStock <= 0 ? (
+          {selectionIncomplete ? (
+            "اختر الخيارات"
+          ) : displayStock <= 0 ? (
             "غير متوفر"
           ) : addedToCart ? (
             <><Check className="w-5 h-5 shrink-0" aria-hidden="true" /> تمت الإضافة</>
@@ -689,52 +853,11 @@ const ProductDetailsPage = () => {
         </div>
 
         <div className="mt-4 px-3 sm:px-6 lg:px-8 max-w-6xl mx-auto">
-          {product.description && (
-            <div className="mb-4 border-t border-stone-100 dark:border-stone-800 pt-4">
-              <h2 className="text-xs font-extrabold text-stone-900 dark:text-white mb-2 uppercase tracking-wide">
-                الوصف
-              </h2>
-              <p className="text-sm text-stone-600 dark:text-stone-300 leading-relaxed whitespace-pre-line">
-                {descPreview}
-              </p>
-              {product.description.length > 180 && (
-                <button
-                  type="button"
-                  onClick={() => setDescExpanded((v) => !v)}
-                  className="mt-2 text-xs font-bold text-stone-700 dark:text-stone-300 underline underline-offset-2"
-                >
-                  {descExpanded ? "عرض أقل" : "عرض المزيد"}
-                </button>
-              )}
-            </div>
-          )}
-
-          <div className="border-t border-stone-100 dark:border-stone-800">
-            {product.attributes?.length > 0 && (
-              <AccordionSection title="المواصفات">
-                <div className="space-y-2">
-                  {product.attributes.map((attr, idx) => {
-                    const attrName = attr.categoryAttribute?.name || "مواصفة";
-                    let displayValue = attr.value;
-                    if (attr.categoryAttribute?.type === "BOOLEAN") {
-                      displayValue = attr.value === "true" || attr.value === "1" ? "نعم" : "لا";
-                    } else if (attr.categoryAttribute?.type === "MULTI_SELECT") {
-                      displayValue = attr.value.split(",").join("، ");
-                    }
-                    return (
-                      <div key={attr.id || idx} className="flex justify-between gap-4 text-xs sm:text-sm py-1 border-b border-stone-100 dark:border-stone-800 last:border-0">
-                        <span className="text-stone-500">{attrName}</span>
-                        <span className="font-medium text-stone-800 dark:text-stone-200 text-left" dir="auto">{displayValue}</span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </AccordionSection>
-            )}
-            {shippingOfferText && (
+          {shippingOfferText ? (
+            <div className="border-t border-stone-100 dark:border-stone-800">
               <AccordionSection title="الشحن والتوصيل">{shippingOfferText}</AccordionSection>
-            )}
-          </div>
+            </div>
+          ) : null}
 
           {showRating && (
             <section ref={reviewsRef} className="mt-6 border-t border-stone-100 dark:border-stone-800 pt-4" id="reviews">
@@ -808,16 +931,20 @@ const ProductDetailsPage = () => {
           <button
             type="button"
             onClick={handleAddToCart}
-            disabled={displayStock <= 0 || addedToCart}
+            disabled={(!selectionIncomplete && displayStock <= 0) || addedToCart}
             className={`flex-1 min-h-11 px-3 rounded-sm font-bold text-sm flex items-center justify-center gap-1.5 transition-colors ${
               addedToCart
                 ? "bg-emerald-600 text-white"
-                : displayStock <= 0
-                  ? "bg-stone-200 text-stone-400 dark:bg-stone-800 dark:text-stone-500 cursor-not-allowed"
-                  : "bg-stone-900 text-white dark:bg-white dark:text-stone-900"
+                : selectionIncomplete
+                  ? "bg-stone-900 text-white dark:bg-white dark:text-stone-900"
+                  : displayStock <= 0
+                    ? "bg-stone-200 text-stone-400 dark:bg-stone-800 dark:text-stone-500 cursor-not-allowed"
+                    : "bg-stone-900 text-white dark:bg-white dark:text-stone-900"
             }`}
           >
-            {displayStock <= 0 ? (
+            {selectionIncomplete ? (
+              "اختر الخيارات"
+            ) : displayStock <= 0 ? (
               "غير متوفر"
             ) : addedToCart ? (
               <><Check className="w-4 h-4 shrink-0" aria-hidden="true" /> تمت الإضافة</>
@@ -849,6 +976,13 @@ const ProductDetailsPage = () => {
           {feedbackMessage}
         </div>
       ) : null}
+
+      <ProductDescriptionSheet
+        open={descSheetOpen}
+        onClose={() => setDescSheetOpen(false)}
+        description={product.description || ""}
+        rows={specRows}
+      />
     </Layout>
   );
 };

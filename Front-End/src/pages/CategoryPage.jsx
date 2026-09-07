@@ -120,7 +120,16 @@ const CategoryPage = () => {
       addToCart(original, 1);
       trackAddToCart(original, 1);
     } else {
-      addToCart({ id: p.id, title: p.title, price: p.price, currency: p.currency || 'USD', mainImageUrl: p.image, imageUrl: p.image }, 1);
+      addToCart({
+        id: p.id,
+        title: p.title,
+        description: p.description || null,
+        categoryName: p.categoryName || null,
+        price: p.price,
+        currency: p.currency || 'USD',
+        mainImageUrl: p.image,
+        imageUrl: p.image,
+      }, 1);
       trackAddToCart({ id: p.id, title: p.title, price: p.price, currency: p.currency }, 1);
     }
     notifyQuickAdd();

@@ -1,9 +1,61 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Upload, X, Loader2, ImagePlus, AlertCircle, Cloud, CheckCircle, Sparkles, Star } from 'lucide-react';
 import * as api from '../services/api';
 import { OptionPicker, BooleanPicker, parseAttrOptions, adminInputClass, adminSelectClass } from '../pages/admin/AdminUI';
 import { ScentPicker } from './ScentPicker';
+import {
+  cartesianSelections,
+  selectionKey,
+  buildOptionGroups,
+} from '../utils/variantOptions';
+
+function emptyVariantRow(defaults = {}) {
+  return {
+    sku: '',
+    price: defaults.price || '',
+    discountPrice: defaults.discountPrice || '',
+    stockQuantity: 0,
+    isActive: true,
+    sortOrder: defaults.sortOrder || 0,
+    imageUrl: '',
+    attributes: {},
+    ...defaults,
+  };
+}
+
+function deriveGroupValuesFromVariants(variants = [], variantAttributes = []) {
+  const map = {};
+  for (const attr of variantAttributes) {
+    map[attr.id] = [];
+  }
+  const groups = buildOptionGroups(
+    (variants || []).map((v) => ({
+      ...v,
+      attributes: Object.entries(v.attributes || {}).map(([categoryAttributeId, value]) => {
+        const meta = variantAttributes.find((a) => a.id === categoryAttributeId);
+        return {
+          categoryAttributeId,
+          value,
+          categoryAttribute: meta
+            ? { id: meta.id, name: meta.name, slug: meta.slug, sortOrder: meta.sortOrder }
+            : { id: categoryAttributeId },
+        };
+      }),
+    })),
+  );
+  for (const g of groups) {
+    map[g.id] = [...g.values];
+  }
+  // Prefer category SELECT options as starting set when no variants yet
+  for (const attr of variantAttributes) {
+    if ((map[attr.id] || []).length) continue;
+    if (attr.type === 'SELECT' || attr.type === 'MULTI_SELECT') {
+      map[attr.id] = parseAttrOptions(attr.options).map((o) => (typeof o === 'string' ? o : o.value || o.label)).filter(Boolean);
+    }
+  }
+  return map;
+}
 
 const AddProductForm = ({ onSuccess, onCancel, editProduct }) => {
   const [categories, setCategories] = useState([]);
@@ -79,12 +131,21 @@ const AddProductForm = ({ onSuccess, onCancel, editProduct }) => {
 
   const [categoryAttributes, setCategoryAttributes] = useState([]);
   const [variantAttributes, setVariantAttributes] = useState([]);
+  const [optionGroupValues, setOptionGroupValues] = useState({});
+  const [newOptionDraft, setNewOptionDraft] = useState({});
+  const [creatingAttr, setCreatingAttr] = useState(false);
+  const [newAttrName, setNewAttrName] = useState('');
+  const [newAttrOptions, setNewAttrOptions] = useState('');
+  const [creatingSpecAttr, setCreatingSpecAttr] = useState(false);
+  const [newSpecAttrName, setNewSpecAttrName] = useState('');
+  const [newSpecAttrOptions, setNewSpecAttrOptions] = useState('');
 
   // Fetch category attributes when category changes
   useEffect(() => {
     if (!form.categoryId) {
       setCategoryAttributes([]);
       setVariantAttributes([]);
+      setOptionGroupValues({});
       return;
     }
     
@@ -95,9 +156,141 @@ const AddProductForm = ({ onSuccess, onCancel, editProduct }) => {
       .then(([prodAttrs, varAttrs]) => {
         setCategoryAttributes(prodAttrs || []);
         setVariantAttributes(varAttrs || []);
+        setOptionGroupValues(deriveGroupValuesFromVariants(form.variants, varAttrs || []));
       })
       .catch(err => console.error('Failed to load category attributes:', err));
   }, [form.categoryId]);
+
+  // Re-hydrate option groups when edit product / category attrs are ready
+  useEffect(() => {
+    if (!variantAttributes.length) return;
+    setOptionGroupValues(deriveGroupValuesFromVariants(form.variants, variantAttributes));
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- hydrate from loaded attrs + current variants snapshot
+  }, [editProduct?.id, variantAttributes]);
+
+  const selectVariantAttrs = useMemo(
+    () => variantAttributes.filter((a) => a.type === 'SELECT' || a.type === 'MULTI_SELECT' || a.type === 'TEXT'),
+    [variantAttributes],
+  );
+
+  const toggleGroupValue = (attrId, value) => {
+    setOptionGroupValues((prev) => {
+      const current = prev[attrId] || [];
+      const has = current.includes(value);
+      return {
+        ...prev,
+        [attrId]: has ? current.filter((v) => v !== value) : [...current, value],
+      };
+    });
+  };
+
+  const addCustomGroupValue = (attrId) => {
+    const raw = (newOptionDraft[attrId] || '').trim();
+    if (!raw) return;
+    setOptionGroupValues((prev) => {
+      const current = prev[attrId] || [];
+      if (current.includes(raw)) return prev;
+      return { ...prev, [attrId]: [...current, raw] };
+    });
+    setNewOptionDraft((prev) => ({ ...prev, [attrId]: '' }));
+  };
+
+  const generateCombinations = () => {
+    const groups = selectVariantAttrs
+      .map((attr) => ({
+        id: attr.id,
+        name: attr.name,
+        values: optionGroupValues[attr.id] || [],
+      }))
+      .filter((g) => g.values.length > 0);
+
+    if (!groups.length) {
+      setError('حدد قيم الخيارات أولاً ثم أنشئ التركيبات');
+      return;
+    }
+
+    const combos = cartesianSelections(groups);
+    setForm((prev) => {
+      const existingByKey = new Map();
+      for (const v of prev.variants) {
+        existingByKey.set(selectionKey(v.attributes || {}), v);
+      }
+      const nextVariants = combos.map((attrs, idx) => {
+        const key = selectionKey(attrs);
+        const existing = existingByKey.get(key);
+        if (existing) {
+          return { ...existing, attributes: attrs, sortOrder: idx };
+        }
+        const labelParts = groups.map((g) => attrs[g.id]).filter(Boolean);
+        const skuHint = [prev.sku, ...labelParts].filter(Boolean).join('-').replace(/\s+/g, '').slice(0, 40);
+        return emptyVariantRow({
+          sku: skuHint,
+          price: prev.price,
+          discountPrice: prev.discountPrice,
+          stockQuantity: 0,
+          sortOrder: idx,
+          attributes: attrs,
+        });
+      });
+      return { ...prev, hasVariants: true, variants: nextVariants };
+    });
+    setError('');
+  };
+
+  const handleCreateVariantAttribute = async () => {
+    if (!form.categoryId || !newAttrName.trim()) return;
+    setCreatingAttr(true);
+    try {
+      const options = newAttrOptions
+        .split(/[,،]/)
+        .map((s) => s.trim())
+        .filter(Boolean);
+      await api.createCategoryAttribute(form.categoryId, {
+        name: newAttrName.trim(),
+        type: 'SELECT',
+        scope: 'VARIANT',
+        options,
+        isRequired: false,
+        isFilterable: true,
+      });
+      const varAttrs = await api.getCategoryAttributes(form.categoryId, 'VARIANT,BOTH');
+      setVariantAttributes(varAttrs || []);
+      setOptionGroupValues(deriveGroupValuesFromVariants(form.variants, varAttrs || []));
+      setNewAttrName('');
+      setNewAttrOptions('');
+    } catch (err) {
+      setError(err.message || 'فشل إنشاء خاصية المتغير');
+    } finally {
+      setCreatingAttr(false);
+    }
+  };
+
+  const handleCreateProductAttribute = async () => {
+    if (!form.categoryId || !newSpecAttrName.trim()) return;
+    setCreatingSpecAttr(true);
+    try {
+      const options = newSpecAttrOptions
+        .split(/[,،]/)
+        .map((s) => s.trim())
+        .filter(Boolean);
+      await api.createCategoryAttribute(form.categoryId, {
+        name: newSpecAttrName.trim(),
+        type: options.length > 0 ? 'SELECT' : 'TEXT',
+        scope: 'PRODUCT',
+        options,
+        isRequired: false,
+        isFilterable: true,
+      });
+      const prodAttrs = await api.getCategoryAttributes(form.categoryId, 'PRODUCT,BOTH');
+      setCategoryAttributes(prodAttrs || []);
+      setNewSpecAttrName('');
+      setNewSpecAttrOptions('');
+    } catch (err) {
+      setError(err.message || 'فشل إنشاء مواصفة الوصف');
+    } finally {
+      setCreatingSpecAttr(false);
+    }
+  };
 
   useEffect(() => {
     async function loadData() {
@@ -472,34 +665,176 @@ const AddProductForm = ({ onSuccess, onCancel, editProduct }) => {
       {/* ── إدارة المتغيرات (Variants Manager) ── */}
       {form.hasVariants && (
         <div className="bg-slate-50 dark:bg-slate-800/80 rounded-2xl border border-slate-200 dark:border-slate-700 p-4 space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between flex-wrap gap-2">
             <h4 className="text-sm font-bold text-slate-800 dark:text-white flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-gold-500" />
-              متغيرات المنتج
+              متغيرات المنتج (خيارات متعددة)
             </h4>
-            <button
-              type="button"
-              onClick={() => {
-                setForm(prev => ({
-                  ...prev,
-                  variants: [
-                    ...prev.variants,
-                    { sku: '', price: form.price, discountPrice: form.discountPrice, stockQuantity: 0, isActive: true, sortOrder: prev.variants.length, imageUrl: '' }
-                  ]
-                }));
-              }}
-              className="px-3 py-1.5 bg-gold-50 text-gold-700 font-bold rounded-lg text-xs hover:bg-gold-100 transition-colors"
-            >
-              + إضافة متغير
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={generateCombinations}
+                className="px-3 py-1.5 bg-stone-900 text-white font-bold rounded-lg text-xs hover:bg-stone-800 transition-colors"
+              >
+                توليد التركيبات
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setForm(prev => ({
+                    ...prev,
+                    variants: [
+                      ...prev.variants,
+                      emptyVariantRow({
+                        price: form.price,
+                        discountPrice: form.discountPrice,
+                        sortOrder: prev.variants.length,
+                      }),
+                    ]
+                  }));
+                }}
+                className="px-3 py-1.5 bg-gold-50 text-gold-700 font-bold rounded-lg text-xs hover:bg-gold-100 transition-colors"
+              >
+                + إضافة صف
+              </button>
+            </div>
+          </div>
+
+          {/* Option groups */}
+          <div className="rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900/60 p-3 space-y-3">
+            <p className="text-xs font-bold text-slate-700 dark:text-slate-200">مجموعات الخيارات (مثل اللون ثم المقاس)</p>
+            {!form.categoryId ? (
+              <p className="text-xs text-slate-500">اختر التصنيف أولاً لتحميل خصائص المتغيرات.</p>
+            ) : selectVariantAttrs.length === 0 ? (
+              <div className="space-y-2">
+                <p className="text-xs text-amber-700 dark:text-amber-300">لا توجد خصائص متغير لهذا التصنيف. أنشئ خاصية SELECT (لون / مقاس…).</p>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  <input
+                    type="text"
+                    value={newAttrName}
+                    onChange={(e) => setNewAttrName(e.target.value)}
+                    placeholder="اسم الخاصية (مثال: اللون)"
+                    className="px-2 py-1.5 border border-slate-200 dark:border-slate-600 rounded-lg text-xs bg-white dark:bg-slate-800"
+                  />
+                  <input
+                    type="text"
+                    value={newAttrOptions}
+                    onChange={(e) => setNewAttrOptions(e.target.value)}
+                    placeholder="القيم مفصولة بفاصلة (أسود، أبيض)"
+                    className="px-2 py-1.5 border border-slate-200 dark:border-slate-600 rounded-lg text-xs bg-white dark:bg-slate-800 sm:col-span-1"
+                  />
+                  <button
+                    type="button"
+                    disabled={creatingAttr || !newAttrName.trim()}
+                    onClick={handleCreateVariantAttribute}
+                    className="px-3 py-1.5 bg-gold-500 text-white font-bold rounded-lg text-xs disabled:opacity-50"
+                  >
+                    {creatingAttr ? 'جاري الإنشاء…' : 'إنشاء خاصية'}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {selectVariantAttrs.map((attr) => {
+                  const catalogOpts = parseAttrOptions(attr.options)
+                    .map((o) => (typeof o === 'string' ? o : o.value || o.label))
+                    .filter(Boolean);
+                  const selected = optionGroupValues[attr.id] || [];
+                  const allValues = Array.from(new Set([...catalogOpts, ...selected]));
+                  return (
+                    <div key={attr.id}>
+                      <p className="text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1.5">{attr.name}</p>
+                      <div className="flex flex-wrap gap-1.5 mb-2">
+                        {allValues.map((value) => {
+                          const on = selected.includes(value);
+                          return (
+                            <button
+                              key={value}
+                              type="button"
+                              onClick={() => toggleGroupValue(attr.id, value)}
+                              className={`px-2.5 py-1 rounded-md text-[11px] font-semibold border transition-colors ${
+                                on
+                                  ? 'bg-stone-900 text-white border-stone-900'
+                                  : 'bg-white dark:bg-slate-800 text-slate-600 border-slate-200 dark:border-slate-600'
+                              }`}
+                            >
+                              {value}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={newOptionDraft[attr.id] || ''}
+                          onChange={(e) => setNewOptionDraft((prev) => ({ ...prev, [attr.id]: e.target.value }))}
+                          placeholder={`قيمة إضافية لـ ${attr.name}`}
+                          className="flex-1 px-2 py-1 border border-slate-200 dark:border-slate-600 rounded-lg text-xs bg-white dark:bg-slate-800"
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              addCustomGroupValue(attr.id);
+                            }
+                          }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => addCustomGroupValue(attr.id)}
+                          className="px-2 py-1 text-xs font-bold text-gold-700 bg-gold-50 rounded-lg"
+                        >
+                          إضافة
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+                <div className="pt-2 border-t border-slate-100 dark:border-slate-700 grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  <input
+                    type="text"
+                    value={newAttrName}
+                    onChange={(e) => setNewAttrName(e.target.value)}
+                    placeholder="خاصية جديدة (مثال: المقاس)"
+                    className="px-2 py-1.5 border border-slate-200 dark:border-slate-600 rounded-lg text-xs bg-white dark:bg-slate-800"
+                  />
+                  <input
+                    type="text"
+                    value={newAttrOptions}
+                    onChange={(e) => setNewAttrOptions(e.target.value)}
+                    placeholder="قيم مفصولة بفاصلة"
+                    className="px-2 py-1.5 border border-slate-200 dark:border-slate-600 rounded-lg text-xs bg-white dark:bg-slate-800"
+                  />
+                  <button
+                    type="button"
+                    disabled={creatingAttr || !newAttrName.trim()}
+                    onClick={handleCreateVariantAttribute}
+                    className="px-3 py-1.5 border border-slate-200 dark:border-slate-600 font-bold rounded-lg text-xs disabled:opacity-50"
+                  >
+                    + خاصية للتصنيف
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           {form.variants.length === 0 ? (
-            <div className="text-center py-6 text-sm text-slate-500">لا يوجد أي متغيرات مضافة حتى الآن.</div>
+            <div className="text-center py-6 text-sm text-slate-500">
+              لا توجد تركيبات بعد — حدّد قيم الخيارات ثم اضغط «توليد التركيبات».
+            </div>
           ) : (
             <div className="space-y-3">
-              {form.variants.map((variant, index) => (
-                <div key={index} className="grid grid-cols-1 md:grid-cols-5 gap-2 p-3 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl relative">
+              <p className="text-[11px] font-bold text-slate-500">جدول التركيبات ({form.variants.length})</p>
+              {form.variants.map((variant, index) => {
+                const comboLabel = selectVariantAttrs
+                  .map((attr) => variant.attributes?.[attr.id])
+                  .filter(Boolean)
+                  .join(' / ');
+                return (
+                <div key={variant.id || index} className="grid grid-cols-1 md:grid-cols-5 gap-2 p-3 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl relative">
+                  {comboLabel ? (
+                    <div className="col-span-full text-[11px] font-bold text-stone-700 dark:text-stone-200 mb-0.5">
+                      {comboLabel}
+                    </div>
+                  ) : null}
                   <div>
                     <label className="block text-[10px] font-bold text-slate-400 mb-1">SKU المتغير</label>
                     <input
@@ -652,11 +987,14 @@ const AddProductForm = ({ onSuccess, onCancel, editProduct }) => {
                         );
                       } else if (attr.type === 'SELECT') {
                         const opts = parseAttrOptions(attr.options);
+                        const extra = val && !opts.some((o) => (typeof o === 'string' ? o : o.value) === val)
+                          ? [val]
+                          : [];
                         inputElement = (
                           <OptionPicker
                             value={val}
                             onChange={handleAttrChange}
-                            options={opts}
+                            options={[...opts, ...extra]}
                             required={attr.isRequired}
                             size="sm"
                           />
@@ -686,7 +1024,8 @@ const AddProductForm = ({ onSuccess, onCancel, editProduct }) => {
                     })}
                   </div>
                 </div>
-              ))}
+              );
+              })}
             </div>
           )}
         </div>
@@ -723,7 +1062,7 @@ const AddProductForm = ({ onSuccess, onCancel, editProduct }) => {
 
         {/* Toggle Switch for isTrending */}
         <div className="flex items-center justify-between">
-          <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">الأكثر رواجاً (ترند)</label>
+          <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">تريند</label>
           <button
             type="button"
             role="switch"
@@ -833,91 +1172,151 @@ const AddProductForm = ({ onSuccess, onCancel, editProduct }) => {
         <p className="text-[10px] text-slate-400 mt-1">يمكن اختيار أكثر من رائحة لنفس المنتج.</p>
       </div>
 
-      {/* المواصفات (الخصائص الديناميكية) */}
-      {categoryAttributes.length > 0 && (
-        <div className="bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200 dark:border-slate-700 p-4 space-y-4">
-          <div className="flex items-center gap-2 mb-2">
-            <Sparkles className="w-4 h-4 text-slate-500" />
-            <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300">مواصفات المنتج</h3>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {categoryAttributes.map(attr => {
-              const val = form.attributes[attr.id] ?? '';
-              const handleAttrChange = (val) => {
-                setForm(prev => ({
-                  ...prev,
-                  attributes: { ...prev.attributes, [attr.id]: val }
-                }));
-              };
-
-              let inputElement = null;
-
-              if (attr.type === 'TEXT') {
-                inputElement = (
-                  <input
-                    type="text"
-                    value={val}
-                    onChange={e => handleAttrChange(e.target.value)}
-                    required={attr.isRequired}
-                    placeholder="مثال: شرقي، خشبي..."
-                    className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-xl text-sm bg-white dark:bg-slate-700 focus:ring-2 focus:ring-gold-500/40 text-slate-900 dark:text-white"
-                  />
-                );
-              } else if (attr.type === 'NUMBER') {
-                inputElement = (
-                  <input
-                    type="number"
-                    value={val}
-                    onChange={e => handleAttrChange(e.target.value)}
-                    required={attr.isRequired}
-                    className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-xl text-sm bg-white dark:bg-slate-700 focus:ring-2 focus:ring-gold-500/40 text-slate-900 dark:text-white"
-                  />
-                );
-              } else if (attr.type === 'BOOLEAN') {
-                inputElement = (
-                  <BooleanPicker
-                    value={val}
-                    onChange={handleAttrChange}
-                    required={attr.isRequired}
-                    trueLabel="نعم / يستخدم"
-                    falseLabel="لا / لا يستخدم"
-                  />
-                );
-              } else if (attr.type === 'SELECT') {
-                const opts = parseAttrOptions(attr.options);
-                inputElement = (
-                  <OptionPicker
-                    value={val}
-                    onChange={handleAttrChange}
-                    options={opts}
-                    required={attr.isRequired}
-                  />
-                );
-              } else if (attr.type === 'MULTI_SELECT') {
-                const opts = parseAttrOptions(attr.options);
-                inputElement = (
-                  <OptionPicker
-                    value={val}
-                    onChange={handleAttrChange}
-                    options={opts}
-                    multiple
-                    required={attr.isRequired}
-                  />
-                );
-              }
-
-              return (
-                <div key={attr.id} className={attr.type === 'MULTI_SELECT' ? 'md:col-span-2' : ''}>
-                  <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5">
-                    {attr.name} {attr.isRequired && <span className="text-red-500">*</span>}
-                  </label>
-                  {inputElement}
-                </div>
-              );
-            })}
+      {/* المواصفات تظهر في نافذة «الوصف» على صفحة المنتج */}
+      <div className="bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200 dark:border-slate-700 p-4 space-y-4">
+        <div className="flex items-center gap-2 mb-1">
+          <Sparkles className="w-4 h-4 text-slate-500" />
+          <div>
+            <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300">مواصفات الوصف</h3>
+            <p className="text-[11px] text-slate-500">تظهر للزبون عند الضغط على «الوصف» (المادة، الأبعاد…)</p>
           </div>
         </div>
-      )}
+
+        {!form.categoryId ? (
+          <p className="text-xs text-slate-500">اختر التصنيف أولاً.</p>
+        ) : categoryAttributes.length === 0 ? (
+          <div className="space-y-2">
+            <p className="text-xs text-amber-700 dark:text-amber-300">لا توجد مواصفات لهذا التصنيف. أنشئ حقولاً مثل المادة أو الأبعاد.</p>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <input
+                type="text"
+                value={newSpecAttrName}
+                onChange={(e) => setNewSpecAttrName(e.target.value)}
+                placeholder="اسم المواصفة (مثال: المادة)"
+                className="px-2 py-1.5 border border-slate-200 dark:border-slate-600 rounded-lg text-xs bg-white dark:bg-slate-800"
+              />
+              <input
+                type="text"
+                value={newSpecAttrOptions}
+                onChange={(e) => setNewSpecAttrOptions(e.target.value)}
+                placeholder="قيم اختيارية بفاصلة (أو فارغ لنص حر)"
+                className="px-2 py-1.5 border border-slate-200 dark:border-slate-600 rounded-lg text-xs bg-white dark:bg-slate-800"
+              />
+              <button
+                type="button"
+                disabled={creatingSpecAttr || !newSpecAttrName.trim()}
+                onClick={handleCreateProductAttribute}
+                className="px-3 py-1.5 bg-gold-500 text-white font-bold rounded-lg text-xs disabled:opacity-50"
+              >
+                {creatingSpecAttr ? 'جاري الإنشاء…' : 'إنشاء مواصفة'}
+              </button>
+            </div>
+          </div>
+        ) : (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {categoryAttributes.map(attr => {
+                const val = form.attributes[attr.id] ?? '';
+                const handleAttrChange = (nextVal) => {
+                  setForm(prev => ({
+                    ...prev,
+                    attributes: { ...prev.attributes, [attr.id]: nextVal }
+                  }));
+                };
+
+                let inputElement = null;
+
+                if (attr.type === 'TEXT') {
+                  inputElement = (
+                    <input
+                      type="text"
+                      value={val}
+                      onChange={e => handleAttrChange(e.target.value)}
+                      required={attr.isRequired}
+                      placeholder="أدخل القيمة"
+                      className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-xl text-sm bg-white dark:bg-slate-700 focus:ring-2 focus:ring-gold-500/40 text-slate-900 dark:text-white"
+                    />
+                  );
+                } else if (attr.type === 'NUMBER') {
+                  inputElement = (
+                    <input
+                      type="number"
+                      value={val}
+                      onChange={e => handleAttrChange(e.target.value)}
+                      required={attr.isRequired}
+                      className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-xl text-sm bg-white dark:bg-slate-700 focus:ring-2 focus:ring-gold-500/40 text-slate-900 dark:text-white"
+                    />
+                  );
+                } else if (attr.type === 'BOOLEAN') {
+                  inputElement = (
+                    <BooleanPicker
+                      value={val}
+                      onChange={handleAttrChange}
+                      required={attr.isRequired}
+                      trueLabel="نعم / يستخدم"
+                      falseLabel="لا / لا يستخدم"
+                    />
+                  );
+                } else if (attr.type === 'SELECT') {
+                  const opts = parseAttrOptions(attr.options);
+                  inputElement = (
+                    <OptionPicker
+                      value={val}
+                      onChange={handleAttrChange}
+                      options={opts}
+                      required={attr.isRequired}
+                    />
+                  );
+                } else if (attr.type === 'MULTI_SELECT') {
+                  const opts = parseAttrOptions(attr.options);
+                  inputElement = (
+                    <OptionPicker
+                      value={val}
+                      onChange={handleAttrChange}
+                      options={opts}
+                      multiple
+                      required={attr.isRequired}
+                    />
+                  );
+                }
+
+                return (
+                  <div key={attr.id} className={attr.type === 'MULTI_SELECT' ? 'md:col-span-2' : ''}>
+                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5">
+                      {attr.name} {attr.isRequired && <span className="text-red-500">*</span>}
+                    </label>
+                    {inputElement}
+                  </div>
+                );
+              })}
+            </div>
+            <div className="pt-2 border-t border-slate-200 dark:border-slate-700 grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <input
+                type="text"
+                value={newSpecAttrName}
+                onChange={(e) => setNewSpecAttrName(e.target.value)}
+                placeholder="مواصفة جديدة (مثال: الأبعاد)"
+                className="px-2 py-1.5 border border-slate-200 dark:border-slate-600 rounded-lg text-xs bg-white dark:bg-slate-800"
+              />
+              <input
+                type="text"
+                value={newSpecAttrOptions}
+                onChange={(e) => setNewSpecAttrOptions(e.target.value)}
+                placeholder="قيم SELECT بفاصلة (اختياري)"
+                className="px-2 py-1.5 border border-slate-200 dark:border-slate-600 rounded-lg text-xs bg-white dark:bg-slate-800"
+              />
+              <button
+                type="button"
+                disabled={creatingSpecAttr || !newSpecAttrName.trim()}
+                onClick={handleCreateProductAttribute}
+                className="px-3 py-1.5 border border-slate-200 dark:border-slate-600 font-bold rounded-lg text-xs disabled:opacity-50"
+              >
+                + مواصفة للتصنيف
+              </button>
+            </div>
+          </>
+        )}
+      </div>
 
       {/* حالة القطعة، الكمية */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">

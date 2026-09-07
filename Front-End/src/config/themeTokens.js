@@ -12,7 +12,7 @@ export const themeBorder = 'border-site-border dark:border-site-border-dark';
 export const themeBorderSubtle = 'border border-site-border/80 dark:border-site-border-dark/80';
 
 export const themeInputClass =
-  'w-full px-4 py-2.5 border border-site-border/80 dark:border-site-border-dark/80 rounded-xl text-sm bg-site-surface dark:bg-site-surface-dark text-site-text dark:text-site-text-dark placeholder:text-site-muted focus:outline-none focus:ring-2 focus:ring-site-accent/40 focus:border-site-accent transition-all';
+  'w-full px-4 py-2.5 border border-site-border/80 dark:border-site-border-dark/80 rounded-xl text-base sm:text-sm bg-site-surface dark:bg-site-surface-dark text-site-text dark:text-site-text-dark placeholder:text-site-muted focus:outline-none focus:ring-2 focus:ring-site-accent/40 focus:border-site-accent transition-all';
 
 export const themeCardClass =
   `rounded-2xl border border-site-border/80 dark:border-site-border-dark/80 ${themeSurfaceGlass} shadow-sm`;

@@ -5,7 +5,7 @@ import { LayoutGrid, Sparkles, Heart, BadgePercent, TrendingUp } from 'lucide-re
 const DISCOVERY_LINKS = [
   { to: '/categories', label: 'تصفح الفئات', icon: LayoutGrid },
   { to: '/scents', label: 'استكشف الروائح', icon: Sparkles },
-  { to: '/products?trending=true', label: 'الأكثر رواجاً', icon: TrendingUp },
+  { to: '/products?trending=true', label: 'تريند', icon: TrendingUp },
   { to: '/products?promoted=true', label: 'العروض الحصرية', icon: BadgePercent },
   { to: '/favorites', label: 'المفضلة', icon: Heart },
 ];

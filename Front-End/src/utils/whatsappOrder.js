@@ -39,8 +39,15 @@ export function buildWhatsAppUrl(baseUrl, message) {
 }
 
 export function buildProductPageUrl(origin, item) {
-  const slug = item.slug || item.productId;
+  const slug = item.slug || item.baseProductId || (item.productId?.includes('::')
+    ? item.productId.split('::')[0]
+    : item.productId);
   return `${origin}/product/${encodeURIComponent(slug)}`;
+}
+
+function formatItemOptions(item) {
+  if (!item?.options || typeof item.options !== 'object') return [];
+  return Object.entries(item.options).filter(([, v]) => v != null && v !== '');
 }
 
 export function buildCartWhatsAppMessage(items, cartTotal, shippingAddress, currencySymbol = '') {
@@ -50,6 +57,10 @@ export function buildCartWhatsAppMessage(items, cartTotal, shippingAddress, curr
 
   items.forEach((item, index) => {
     message += `${index + 1}. ${item.title}\n`;
+    const opts = formatItemOptions(item);
+    opts.forEach(([key, value]) => {
+      message += `   ${key}: ${value}\n`;
+    });
     message += `   الكمية: ${item.quantity}\n`;
     message += `   السعر: ${item.price.toLocaleString('en-US')} ${currencySymbol}\n`;
     message += `   الرابط: ${buildProductPageUrl(origin, item)}\n\n`;
@@ -71,12 +82,22 @@ export function buildProductWhatsAppMessage({
   price,
   currencySymbol = '',
   variantLabel = '',
+  options = null,
   productUrl = '',
 }) {
-  const displayTitle = variantLabel ? `${title} (${variantLabel})` : title;
-
   let message = 'مرحباً! أود طلب المنتج التالي:\n\n';
-  message += `المنتج: ${displayTitle}\n`;
+  message += `المنتج: ${title}\n`;
+  const optEntries =
+    options && typeof options === 'object'
+      ? Object.entries(options).filter(([, v]) => v != null && v !== '')
+      : [];
+  if (optEntries.length) {
+    optEntries.forEach(([key, value]) => {
+      message += `${key}: ${value}\n`;
+    });
+  } else if (variantLabel) {
+    message += `الخيار: ${variantLabel}\n`;
+  }
   message += `الكمية: ${quantity}\n`;
   message += `السعر: ${Number(price).toLocaleString('en-US')} ${currencySymbol}\n`;
   if (productUrl) {
@@ -85,3 +106,4 @@ export function buildProductWhatsAppMessage({
   message += '\nطريقة الطلب: واتساب';
   return message;
 }
+

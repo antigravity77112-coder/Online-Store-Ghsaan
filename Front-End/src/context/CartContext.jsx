@@ -8,12 +8,73 @@ export const useCart = () => {
   return ctx;
 };
 
-const CART_KEY = 'cart_items';
+const CART_KEY = 'cart_items_v2';
+const LEGACY_CART_KEY = 'cart_items';
+
+function splitCompositeId(productId) {
+  if (typeof productId !== 'string' || !productId.includes('::')) {
+    return { baseProductId: productId || null, variantId: null };
+  }
+  const [baseProductId, variantId] = productId.split('::');
+  return { baseProductId: baseProductId || null, variantId: variantId || null };
+}
+
+/** Migrate legacy cart rows that encoded variant in `productId` / title suffix. */
+function normalizeCartItem(raw) {
+  if (!raw || typeof raw !== 'object') return null;
+  const productId = raw.productId;
+  const { baseProductId: splitBase, variantId: splitVariant } = splitCompositeId(productId);
+  const baseProductId = raw.baseProductId || splitBase || productId;
+  const variantId = raw.variantId || splitVariant || null;
+  const compositeId =
+    variantId && baseProductId && !String(productId).includes('::')
+      ? `${baseProductId}::${variantId}`
+      : productId;
+
+  let title = raw.title || '';
+  let options = raw.options && typeof raw.options === 'object' ? raw.options : null;
+
+  // Strip legacy "Title (Black - M)" if options present or we can parse
+  if (!options && typeof title === 'string') {
+    const match = title.match(/^(.*)\s+\(([^)]+)\)\s*$/);
+    if (match && variantId) {
+      title = match[1];
+      const parts = match[2].split(/\s*-\s*/).map((s) => s.trim()).filter(Boolean);
+      if (parts.length) {
+        options = parts.reduce((acc, part, i) => {
+          acc[`خيار ${i + 1}`] = part;
+          return acc;
+        }, {});
+      }
+    }
+  }
+
+  return {
+    ...raw,
+    productId: compositeId,
+    baseProductId,
+    variantId,
+    options,
+    title,
+    slug: raw.slug || null,
+  };
+}
 
 function loadCart() {
   try {
-    const raw = localStorage.getItem(CART_KEY);
-    return raw ? JSON.parse(raw) : [];
+    const rawV2 = localStorage.getItem(CART_KEY);
+    if (rawV2) {
+      const parsed = JSON.parse(rawV2);
+      return Array.isArray(parsed) ? parsed.map(normalizeCartItem).filter(Boolean) : [];
+    }
+    const rawLegacy = localStorage.getItem(LEGACY_CART_KEY);
+    if (rawLegacy) {
+      const parsed = JSON.parse(rawLegacy);
+      const migrated = Array.isArray(parsed) ? parsed.map(normalizeCartItem).filter(Boolean) : [];
+      localStorage.setItem(CART_KEY, JSON.stringify(migrated));
+      return migrated;
+    }
+    return [];
   } catch {
     return [];
   }
@@ -32,16 +93,36 @@ export const CartProvider = ({ children }) => {
 
   const addToCart = useCallback((product, quantity = 1) => {
     setItems((prev) => {
-      const existing = prev.find((i) => i.productId === product.id);
+      const { baseProductId: splitBase, variantId: splitVariant } = splitCompositeId(product.id);
+      const baseProductId = product.baseProductId || splitBase || product.id;
+      const variantId = product.variantId ?? splitVariant ?? null;
+      const productId =
+        variantId && baseProductId
+          ? `${baseProductId}::${variantId}`
+          : product.id;
+
+      const options =
+        product.options && typeof product.options === 'object'
+          ? product.options
+          : null;
+
+      const existing = prev.find((i) => i.productId === productId);
       if (existing) {
         const newQty = Math.min(existing.quantity + quantity, product.stockQuantity || 9999);
         return prev.map((i) =>
-          i.productId === product.id
+          i.productId === productId
             ? {
                 ...i,
                 quantity: newQty,
                 stockQuantity: product.stockQuantity,
                 brandName: resolveBrandName(product) || i.brandName,
+                description: product.description || i.description || null,
+                categoryName: product.categoryName || i.categoryName || null,
+                baseProductId,
+                variantId,
+                options: options || i.options || null,
+                title: product.title || i.title,
+                slug: product.slug || i.slug || null,
               }
             : i,
         );
@@ -50,10 +131,15 @@ export const CartProvider = ({ children }) => {
       return [
         ...prev,
         {
-          productId: product.id,
+          productId,
+          baseProductId,
+          variantId,
+          options,
           slug: product.slug || null,
           brandName: resolveBrandName(product),
           title: product.title,
+          description: product.description || null,
+          categoryName: product.categoryName || null,
           price: product.discountPrice ?? product.price,
           currency: product.currency,
           imageUrl: product.imageUrl || product.mainImageUrl,
@@ -114,5 +200,3 @@ export const CartProvider = ({ children }) => {
     </CartContext.Provider>
   );
 };
-
-export default CartContext;

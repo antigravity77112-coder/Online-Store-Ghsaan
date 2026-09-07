@@ -106,8 +106,14 @@ const ProductsPage = () => {
       trackAddToCart(originalProduct, 1);
     } else {
       const fallback = {
-        id: p.id, title: p.title, price: p.price,
-        currency: p.currency || 'USD', mainImageUrl: p.image, imageUrl: p.image,
+        id: p.id,
+        title: p.title,
+        description: p.description || null,
+        categoryName: p.categoryName || null,
+        price: p.price,
+        currency: p.currency || 'USD',
+        mainImageUrl: p.image,
+        imageUrl: p.image,
       };
       addToCart(fallback, 1);
       trackAddToCart(fallback, 1);
@@ -121,7 +127,7 @@ const ProductsPage = () => {
   }, [activeProducts, toggleFavorite]);
 
   const pageTitle = trendingOnly
-    ? 'الأكثر رواجاً'
+    ? 'تريند'
     : offersOnly
     ? 'العروض الحصرية'
     : committedSearch.trim()
@@ -131,7 +137,7 @@ const ProductsPage = () => {
   const sectionTitle = committedSearch.trim()
     ? `نتائج: "${committedSearch.trim()}"`
     : trendingOnly
-      ? 'الأكثر رواجاً'
+      ? 'تريند'
       : offersOnly
       ? 'العروض الحصرية'
       : activeCategory === 'الكل' ? 'جميع المنتجات' : activeCategory;

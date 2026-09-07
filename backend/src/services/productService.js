@@ -3,6 +3,7 @@ const { randomUUID } = require('crypto');
 const { uploadBuffer, deleteByUrl } = require('../utils/cloudinaryClient');
 const { generateUniqueSlug } = require('../utils/slugify');
 const notificationService = require('./notificationService');
+const { withOptionGroups } = require('../utils/variantOptions');
 
 const SCENT_INCLUDE = {
   scents: {
@@ -10,6 +11,28 @@ const SCENT_INCLUDE = {
       scent: { select: { id: true, name: true, slug: true, imageUrl: true } },
     },
   },
+};
+
+const VARIANT_ATTRIBUTES_INCLUDE = {
+  attributes: {
+    include: {
+      categoryAttribute: {
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          type: true,
+          scope: true,
+          sortOrder: true,
+        },
+      },
+    },
+  },
+};
+
+const PRODUCT_VARIANTS_INCLUDE = {
+  orderBy: { sortOrder: 'asc' },
+  include: VARIANT_ATTRIBUTES_INCLUDE,
 };
 
 function mapProductWithScents(product) {
@@ -314,6 +337,7 @@ class ProductService {
           category: { select: { name: true } },
           images: { orderBy: { sortOrder: 'asc' } },
           brand: { select: { name: true, slug: true, logoUrl: true } },
+          variants: PRODUCT_VARIANTS_INCLUDE,
           ...SCENT_INCLUDE,
         },
       });
@@ -326,6 +350,7 @@ class ProductService {
             category: { select: { name: true } },
             images: { orderBy: { sortOrder: 'asc' } },
             brand: { select: { name: true, slug: true, logoUrl: true } },
+            variants: PRODUCT_VARIANTS_INCLUDE,
             ...SCENT_INCLUDE,
           },
         });
@@ -337,7 +362,7 @@ class ProductService {
       throw error;
     }
 
-    const mapped = mapProductWithScents({ ...product, categoryName: product.category?.name || null });
+    const mapped = withOptionGroups(mapProductWithScents({ ...product, categoryName: product.category?.name || null }));
     try {
       await notificationService.notifyEngagementNewProduct(mapped);
     } catch (err) {
@@ -446,6 +471,10 @@ class ProductService {
           select: { id: true, url: true, isPrimary: true, sortOrder: true },
         },
         brand: { select: { name: true, slug: true } },
+        variants: {
+          where: { isActive: true },
+          select: { stockQuantity: true },
+        },
       },
       orderBy: trending
         ? [{ createdAt: 'desc' }]
@@ -459,12 +488,20 @@ class ProductService {
       filtered = products.filter(p => p.currency !== 'USD' || Number(p.price) <= maxPriceUsd);
     }
 
-    return filtered.map((p) => ({
-      ...p,
-      categoryName: p.category?.name || null,
-      imageUrl: p.images?.[0]?.url ?? null,
-      scents: [],
-    }));
+    return filtered.map((p) => {
+      const { variants, ...rest } = p;
+      const variantStockTotal = Array.isArray(variants)
+        ? variants.reduce((sum, v) => sum + (Number(v.stockQuantity) || 0), 0)
+        : 0;
+      const remainingStock = p.hasVariants ? variantStockTotal : (Number(p.stockQuantity) || 0);
+      return {
+        ...rest,
+        categoryName: p.category?.name || null,
+        imageUrl: p.images?.[0]?.url ?? null,
+        scents: [],
+        remainingStock,
+      };
+    });
   }
 
   async getProductById(id) {
@@ -483,26 +520,15 @@ class ProductService {
           },
           orderBy: { categoryAttribute: { sortOrder: 'asc' } },
         },
-        variants: {
-          orderBy: { sortOrder: 'asc' },
-          include: {
-            attributes: {
-              include: {
-                categoryAttribute: {
-                  select: { id: true, name: true, slug: true, type: true, scope: true },
-                },
-              },
-            },
-          },
-        },
+        variants: PRODUCT_VARIANTS_INCLUDE,
       },
     });
     if (!p) return null;
-    return mapProductWithScents({
+    return withOptionGroups(mapProductWithScents({
       ...p,
       categoryName: p.category?.name || null,
       imageUrl: p.images?.[0]?.url ?? null,
-    });
+    }));
   }
 
   async getProductBySlug(slug) {
@@ -529,12 +555,7 @@ class ProductService {
         },
         variants: {
           where: { isActive: true },
-          orderBy: { sortOrder: 'asc' },
-          include: {
-            attributes: {
-              include: { categoryAttribute: { select: { name: true, slug: true } } },
-            },
-          },
+          ...PRODUCT_VARIANTS_INCLUDE,
         },
         reviews: {
           where: { isApproved: true },
@@ -545,11 +566,11 @@ class ProductService {
       },
     });
     if (!p) return null;
-    return mapProductWithScents({
+    return withOptionGroups(mapProductWithScents({
       ...p,
       categoryName: p.category?.name || null,
       imageUrl: p.images?.[0]?.url ?? null,
-    });
+    }));
   }
 
   async updateProduct(id, updateData) {
@@ -781,7 +802,7 @@ class ProductService {
           category: { select: { name: true, slug: true } },
           brand: { select: { name: true, slug: true, logoUrl: true } },
           images: { orderBy: { sortOrder: 'asc' } },
-          variants: true,
+          variants: PRODUCT_VARIANTS_INCLUDE,
           ...SCENT_INCLUDE,
         },
       });
@@ -798,7 +819,7 @@ class ProductService {
       console.error('[products] low stock notify:', err.message);
     }
 
-    return mapProductWithScents(product);
+    return withOptionGroups(mapProductWithScents(product));
   }
 
   async deleteProduct(id) {

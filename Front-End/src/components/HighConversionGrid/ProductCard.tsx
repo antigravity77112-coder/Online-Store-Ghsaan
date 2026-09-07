@@ -22,6 +22,9 @@ export interface Product {
   isTrending?: boolean;
   discountPrice?: number;
   promotionLabel?: string;
+  stockQuantity?: number;
+  remainingStock?: number;
+  hasVariants?: boolean;
 }
 
 interface ProductCardProps {
@@ -87,7 +90,13 @@ export const ProductCard: React.FC<ProductCardProps> = React.memo(({
     isTrending,
     discountPrice,
     promotionLabel,
+    remainingStock,
+    stockQuantity,
   } = product;
+
+  const leftInStock = remainingStock != null
+    ? Number(remainingStock)
+    : (stockQuantity != null ? Number(stockQuantity) : null);
 
   const productPath = `/product/${product.slug || product.id}`;
   const numPrice = Number(price) || 0;
@@ -201,6 +210,17 @@ export const ProductCard: React.FC<ProductCardProps> = React.memo(({
             </span>
           )}
         </div>
+
+        {leftInStock != null && !Number.isNaN(leftInStock) ? (
+          <p className={`mt-1 text-[10px] sm:text-[11px] font-semibold leading-none ${
+            leftInStock > 0
+              ? 'text-emerald-700 dark:text-emerald-400'
+              : 'text-stone-400 dark:text-stone-500'
+          }`}
+          >
+            {leftInStock > 0 ? `متبقي ${leftInStock.toLocaleString('en-US')}` : 'نفد المخزون'}
+          </p>
+        ) : null}
       </div>
     </article>
   );

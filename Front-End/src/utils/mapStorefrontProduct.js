@@ -22,6 +22,11 @@ export function mapStorefrontProduct(p) {
     isTrending: p.isTrending || false,
     discountPrice: p.discountPrice ? Number(p.discountPrice) : undefined,
     promotionLabel: p.promotionLabel || undefined,
+    stockQuantity: p.stockQuantity != null ? Number(p.stockQuantity) : undefined,
+    remainingStock: p.remainingStock != null
+      ? Number(p.remainingStock)
+      : (p.stockQuantity != null ? Number(p.stockQuantity) : undefined),
+    hasVariants: Boolean(p.hasVariants),
   };
 
   if (p.rating != null) mapped.rating = p.rating;

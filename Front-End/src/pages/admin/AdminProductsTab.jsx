@@ -193,7 +193,7 @@ const AdminProductsTab = ({ openEditProductModal }) => {
   const filterItems = [
     { id: 'all', label: 'الكل' },
     { id: 'active', label: 'نشط' },
-    { id: 'trending', label: 'الأكثر رواجاً' },
+    { id: 'trending', label: 'تريند' },
     { id: 'hidden', label: 'مسودة/مخفي' },
     { id: 'outofstock', label: 'نفد المخزون' },
   ];

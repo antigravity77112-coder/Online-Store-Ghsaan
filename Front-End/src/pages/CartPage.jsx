@@ -330,88 +330,117 @@ const CartPage = () => {
           <div className="flex-1 space-y-4">
             <AnimatePresence>
               {items.map((item) => (
-                <motion.div
+                <motion.article
                   key={item.productId}
                   layout
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, x: -100, transition: { duration: 0.2 } }}
-                  className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-4 sm:p-5 flex gap-4 items-center shadow-sm hover:shadow-md transition-shadow"
+                  className="group flex bg-white dark:bg-slate-900 rounded-2xl overflow-hidden border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-md hover:border-gold-200 dark:hover:border-gold-700 transition-all duration-200"
                 >
-                  <Link to={`/product/${item.slug || item.productId}`} className="flex-shrink-0">
-                    <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600">
-                      <img
-                        src={getOptimizedImageUrl(
-                          item.imageUrl || item.mainImageUrl || 'https://images.unsplash.com/photo-1560472355-536de3962603?w=200&q=60',
-                          IMAGE_WIDTHS.THUMBNAIL,
-                        )}
-                        alt={item.title}
-                        className="w-full h-full object-contain p-1"
-                        loading="lazy"
-                        width={96}
-                        height={96}
-                      />
-                    </div>
+                  <Link
+                    to={`/product/${item.slug || item.baseProductId || item.productId}`}
+                    className="w-28 sm:w-40 flex-shrink-0 bg-slate-50 dark:bg-slate-800 relative overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40"
+                    aria-label={item.title}
+                  >
+                    <img
+                      src={getOptimizedImageUrl(
+                        item.imageUrl || item.mainImageUrl || 'https://images.unsplash.com/photo-1560472355-536de3962603?w=800&q=80',
+                        IMAGE_WIDTHS.GRID_CARD,
+                      )}
+                      alt=""
+                      width={160}
+                      height={160}
+                      className="w-full h-full min-h-[7rem] sm:min-h-[10rem] object-contain p-1 transition-transform duration-300 group-hover:scale-105 motion-reduce:transform-none"
+                      loading="lazy"
+                    />
                   </Link>
 
-                  <div className="flex-1 min-w-0">
-                    {item.brandName && (
-                      <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 truncate">
-                        {item.brandName}
-                      </p>
-                    )}
-                    <Link to={`/product/${item.slug || item.productId}`}>
-                      <h3 className="font-bold text-slate-900 dark:text-white text-sm sm:text-base truncate hover:text-gold-600 dark:hover:text-gold-400 transition-colors">
-                        {item.title}
-                      </h3>
-                    </Link>
-                    <p className="text-gold-600 dark:text-gold-400 font-bold text-sm sm:text-base mt-1">
-                      {formatPrice(item.price, item.currency)}
-                    </p>
+                  <div className="flex-1 p-3 sm:p-4 flex flex-col justify-between min-w-0">
+                    <div>
+                      <div className="flex justify-between items-start gap-2 mb-1.5">
+                        <div className="min-w-0">
+                          {item.brandName && (
+                            <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 truncate mb-0.5">
+                              {item.brandName}
+                            </p>
+                          )}
+                          <Link
+                            to={`/product/${item.slug || item.baseProductId || item.productId}`}
+                            className="text-sm sm:text-base font-bold text-slate-800 dark:text-slate-100 line-clamp-2 group-hover:text-gold-600 dark:group-hover:text-gold-400 transition-colors leading-snug focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 rounded"
+                          >
+                            {item.title}
+                          </Link>
+                          {item.options && Object.keys(item.options).length > 0 ? (
+                            <ul className="mt-1.5 space-y-0.5">
+                              {Object.entries(item.options).map(([key, value]) => (
+                                <li key={key} className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400">
+                                  <span className="font-semibold text-slate-600 dark:text-slate-300">{key}:</span> {value}
+                                </li>
+                              ))}
+                            </ul>
+                          ) : null}
+                        </div>
 
-                    <div className="flex items-center gap-1 mt-3">
-                      <button
-                        type="button"
-                        onClick={() => updateQuantity(item.productId, item.quantity - 1)}
-                        className="min-w-[44px] min-h-[44px] rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 flex items-center justify-center text-slate-600 dark:text-slate-300 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40"
-                        aria-label={t('cart.decreaseQuantity')}
-                      >
-                        <Minus className="w-4 h-4" aria-hidden="true" />
-                      </button>
-                      <span className="w-10 text-center font-bold text-slate-800 dark:text-white text-sm" aria-live="polite">
-                        {item.quantity}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => updateQuantity(item.productId, item.quantity + 1)}
-                        disabled={item.quantity >= (item.stockQuantity || 9999)}
-                        className={`min-w-[44px] min-h-[44px] rounded-lg flex items-center justify-center transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 ${
-                          item.quantity >= (item.stockQuantity || 9999)
-                            ? 'bg-bone dark:bg-slate-800 text-slate-300 dark:text-slate-600 cursor-not-allowed'
-                            : 'bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300'
-                        }`}
-                        aria-label={t('cart.increaseQuantity')}
-                      >
-                        <Plus className="w-4 h-4" aria-hidden="true" />
-                      </button>
-                    </div>
-                    {item.quantity >= (item.stockQuantity || 9999) && (
-                      <div className="flex items-center gap-1 mt-1.5 text-gold-600 dark:text-gold-400">
-                        <AlertTriangle className="w-3 h-3" aria-hidden="true" />
-                        <span className="text-[11px] font-medium">{t('cart.maxStock', { count: item.stockQuantity })}</span>
+                        <button
+                          type="button"
+                          onClick={() => removeFromCart(item.productId)}
+                          className="min-w-[44px] min-h-[44px] flex items-center justify-center text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-lg transition-colors flex-shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40"
+                          aria-label={t('cart.removeItem')}
+                        >
+                          <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" aria-hidden="true" />
+                        </button>
                       </div>
-                    )}
-                  </div>
 
-                  <button
-                    type="button"
-                    onClick={() => removeFromCart(item.productId)}
-                    className="min-w-[44px] min-h-[44px] flex items-center justify-center text-slate-300 dark:text-slate-600 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl transition-all flex-shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40"
-                    aria-label={t('cart.removeItem')}
-                  >
-                    <Trash2 className="w-5 h-5" aria-hidden="true" />
-                  </button>
-                </motion.div>
+                      {(item.description || item.categoryName) && (
+                        <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed mt-1">
+                          {item.description || item.categoryName}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="mt-3 flex items-end justify-between gap-2">
+                      <div className="flex flex-col">
+                        <span className="text-base sm:text-lg font-black text-gold-700 dark:text-gold-400 leading-none">
+                          {formatPrice(item.price, item.currency)}
+                        </span>
+
+                        <div className="flex items-center gap-1 mt-3">
+                          <button
+                            type="button"
+                            onClick={() => updateQuantity(item.productId, item.quantity - 1)}
+                            className="min-w-[40px] min-h-[40px] rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 flex items-center justify-center text-slate-600 dark:text-slate-300 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40"
+                            aria-label={t('cart.decreaseQuantity')}
+                          >
+                            <Minus className="w-4 h-4" aria-hidden="true" />
+                          </button>
+                          <span className="w-8 text-center font-bold text-slate-800 dark:text-white text-sm" aria-live="polite">
+                            {item.quantity}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => updateQuantity(item.productId, item.quantity + 1)}
+                            disabled={item.quantity >= (item.stockQuantity || 9999)}
+                            className={`min-w-[40px] min-h-[40px] rounded-lg flex items-center justify-center transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 ${
+                              item.quantity >= (item.stockQuantity || 9999)
+                                ? 'bg-bone dark:bg-slate-800 text-slate-300 dark:text-slate-600 cursor-not-allowed'
+                                : 'bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300'
+                            }`}
+                            aria-label={t('cart.increaseQuantity')}
+                          >
+                            <Plus className="w-4 h-4" aria-hidden="true" />
+                          </button>
+                        </div>
+                        {item.quantity >= (item.stockQuantity || 9999) && (
+                          <div className="flex items-center gap-1 mt-1.5 text-gold-600 dark:text-gold-400">
+                            <AlertTriangle className="w-3 h-3" aria-hidden="true" />
+                            <span className="text-[11px] font-medium">{t('cart.maxStock', { count: item.stockQuantity })}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </motion.article>
               ))}
             </AnimatePresence>
 
