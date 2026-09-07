@@ -1,0 +1,37 @@
+User-agent: *
+Allow: /
+
+# Disallow user-specific & auth pages
+Disallow: /admin
+Disallow: /seller
+Disallow: /profile
+Disallow: /my-orders
+Disallow: /cart
+Disallow: /auth
+Disallow: /api/
+
+# Bingbot
+User-agent: Bingbot
+Allow: /
+Disallow: /admin
+Disallow: /seller
+Disallow: /profile
+Disallow: /my-orders
+Disallow: /cart
+Disallow: /auth
+
+# Yandex
+User-agent: YandexBot
+Allow: /
+Disallow: /admin
+Disallow: /seller
+Disallow: /profile
+Disallow: /my-orders
+Disallow: /cart
+Disallow: /auth
+
+# Sitemaps — public proxied URL only (not under /api/)
+Sitemap: https://www.gisaah.com/sitemap.xml
+
+# Host directive (Yandex)
+Host: https://www.gisaah.com

@@ -1,0 +1,303 @@
+GISAah Front-End Audit
+======================
+Date: 2026-09-02
+Scope: Front-End/ only
+Stack: React 18.3 · Vite 6 · React Router 7 · SWR 2.4 · Tailwind 3.4 · JavaScript (JSX)
+Skills reference: gisaah-frontend, react, tailwind, ui-design, vercel-react-best-practices, feature-arch, client-swr-dedup
+
+No code changes were made during this audit. Implementation requires separate approval.
+
+
+ARCHITECTURE SNAPSHOT
+---------------------
+Entry:        main.jsx — 6 nested providers + global SWRConfig + localStorage cache provider
+Routing:      App.jsx — HomePage eager; other routes lazy; manual vendor chunks in vite.config.js
+Data:         services/api.js + hooks/useProducts.js (SWR / SWR Infinite)
+State:        Context: Auth, Cart, Favorites, Theme, Locale, SiteConfig
+UI:           Layout.jsx wraps most pages; dual product-card systems (ProductCard.jsx + HighConversionGrid/ProductCard.tsx)
+Styling:      Tailwind 3 + CSS variables in index.css + runtime theme from site config
+Tests:        None found (*.test.* / *.spec.*)
+
+Strengths already in place:
+- Route-level code splitting
+- Vendor chunking in Vite
+- Cloudinary width optimization utility (cloudinaryUrl.js)
+- SWR global deduping
+- RTL via dir on layout
+- Lazy admin route
+- Error boundaries on routes/admin
+
+
+================================================================================
+P0 — CRITICAL
+================================================================================
+
+[1] Fabricated ratings and review counts on product cards
+    Where:      HomePage.jsx (mapToProduct, ~L137-138)
+                ProductsPage.jsx (~L43-44)
+                BrandPage.jsx, CategoryPage.jsx, ScentPage.jsx, RelatedProducts.jsx
+    Problem:    When API has no rating/reviewCount, UI invents values from product.id
+                (e.g. 3.5 + ..., fake counts up to ~950). Stars/reviews appear real.
+    Impact:     Trust & conversion risk — misleading social proof on premium e-commerce;
+                possible regulatory/brand risk.
+    Solution:   Only render ratings when backend provides them; hide block otherwise.
+                Remove all synthetic fallbacks.
+    Skill:      ui-design (honest UI); web-design-guidelines (interface integrity)
+
+
+[2] Homepage merchandising limited to first 50 products
+    Where:      hooks/useProducts.js (fetchProducts → pageSize: 50)
+                App.jsx preload (api.getProducts({ pageSize: 50 }))
+    Problem:    Home sections (best sellers, new arrivals, category carousels, featured)
+                all partition from one 50-item slice. Products beyond that never appear
+                on home even if promoted or new.
+    Impact:     Incorrect catalog representation as inventory grows; missed sales on
+                hidden SKUs.
+    Solution:   Use targeted API queries per section (promoted, newest, per-category)
+                or server-side filters — not a single generic 50-product blob.
+    Skill:      vercel-react-best-practices (async-parallel)
+                feature-arch (fquery-parallel-fetching)
+
+
+================================================================================
+P1 — HIGH IMPACT
+================================================================================
+
+[3] Context providers cause broad re-renders
+    Where:      CartContext.jsx (~L79-84)
+                FavoritesContext.jsx (~L65-67)
+                AuthContext.jsx (~L115-118)
+                ThemeContext.jsx (~L92-94)
+    Problem:    Provider value objects recreated every render. Any cart quantity change,
+                favorite toggle, or auth update re-renders all consumers including Layout.
+    Impact:     Extra renders on high-traffic interactions (add to cart, heart icon);
+                worse on mobile.
+    Solution:   useMemo provider values; split Cart into state vs actions contexts;
+                selectors for cartCount/favoritesCount where needed.
+    Skill:      react (rstate-context-optimization)
+                vercel-react-best-practices (rerender-memo, rerender-derived-state-no-effect)
+
+
+[4] ProductDetailsPage bypasses SWR cache
+    Where:      ProductDetailsPage.jsx (~L136-177) — useEffect + api.getProductBySlug/getProductById
+    Problem:    Manual fetch: no shared cache with listings, no dedup on remount, no
+                background revalidation, duplicate network on back/forward navigation.
+    Impact:     Slower PDP loads, redundant API calls, inconsistent data layer.
+    Solution:   Add useProduct(slug) SWR hook keyed by slug/id; align with preload where useful.
+    Skill:      vercel-react-best-practices (client-swr-dedup)
+                react (data-suspense-data-fetching pattern — React 18 compatible)
+
+
+[5] Layout.jsx is heavy on every storefront page
+    Where:      Layout.jsx (~630 lines): Framer Motion intro (layoutId, overlay ~1.35s first visit),
+                20+ Lucide icons, full header + mobile drawer
+    Problem:    Motion + large icon set load for all pages using Layout. First-visit logo intro
+                hides header (opacity-0 until stage done).
+    Impact:     LCP / INP / CLS — delayed header visibility; larger initial JS on critical path.
+    Solution:   Gate intro to home-only or remove; lazy-load mobile menu; trim Lucide imports.
+    Skill:      vercel-react-best-practices (bundle-barrel-imports)
+                ui-design (cwv-improve-inp)
+
+
+[6] Admin dashboard loads all tabs and heavy libs upfront
+    Where:      AdminDashboard.jsx — static imports of all Admin*Tab.jsx, AddProductForm,
+                recharts (AdminDashboardTab.jsx), xlsx (orders/users export)
+    Problem:    Visiting /admin pulls charts + spreadsheet + every admin tab into one chunk,
+                even if user only opens Orders.
+    Impact:     Slow admin first load; large JS parse on admin devices.
+    Solution:   React.lazy per tab; dynamic import('xlsx') on export click;
+                dynamic import('recharts') when dashboard tab mounts.
+    Skill:      vercel-react-best-practices (bundle splitting)
+                feature-arch (struct-feature-self-contained)
+
+
+[7] Dark mode toggle is not reachable
+    Where:      Layout.jsx (~L304-306) — theme button has className="hidden" (no responsive override)
+                ThemeContext.jsx / index.html also force light on init
+    Problem:    ThemeContext supports toggle but UI control is invisible on all breakpoints.
+    Impact:     Broken/inconsistent theme UX; wasted dark-mode CSS across app.
+    Solution:   Expose toggle (mobile menu + desktop) and fix init logic, OR remove dark-mode
+                code paths until product-ready.
+    Skill:      ui-design (color-dark-mode, access-focus-indicators)
+
+
+[8] Cart images not using Cloudinary optimizer
+    Where:      CartPage.jsx (~L177-182) — raw imageUrl/mainImageUrl, object-cover,
+                no getOptimizedImageUrl
+    Problem:    Cart may download full-size images while listing pages use width-limited transforms.
+    Impact:     Unnecessary bytes on cart/checkout path; slower paint on mobile networks.
+    Solution:   Reuse getOptimizedImageUrl(url, IMAGE_WIDTHS.THUMBNAIL) + loading="lazy".
+    Skill:      ui-design (cwv-responsive-images); project cloudinaryUrl.js convention
+
+
+[9] Render-blocking Google Fonts
+    Where:      index.html (~L49-51) — Tajawal + Cormorant Garamond stylesheet
+    Problem:    External CSS blocks first paint; multiple weights increase payload.
+    Impact:     LCP / FOIT on first visit, especially on slow networks.
+    Solution:   Self-host critical weights, font-display: swap, subset Arabic/Latin,
+                or preload only above-the-fold weights.
+    Skill:      ui-design (cwv-critical-css, typo-readable-line-length)
+
+
+[10] Duplicated mapToProduct logic (6+ copies)
+     Where:     HomePage, ProductsPage, CategoryPage, BrandPage, ScentPage, RelatedProducts
+     Problem:   Same mapping, fake ratings, Unsplash fallback, Cloudinary sizing duplicated
+                with drift risk.
+     Impact:    Maintenance bugs; inconsistent product cards across pages.
+     Solution:  Single utils/mapStorefrontProduct.js (or features/product/mappers.js).
+     Skill:     feature-arch (struct-feature-self-contained, fcomp-container-presentational)
+
+
+[11] No automated front-end tests
+     Where:     Entire Front-End/ — no Vitest/Playwright/MSW setup
+     Problem:   Regressions (SWR keys, cart, auth routes, admin forms) caught only manually.
+     Impact:    High cost of refactors; risky deploys as features grow.
+     Solution:  Vitest for mappers/SWR keys/api error parsing; Playwright smoke for home→PDP→cart.
+     Skill:     vitest, playwright, tdd (cycle-red-green-refactor)
+
+
+[12] Mobile nav missing Favorites
+     Where:     MobileBottomNav.jsx — Home, Categories, Cart, Profile only
+                Layout.jsx header has Favorites
+     Problem:   Inconsistent IA: favorites in header but not primary mobile tab bar.
+     Impact:    Discoverability friction on mobile (primary GISAah audience).
+     Solution:  Add Favorites tab or replace Profile with account hub; align with mobile app.
+     Skill:     ui-design (layout-proximity-grouping)
+
+
+================================================================================
+P2 — MEDIUM IMPACT
+================================================================================
+
+[13] Two product card implementations
+     Where:     components/ProductCard.jsx vs components/HighConversionGrid/ProductCard.tsx
+     Problem:   Different APIs, animation, favorite handling; dual maintenance.
+     Impact:    Visual inconsistency across pages.
+     Solution:  Consolidate on one card; keep compact variant for carousels.
+     Skill:     vercel-composition-patterns (architecture-compound-components)
+
+
+[14] index.css html block structure is suspect
+     Where:     index.css (~L34-45) — nested html[dir="rtl"] inside html { without PostCSS nesting
+     Problem:   postcss.config.js has only tailwindcss + autoprefixer (no nesting plugin).
+                RTL rules may be ignored or parsed unexpectedly.
+     Impact:    Direction may rely only on React dir prop; subtle RTL bugs on unwrapped content.
+     Solution:  Flatten selectors or add postcss-nesting; verify compiled CSS output.
+     Skill:     tailwind (resp-logical-properties — v3 appropriate)
+
+
+[15] Cart stores and displays product descriptions
+     Where:     CartContext.jsx (~L47), CartPage.jsx (~L193-197)
+     Problem:   Full description in cart line items clutters checkout-oriented UI.
+     Impact:    Weaker scanability; taller cards on mobile web.
+     Solution:  Stop persisting description in cart; show brand/variant/price only.
+     Skill:     ui-design (layout-whitespace)
+
+
+[16] ProductGridDemo exposed in production routes
+     Where:     App.jsx — /product-grid-demo
+     Problem:   Internal demo route shipped to production.
+     Impact:    Confusing URL, minor bundle surface, unpolished public page.
+     Solution:  Guard with import.meta.env.DEV or remove route.
+     Skill:     feature-arch (scope control)
+
+
+[17] Flat src/ structure vs feature modules
+     Where:     pages/, components/, context/, hooks/ — scents/brands/cart logic spread across layers
+     Problem:   Harder to enforce boundaries (scent vs brand domains).
+     Impact:    Slower onboarding; cross-domain coupling risk as app grows.
+     Solution:  Incremental features/{product,cart,scent,admin}/ migration without big-bang rewrite.
+     Skill:     feature-arch (struct-flat-hierarchy, struct-feature-self-contained)
+
+
+[18] SWR persistent cache capped at 50 entries
+     Where:     main.jsx (localStorageProvider, slice(0, 50))
+     Problem:   Older cache keys evicted silently; many product filter keys limit benefit.
+     Impact:    Occasional stale/miss behavior; beforeunload JSON stringify cost.
+     Solution:  Document strategy; persist only stable keys (categories, siteConfig);
+                or increase cap with TTL metadata.
+     Skill:     vercel-react-best-practices (client-swr-dedup)
+
+
+[19] External Unsplash fallback images
+     Where:     mapToProduct in multiple pages — images.unsplash.com fallback
+     Problem:   Third-party dependency, off-brand placeholder, extra DNS/TLS.
+     Impact:    Layout shift, privacy, broken images if Unsplash blocked.
+     Solution:  Local branded placeholder from /public/.
+     Skill:     ui-design (cwv-responsive-images)
+
+
+[20] Inconsistent focus styles on interactive controls
+     Where:     Layout.jsx many focus:outline-none without focus-visible:ring-*
+                (contrast: Footer.jsx, ScentBelt.jsx do it correctly)
+     Problem:   Keyboard users lose visible focus on nav buttons.
+     Impact:    WCAG 2.4.7 accessibility gap.
+     Solution:  Standardize focus-visible:ring-2 focus-visible:ring-gold-500/50 on icon buttons.
+     Skill:     ui-design (access-focus-indicators)
+
+
+[21] recharts / xlsx not in manualChunks
+     Where:     vite.config.js manualChunks; deps used only in admin
+     Problem:   Chart/spreadsheet code may land in admin chunk without separate long-term caching.
+     Impact:    Minor — admin-only; matters if admin chunk changes often.
+     Solution:  Add vendor-charts / vendor-xlsx chunks or lazy-load (pairs with P1 #6).
+     Skill:     vercel-react-best-practices (bundle optimization)
+
+
+================================================================================
+P3 — NICE TO HAVE
+================================================================================
+
+[22] Logo intro animation on every new session
+     Where:     Layout.jsx — sessionStorage gisaah_intro_seen, Framer layoutId
+     Impact:    Premium branding vs speed tradeoff; ~1.35s before full chrome on first visit.
+     Solution:  Shorten, skip on repeat visits (already), or respect prefers-reduced-motion.
+     Skill:     ui-design (cwv-improve-inp)
+
+
+[23] OfferBelt renders duplicate DOM nodes
+     Where:     HomePage.jsx — Array(8).fill(...) for marquee
+     Impact:    Minor DOM bloat; could be CSS-only loop.
+     Skill:     vercel-react-best-practices (js-min-max-loop)
+
+
+[24] Mixed JS + TSX in same app without TS compile path
+     Where:     HighConversionGrid/*.tsx in otherwise .jsx codebase
+     Impact:    No type-checking benefit; slight tooling friction.
+     Solution:  Migrate incrementally to TS or convert grid to .jsx for consistency.
+     Skill:     gisaah-frontend stack note (JS-first)
+
+
+[25] Chat vendor chunk reserved but widget disabled
+     Where:     vite.config.js vendor-chat; App.jsx commented ChatWidget
+     Impact:    Dead chunk config until chat returns.
+     Solution:  Remove chunk until feature re-enabled.
+
+
+[26] Web cart/favorites local-only (no server sync)
+     Where:     CartContext.jsx, FavoritesContext.jsx — localStorage only
+                Mobile app syncs via API
+     Impact:    Logged-in web users lose cart across devices/browsers.
+     Solution:  Optional sync for authenticated users (API exists on backend/mobile).
+     Skill:     feature-arch (mobile parity — optional if web is guest-first)
+
+
+================================================================================
+SUGGESTED IMPLEMENTATION ORDER (after approval)
+================================================================================
+
+1. P0 — Remove fake ratings; fix home product sourcing
+2. P1 — Context memoization + PDP SWR hook + cart image optimization
+3. P1 — mapToProduct consolidation + admin tab lazy loading
+4. P1 — Fonts / Layout intro / theme toggle decision
+5. P2 — Cart description removal, focus styles, CSS fix, demo route
+6. P2/P3 — Tests baseline, feature-folder migration (incremental)
+
+
+================================================================================
+OUT OF SCOPE (per constraints)
+================================================================================
+
+- No Next.js App Router, React 19-only APIs, Tailwind v4 migration, or TanStack Query swap
+- No backend/schema changes for this pass
+- No new dependencies unless clearly justified (e.g. tests later)

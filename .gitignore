@@ -1,0 +1,16 @@
+node_modules/
+.env
+.env.*
+dist/
+build/
+.vscode/
+.DS_Store
+
+# Mobile local/build artifacts (app source is included for EAS)
+Mobile/node_modules/
+Mobile/.expo/
+Mobile/.expo-export-*/
+Mobile/.expo-tmp-*/
+Mobile/.idea/
+Mobile/dist/
+Mobile/web-build/

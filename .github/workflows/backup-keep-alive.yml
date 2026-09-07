@@ -1,0 +1,25 @@
+# Optional scheduled Layer-2 export reminder / keep-alive.
+# Does NOT dump production automatically without secrets.
+# For nightly pg_dump, run scripts on a trusted machine with DIRECT_URL,
+# or add a self-hosted runner + repository secret DIRECT_URL.
+
+name: Backup Keep-Alive
+
+on:
+  schedule:
+    - cron: '0 3 * * *' # daily 03:00 UTC
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping API health (prevent Free-tier pause)
+        env:
+          HEALTH_URL: ${{ secrets.HEALTH_URL }}
+        run: |
+          if [ -z "$HEALTH_URL" ]; then
+            echo "Set repository secret HEALTH_URL to https://your-api/api/health"
+            exit 0
+          fi
+          curl -fsS "$HEALTH_URL"

@@ -1,0 +1,30 @@
+# Dependencies
+node_modules/
+
+# Environment variables — NEVER commit these, they contain secrets
+.env
+.env.local
+.env.production
+
+# Logs
+*.log
+debug.log
+debug_full.log
+err.log
+out.log
+push_fixed.log
+test_err.log
+test_out.log
+
+# Prisma generated client
+node_modules/.prisma
+
+# Uploads (local dev only, images go to Cloudinary in production)
+uploads/
+
+# Local backup dumps (contain secrets / password hashes)
+backups/
+
+# OS
+.DS_Store
+Thumbs.db

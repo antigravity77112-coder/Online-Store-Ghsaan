@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <sitemap>
+    <loc>https://www.gisaah.com/sitemap-static.xml</loc>
+    <lastmod>2026-09-07</lastmod>
+  </sitemap>
+  <sitemap>
+    <loc>https://www.gisaah.com/sitemap-categories.xml</loc>
+    <lastmod>2026-09-07</lastmod>
+  </sitemap>
+  <sitemap>
+    <loc>https://www.gisaah.com/sitemap-brands.xml</loc>
+    <lastmod>2026-09-07</lastmod>
+  </sitemap>
+  <sitemap>
+    <loc>https://www.gisaah.com/sitemap-scents.xml</loc>
+    <lastmod>2026-09-07</lastmod>
+  </sitemap>
+  <sitemap>
+    <loc>https://www.gisaah.com/sitemap-products.xml</loc>
+    <lastmod>2026-09-07</lastmod>
+  </sitemap>
+</sitemapindex>

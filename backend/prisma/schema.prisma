@@ -1,0 +1,989 @@
+// =============================================================================
+// GISAAH E-COMMERCE — PRISMA SCHEMA
+// Database: PostgreSQL | ORM: Prisma | Architecture: Multi-seller Marketplace
+//
+// UPGRADE LOG:
+//   v2.0 — Product/Category Catalog Architecture Upgrade
+//          - Added: Brand, ProductImage, ProductVariant, VariantAttribute
+//          - Added: CategoryAttribute, ProductAttribute, Review
+//          - Upgraded: Category (hierarchy, slug, SEO, status)
+//          - Upgraded: Product (status enum, SKU, SEO, brand, low-stock)
+//          - Modified: OrderItem (snapshot fields, nullable productId)
+//
+//   v2.1 — Architectural Integrity Fixes
+//          - Fix 1: Deterministic slug strategy (name + ID suffix, always unique)
+//          - Fix 2: AttributeScope enum — CategoryAttributes now declare whether
+//                   they apply to the Product, Variant, or Both levels.
+//          - Fix 3: VariantAttribute now links to CategoryAttribute (scope=VARIANT/BOTH)
+//                   instead of free-form name/value strings. Prevents "Color" vs
+//                   "color" vs "Colour" normalization drift.
+//          - Fix 4: Product.hasVariants flag — cleanly separates inventory/pricing modes:
+//                     hasVariants=false → Product.price + Product.stockQuantity
+//                     hasVariants=true  → ProductVariant.price + SUM(variant stocks)
+//          - Fix 5: Pricing inheritance rule documented and enforced by convention.
+//          - Fix 6: OrderItem snapshot reads from ProductImage (not mainImageUrl)
+//                   so the new image architecture is the source of truth.
+//
+// DB-LEVEL ENFORCEMENT (apply in migration SQL — see walkthrough):
+//   - ProductAttribute category integrity: CHECK constraint ensures a product's
+//     attributes only reference CategoryAttributes from the product's own category.
+//   - Review rating range: CHECK constraint enforces rating BETWEEN 1 AND 5.
+//
+// DEPRECATION NOTICES (remove in a future migration AFTER code migration):
+//   - Product.isHidden       → replaced by Product.status (ProductStatus enum)
+//   - Product.mainImageUrl   → replaced by ProductImage relation
+// =============================================================================
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// =============================================================================
+// ENUMS
+// =============================================================================
+
+enum Role {
+  Admin
+  Buyer
+}
+
+enum Condition {
+  New
+  Used
+  Refurbished
+}
+
+enum Currency {
+  YER_Sanaa
+  YER_Aden
+  USD
+  SAR
+  EUR
+}
+
+enum OrderStatus {
+  Pending
+  Confirmed
+  Processing
+  Shipped
+  Delivered
+  Cancelled
+}
+
+enum PaymentMethod {
+  COD
+  BankTransfer
+  CreditCard
+  CashOnDelivery
+}
+
+enum BannerPlacement {
+  promo_home
+  announcement
+  category
+  product
+  sidebar
+  footer
+  popup
+  hero
+}
+
+enum BannerStatus {
+  active
+  draft
+  scheduled
+  archived
+}
+
+/// Lifecycle status for a product.
+/// Use this instead of isHidden (deprecated).
+/// Draft    → created but not yet live
+/// Active   → visible and available for purchase
+/// OutOfStock → visible but cannot be purchased
+/// Archived → hidden from storefront, retained for order history
+enum ProductStatus {
+  Draft
+  Active
+  OutOfStock
+  Archived
+}
+
+/// Attribute value type used in CategoryAttribute and ProductAttribute.
+/// Controls how the attribute is rendered and filtered on the frontend.
+/// TEXT         → free text (e.g. "Woody Oriental", fragrance description)
+/// NUMBER       → numeric value for range filtering (e.g. price, weight)
+/// BOOLEAN      → yes/no toggle (e.g. "Is Alcohol-Free")
+/// SELECT       → single choice from predefined options (e.g. Gender: Men/Women/Unisex)
+/// MULTI_SELECT → multiple choices (e.g. Top Notes: Bergamot, Lemon, Pink Pepper)
+enum AttributeType {
+  TEXT
+  NUMBER
+  BOOLEAN
+  SELECT
+  MULTI_SELECT
+}
+
+/// Defines at which catalog level a CategoryAttribute applies.
+///
+/// PRODUCT → attribute describes the product as a whole and is stored
+///           in ProductAttribute. It does not vary between variants.
+///           Examples: Gender, Concentration, Fragrance Family, Top Notes.
+///
+/// VARIANT → attribute distinguishes one variant from another and is
+///           stored in VariantAttribute. Variants must have a value for
+///           every VARIANT-scoped attribute in their category.
+///           Examples: Volume (30ml / 50ml / 100ml), Color, Storage.
+///
+/// BOTH    → attribute exists at both levels. Rare; use only when a
+///           product-level default is overridden per variant.
+///
+/// RULE: When a CategoryAttribute has scope=VARIANT or BOTH, VariantAttribute
+///       MUST reference that CategoryAttribute. Free-form name/value on variants
+///       is not permitted — this prevents normalization drift (Color vs color vs Colour).
+enum AttributeScope {
+  PRODUCT
+  VARIANT
+  BOTH
+}
+
+enum PreferredLanguage {
+  ar
+  en
+}
+
+// =============================================================================
+// USER
+// =============================================================================
+
+model User {
+  id           String    @id @default(uuid()) @db.Uuid
+  fullName     String
+  phoneNumber  String?
+  email        String    @unique
+  passwordHash String
+  role         Role      @default(Buyer)
+  city         String?
+  address      String?
+  locationUrl  String?
+  isVerified   Boolean   @default(false)
+  isBlocked    Boolean   @default(false)
+  preferredLanguage PreferredLanguage @default(ar)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  orders        Order[]        @relation("BuyerOrders")
+  cartItems     CartItem[]
+  favorites     Favorite[]
+  auditLogs     AuditLog[]
+  refreshTokens RefreshToken[]
+  reviews       Review[]
+  deviceTokens  DeviceToken[]
+  notifications Notification[]
+  notificationPreference NotificationPreference?
+  notificationCampaigns NotificationCampaign[]
+
+  @@index([phoneNumber])
+  @@index([city])
+}
+
+// =============================================================================
+// CATEGORY SYSTEM
+// =============================================================================
+
+/// Hierarchical product category.
+/// Supports unlimited depth via self-referencing parentId.
+/// Example tree:
+///   Perfumes (root)
+///     ├── Men's Fragrances
+///     │     ├── Oud
+///     │     └── Woody
+///     └── Women's Fragrances
+model Category {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String
+  /// URL-safe unique identifier for SEO-friendly category pages.
+  /// Generated from name during Phase 2 data migration.
+  slug        String?  @unique
+  description String?
+  /// Full-size category image (for category landing pages).
+  imageUrl    String?
+  /// Small icon displayed in navigation menus (kept for backward compat).
+  iconUrl     String?
+  isActive    Boolean  @default(true)
+  /// Controls display order in menus and category grids.
+  sortOrder   Int      @default(0)
+  /// SEO: <title> tag for the category page.
+  metaTitle   String?
+  /// SEO: <meta name="description"> for the category page.
+  metaDescription String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  /// Self-referencing parent for category hierarchy.
+  parentId String?   @db.Uuid
+  parent   Category? @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children Category[] @relation("CategoryHierarchy")
+
+  products         Product[]           @relation("CategoryProducts")
+  /// Attribute definitions that apply to products in this category.
+  categoryAttributes CategoryAttribute[]
+
+  // Active subcategory navigation (most common query)
+  @@index([parentId, isActive, sortOrder])
+  // SEO URL resolution
+  @@index([slug])
+  // Admin category listing
+  @@index([name])
+}
+
+/// Defines which filterable/searchable attributes are relevant to a category,
+/// and at which level (product vs variant) they apply.
+///
+/// For the Gisaah perfume catalog, a "Perfumes" category would define:
+///   scope=PRODUCT: Gender, Concentration, Fragrance Family, Top Notes, Middle Notes, Base Notes
+///   scope=VARIANT: Volume (30ml / 50ml / 100ml)
+///
+/// CRITICAL RULE (enforced via CHECK constraint in migration SQL):
+///   A ProductAttribute.categoryAttributeId MUST belong to the same category
+///   as the product it is attached to. Enforce this in the API layer AND via
+///   the CHECK constraint documented in the migration walkthrough.
+///
+/// This does NOT store actual product values — see ProductAttribute / VariantAttribute.
+model CategoryAttribute {
+  id           String         @id @default(uuid()) @db.Uuid
+  categoryId   String         @db.Uuid
+  category     Category       @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  /// Human-readable attribute name shown on the frontend (e.g. "Fragrance Family").
+  name         String
+  /// URL-safe slug used in filter query params (e.g. "fragrance-family").
+  /// Must be unique within a category. Slugs are used as URL filter params:
+  ///   /perfumes?concentration=eau-de-parfum&volume=100ml
+  slug         String
+  /// Data type of the attribute value. Controls UI rendering and query logic.
+  type         AttributeType  @default(TEXT)
+  /// Declares whether this attribute applies to the Product, Variant, or Both levels.
+  /// VariantAttribute MUST reference a CategoryAttribute with scope=VARIANT or BOTH.
+  /// ProductAttribute MUST reference a CategoryAttribute with scope=PRODUCT or BOTH.
+  scope        AttributeScope @default(PRODUCT)
+  /// If true, the product cannot be published without this attribute.
+  isRequired   Boolean        @default(false)
+  /// If true, this attribute appears in the filter sidebar.
+  isFilterable Boolean        @default(false)
+  /// If true, attribute values are included in full-text product search.
+  isSearchable Boolean        @default(false)
+  /// Controls display order in filter panels and product spec tables.
+  sortOrder    Int            @default(0)
+  /// Predefined options for SELECT and MULTI_SELECT attribute types.
+  /// Stored as a JSON array string: e.g. ["Men","Women","Unisex"]
+  /// Null for TEXT, NUMBER, and BOOLEAN types.
+  options      String?
+
+  /// Values stored at the product level (scope=PRODUCT or BOTH).
+  productAttributes ProductAttribute[]
+  /// Values stored at the variant level (scope=VARIANT or BOTH).
+  variantAttributes VariantAttribute[]
+
+  // Fetch all attributes for a given category, in display order
+  @@index([categoryId, sortOrder])
+  // Filter attributes by scope (e.g. get all VARIANT attributes for a category)
+  @@index([categoryId, scope])
+  // Unique attribute slug per category (prevents duplicate filter keys)
+  @@unique([categoryId, slug])
+}
+
+// =============================================================================
+// SCENT (Fragrance Family)
+// =============================================================================
+
+/// Fragrance family / scent note (e.g. Oud, Musk, Rose).
+/// Products can have multiple scents via ProductScent junction.
+model Scent {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String
+  /// URL-safe unique slug for scent pages (e.g. /scents/oud).
+  slug        String   @unique
+  imageUrl    String?
+  description String?
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  products ProductScent[]
+
+  @@index([isActive, sortOrder])
+  @@index([name])
+}
+
+/// Many-to-many junction: Product ↔ Scent.
+model ProductScent {
+  productId String  @db.Uuid
+  scentId   String  @db.Uuid
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  scent     Scent   @relation(fields: [scentId], references: [id], onDelete: Restrict)
+
+  @@id([productId, scentId])
+  @@index([scentId])
+}
+
+// =============================================================================
+// BRAND
+// =============================================================================
+
+/// Product brand. Products may optionally belong to a brand.
+/// Supports brand pages, brand filtering, and brand logo display.
+model Brand {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String
+  /// URL-safe unique slug for brand pages (e.g. /brands/chanel).
+  slug        String   @unique
+  logoUrl     String?
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  products Product[]
+
+  @@index([name])
+}
+
+// =============================================================================
+// PRODUCT SYSTEM
+// =============================================================================
+
+/// Core product entity for the marketplace.
+/// A product belongs to one seller, one category, and optionally one brand.
+/// Use ProductVariant for size/color/storage variants.
+/// Use ProductAttribute for category-specific specifications.
+/// Use ProductImage for gallery management.
+model Product {
+  id    String @id @default(uuid()) @db.Uuid
+  title String
+  /// URL-safe slug for SEO product pages (e.g. /products/chanel-no-5-edp-100ml).
+  slug  String @unique
+
+  description String
+
+  // ── PRICING RULES ──────────────────────────────────────────────────────────
+  // Two modes exist based on hasVariants:
+  //
+  // Mode A — No variants (hasVariants = false):
+  //   price         → the actual transaction price
+  //   discountPrice → the promotional transaction price (overrides price)
+  //   Read: use discountPrice if set, otherwise use price.
+  //
+  // Mode B — Has variants (hasVariants = true):
+  //   price         → display-only "From $X" minimum price (update when
+  //                   variants change; never use for actual transaction)
+  //   discountPrice → ignored; use ProductVariant.discountPrice instead
+  //   Read: use MIN(ProductVariant.discountPrice ?? ProductVariant.price)
+  //         for the display price, and the selected variant's price for checkout.
+  //
+  // RULE: Application code MUST check hasVariants before reading price.
+  //       Never mix product-level and variant-level prices in one transaction.
+  // ───────────────────────────────────────────────────────────────────────────
+
+  /// Base price. Mode A: transaction price. Mode B: display "from" price only.
+  price         Decimal  @db.Decimal(18, 2)
+  /// Discount price. Used only in Mode A (hasVariants = false).
+  discountPrice Decimal? @db.Decimal(18, 2)
+  currency      Currency  @default(YER_Sanaa)
+  condition     Condition @default(New)
+
+  /// Product lifecycle status.
+  /// Replaces the deprecated isHidden boolean.
+  /// Query active products with: status = 'Active'
+  status ProductStatus @default(Draft)
+
+  // ── INVENTORY RULES ────────────────────────────────────────────────────────
+  // hasVariants determines which stock source is authoritative:
+  //
+  // hasVariants = false:
+  //   stockQuantity → the ONLY authoritative stock value. Read and write here.
+  //
+  // hasVariants = true:
+  //   stockQuantity → READ-ONLY display cache. Always equals
+  //                   SUM(ProductVariant.stockQuantity). Never write directly.
+  //   Per-variant stock is managed exclusively in ProductVariant.stockQuantity.
+  //
+  // RULE: Set hasVariants = true when creating the first ProductVariant.
+  //       Set hasVariants = false if all variants are later deleted.
+  //       Never allow the frontend to write Product.stockQuantity when hasVariants=true.
+  // ───────────────────────────────────────────────────────────────────────────
+
+  /// false → this product has no variants; use Product.price + Product.stockQuantity.
+  /// true  → this product has variants; use ProductVariant.price + ProductVariant.stockQuantity.
+  hasVariants Boolean @default(false)
+
+  /// Mode A (no variants): authoritative stock. Mode B (has variants): display cache only.
+  stockQuantity Int
+
+  /// Alert threshold for low-stock notifications (applies to product or individual variants).
+  lowStockThreshold Int @default(5)
+
+  /// Product-level SKU for products without variants (hasVariants = false).
+  /// For variant products, each ProductVariant has its own unique SKU.
+  /// Must be globally unique across the entire catalog.
+  sku String? @unique
+
+  isPromoted     Boolean @default(false)
+  isTrending     Boolean @default(false)
+  promotionLabel String?
+
+  /// SEO: <title> tag for this product's page.
+  metaTitle String?
+  /// SEO: <meta name="description"> for this product's page.
+  metaDescription String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Foreign keys
+  categoryId String  @db.Uuid
+  brandId    String? @db.Uuid
+
+  // Relations
+  category   Category @relation("CategoryProducts", fields: [categoryId], references: [id])
+  brand      Brand?   @relation(fields: [brandId], references: [id], onDelete: SetNull)
+
+  // Product sub-entities (all cascade-delete with the product)
+  images     ProductImage[]
+  variants   ProductVariant[]
+  attributes ProductAttribute[]
+  reviews    Review[]
+
+  // Order/Cart/Favorites (productId becomes nullable on delete via SetNull)
+  orderItems OrderItem[]
+  cartItems  CartItem[]
+  favorites  Favorite[]
+  scents     ProductScent[]
+
+  // -----------------------------------------------------------------------
+  // INDEX STRATEGY
+  // -----------------------------------------------------------------------
+  // SEO URL resolution (already existed)
+  @@index([slug])
+  // Homepage: active promoted products, newest first
+  @@index([status, isPromoted, createdAt(sort: Desc)])
+  // Trending filter + homepage section
+  @@index([status, isTrending, createdAt(sort: Desc)])
+  // Category page: products in a category by status, then price
+  @@index([categoryId, status, price])
+  // Brand page: products by brand and status
+  @@index([brandId, status])
+  // Inventory management: find low-stock active products
+  @@index([status, stockQuantity])
+  // Default catalog: active products newest first
+  @@index([status, createdAt(sort: Desc)])
+  // SKU-based lookup (admin, inventory, order processing)
+  @@index([sku])
+  // Price-range filtering across the catalog
+  @@index([price, discountPrice])
+  // -----------------------------------------------------------------------
+}
+
+/// One entry per product image.
+/// Replaces the single mainImageUrl field on Product.
+/// Use isPrimary = true to identify the main display image.
+/// Use sortOrder to control gallery sequence.
+model ProductImage {
+  id        String  @id @default(uuid()) @db.Uuid
+  url       String
+  altText   String?
+  /// 0 = first in gallery. Lower numbers appear first.
+  sortOrder Int     @default(0)
+  /// Exactly one image per product should have isPrimary = true.
+  /// Enforce this in application code (not at DB level to allow atomic swaps).
+  isPrimary Boolean @default(false)
+
+  productId String  @db.Uuid
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  // Ordered gallery fetch: productId + sortOrder ASC
+  @@index([productId, sortOrder])
+}
+
+/// A specific purchasable variation of a product.
+/// Example: "Chanel No.5 — 50ml" and "Chanel No.5 — 100ml" are two variants.
+/// Each variant has its own price, stock, and SKU.
+/// Variant-specific specifications (Color, Size, etc.) are stored in VariantAttribute.
+model ProductVariant {
+  id           String  @id @default(uuid()) @db.Uuid
+  /// Unique SKU for this specific variant across the entire catalog.
+  /// Example: "CHANEL-NO5-100ML", "IPHONE15-BLK-256GB"
+  sku          String  @unique
+  price        Decimal @db.Decimal(18, 2)
+  discountPrice Decimal? @db.Decimal(18, 2)
+  /// Stock for this specific variant combination.
+  stockQuantity Int    @default(0)
+  isActive     Boolean @default(true)
+  /// Display order among this product's variants.
+  sortOrder    Int     @default(0)
+  /// Optional primary image for this variant (falls back to product gallery when null).
+  imageUrl     String?
+
+  productId String  @db.Uuid
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  /// Key-value pairs describing this variant (e.g. [Color=Black, Size=50ml]).
+  attributes VariantAttribute[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // All variants for a product, in display order
+  @@index([productId, sortOrder])
+  // Inventory/admin SKU lookup
+  @@index([sku])
+}
+
+/// Attribute value for a specific ProductVariant.
+/// Unlike the removed free-form name/value design, VariantAttribute MUST
+/// reference a CategoryAttribute with scope=VARIANT or scope=BOTH.
+///
+/// This prevents normalization drift: "Color" vs "color" vs "Colour" can no
+/// longer occur because the attribute name is defined once in CategoryAttribute
+/// and shared by all variants and products in that category.
+///
+/// Example for a Perfumes category:
+///   CategoryAttribute: { name: "Volume", slug: "volume", scope: VARIANT }
+///   Variant "50ml":   VariantAttribute { categoryAttributeId: <Volume-id>, value: "50ml" }
+///   Variant "100ml":  VariantAttribute { categoryAttributeId: <Volume-id>, value: "100ml" }
+///
+/// VALIDATION RULE (enforce in API):
+///   The categoryAttribute.categoryId must match the product's categoryId.
+///   The categoryAttribute.scope must be VARIANT or BOTH.
+model VariantAttribute {
+  id        String         @id @default(uuid()) @db.Uuid
+  variantId String         @db.Uuid
+  variant   ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+
+  /// Must reference a CategoryAttribute with scope = VARIANT or BOTH.
+  /// The category of this attribute must match the product's category.
+  categoryAttributeId String            @db.Uuid
+  categoryAttribute   CategoryAttribute @relation(fields: [categoryAttributeId], references: [id], onDelete: Restrict)
+
+  /// The actual value for this variant (e.g. "50ml", "100ml", "Black").
+  /// Store the canonical display value — normalization is your responsibility at write time.
+  value String
+
+  // A variant can only have one value per attribute
+  @@unique([variantId, categoryAttributeId])
+  // All attributes for a variant
+  @@index([variantId])
+  // Filter products by variant attribute value (e.g. find all 100ml variants)
+  @@index([categoryAttributeId, value])
+}
+
+/// Stores a product's actual specification value for a CategoryAttribute.
+/// Example: Product "Dior Sauvage EDP" → CategoryAttribute "Concentration" → value "Eau de Parfum".
+///          Product "Dior Sauvage EDP" → CategoryAttribute "Gender" → value "Men".
+///
+/// CATEGORY INTEGRITY RULE:
+///   The categoryAttribute.categoryId MUST equal the product's categoryId.
+///   The categoryAttribute.scope MUST be PRODUCT or BOTH.
+///   This is enforced by a CHECK constraint applied in the migration SQL:
+///
+///     ALTER TABLE "ProductAttribute"
+///     ADD CONSTRAINT check_product_attribute_category
+///     CHECK (
+///       (SELECT ca."categoryId" FROM "CategoryAttribute" ca WHERE ca.id = "categoryAttributeId")
+///       = (SELECT p."categoryId" FROM "Product" p WHERE p.id = "productId")
+///     );
+///
+///   Also validate this in your API before inserting:
+///     assert(categoryAttribute.categoryId === product.categoryId)
+///     assert(categoryAttribute.scope !== 'VARIANT')
+model ProductAttribute {
+  id                  String            @id @default(uuid()) @db.Uuid
+  productId           String            @db.Uuid
+  product             Product           @relation(fields: [productId], references: [id], onDelete: Cascade)
+  /// Must reference a CategoryAttribute from the product's own category with scope=PRODUCT or BOTH.
+  categoryAttributeId String            @db.Uuid
+  categoryAttribute   CategoryAttribute @relation(fields: [categoryAttributeId], references: [id], onDelete: Cascade)
+  /// The specification value, stored as String regardless of AttributeType.
+  /// For MULTI_SELECT: store as comma-separated values (e.g. "Bergamot, Lemon, Pink Pepper").
+  /// For NUMBER: store the numeric string (e.g. "100"). Cast in application code.
+  /// For BOOLEAN: store "true" or "false".
+  value               String
+
+  // A product can only have one value per attribute
+  @@unique([productId, categoryAttributeId])
+  // Fetch all attributes for a product (product detail page spec table)
+  @@index([productId])
+  // Attribute-value filtering: WHERE categoryAttributeId = ? AND value = ?
+  // This is the core index for the filter sidebar.
+  @@index([categoryAttributeId, value])
+}
+
+// =============================================================================
+// REVIEW SYSTEM
+// =============================================================================
+
+/// Customer review for a product.
+/// One review per user per product (enforced by @@unique).
+/// Requires admin moderation before appearing on the storefront (isApproved = false by default).
+model Review {
+  id        String  @id @default(uuid()) @db.Uuid
+  /// Rating from 1 (worst) to 5 (best). Enforced in application code.
+  rating    Int
+  /// Optional review headline (e.g. "Great scent, lasts all day").
+  title     String?
+  /// Review body text.
+  body      String?
+  /// Requires admin approval before appearing on the storefront.
+  isApproved Boolean @default(false)
+
+  productId String  @db.Uuid
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  userId    String  @db.Uuid
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // One review per user per product
+  @@unique([productId, userId])
+  // Approved reviews for a product, newest first (product page query)
+  @@index([productId, isApproved, createdAt(sort: Desc)])
+  // All reviews by a user (user profile / moderation panel)
+  @@index([userId])
+}
+
+// =============================================================================
+// ORDER SYSTEM
+// =============================================================================
+
+model Order {
+  id              String        @id @default(uuid()) @db.Uuid
+  totalAmount     Decimal       @db.Decimal(18, 2)
+  currency        Currency      @default(YER_Sanaa)
+  status          OrderStatus   @default(Pending)
+  shippingAddress String
+  paymentMethod   PaymentMethod @default(COD)
+  /// Client-generated key to prevent duplicate COD orders on retry/timeout.
+  idempotencyKey  String?
+  orderDate       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  buyerId    String      @db.Uuid
+  buyer      User        @relation("BuyerOrders", fields: [buyerId], references: [id])
+  orderItems OrderItem[] @relation("OrderItems")
+
+  @@unique([buyerId, idempotencyKey])
+  @@index([buyerId, orderDate(sort: Desc)])
+  @@index([status, orderDate(sort: Desc)])
+}
+
+/// Line item within an order.
+/// productId is nullable so a deleted/archived product does NOT destroy the order record.
+/// Snapshot fields (productTitle, productImageUrl, productSku) preserve the display state
+/// of the product at the time of purchase, regardless of future product changes.
+model OrderItem {
+  id        String   @id @default(uuid()) @db.Uuid
+  quantity  Int
+  /// Price paid per unit at time of purchase (immutable).
+  unitPrice Decimal  @db.Decimal(18, 2)
+  createdAt DateTime @default(now())
+
+  orderId String @db.Uuid
+  order   Order  @relation("OrderItems", fields: [orderId], references: [id])
+
+  /// Nullable: if the product is later deleted, this becomes null.
+  /// The snapshot fields below preserve order history even after product deletion.
+  productId String? @db.Uuid
+  product   Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  // ── Order History Snapshot Fields ──────────────────────────────────────
+  // These are populated at order creation time and NEVER updated.
+  // They ensure order history remains correct even if the product is:
+  //   - renamed, re-priced, re-imaged, archived, or deleted.
+  /// Product title at time of purchase.
+  productTitle    String?
+  /// Primary image URL at time of purchase.
+  productImageUrl String?
+  /// SKU at time of purchase.
+  productSku      String?
+  // ───────────────────────────────────────────────────────────────────────
+
+  @@index([orderId])
+  @@index([productId])
+}
+
+// =============================================================================
+// CART & FAVORITES
+// =============================================================================
+
+model CartItem {
+  id        String   @id @default(uuid()) @db.Uuid
+  quantity  Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId    String  @db.Uuid
+  productId String  @db.Uuid
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+  @@index([userId])
+}
+
+model Favorite {
+  id        String   @id @default(uuid()) @db.Uuid
+  createdAt DateTime @default(now())
+
+  userId    String  @db.Uuid
+  productId String  @db.Uuid
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+  @@index([userId])
+}
+
+// =============================================================================
+// SYSTEM MODELS
+// =============================================================================
+
+model SystemSetting {
+  id                String   @id @default("global")
+  aboutUsText       String   @default("سوق إلكتروني يمني يوفر أفضل المنتجات...")
+  contactEmail      String   @default("info@al-gaadi.com")
+  contactPhone      String   @default("+967 77X XXX XXX")
+  shippingOfferText String   @default("شحن مجاني للطلبات فوق 50$")
+  facebookUrl       String?
+  twitterUrl        String?
+  whatsappUrl       String?
+  instagramUrl      String?
+  tiktokUrl         String?
+  seoTitle          String?
+  seoDescription    String?
+  siteName          String   @default("GISAAH | قصة")
+  siteShortName     String   @default("GISAAH")
+  appName           String   @default("GISAAH | قصة")
+  tagline           String   @default("في زمن الكوبي خليك مع قصة")
+  siteDescription   String?
+  copyrightText     String?
+  logoUrl           String?
+  logoDarkUrl       String?
+  logoMobileUrl     String?
+  logoMobileDarkUrl String?
+  faviconUrl        String?
+  ogImageUrl        String?
+  ogTitle           String?
+  ogDescription     String?
+  address           String?
+  mapUrl            String?
+  youtubeUrl        String?
+  footerText        String?
+  footerLinks       Json?
+  themeConfig       Json?
+  homepageConfig    Json?
+  /// USD-hub display rates: { USD_to_YER_Sanaa, USD_to_YER_Aden, USD_to_SAR }
+  exchangeRates     Json?
+  updatedAt         DateTime @updatedAt
+}
+
+model Banner {
+  id             String          @id @default(uuid()) @db.Uuid
+  title          String
+  subtitle       String?
+  description    String?
+  ctaText        String?
+  ctaUrl         String?
+  imageUrl       String?
+  mobileImageUrl String?
+  bgColor        String?
+  textAlign      String          @default("right")
+  overlayOpacity Int             @default(30)
+  placement      BannerPlacement @default(promo_home)
+  status         BannerStatus    @default(draft)
+  showOnDesktop  Boolean         @default(true)
+  showOnMobile   Boolean         @default(true)
+  priority       Int             @default(0)
+  scheduledAt    DateTime?
+  expiresAt      DateTime?
+  impressions    Int             @default(0)
+  clicks         Int             @default(0)
+  /// Hero placement: up to 2 product IDs shown as peek cards (Shein-style)
+  peekProductIds Json?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  @@index([placement, status, priority])
+  @@index([status, scheduledAt])
+}
+
+model RateLimit {
+  key       String   @id
+  hits      Int      @default(0)
+  resetTime DateTime
+}
+
+model RefreshToken {
+  id         String    @id @default(uuid()) @db.Uuid
+  tokenHash  String    @unique
+  userId     String    @db.Uuid
+  expiresAt  DateTime
+  createdAt  DateTime  @default(now())
+  revokedAt  DateTime?
+  replacedBy String?   @db.Uuid
+  userAgent  String?
+  ipAddress  String?
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model Branch {
+  id           String   @id @default(uuid()) @db.Uuid
+  name         String
+  address      String
+  city         String
+  latitude     Float?
+  longitude    Float?
+  phone        String?
+  whatsapp     String?
+  workingHours String?
+  mapUrl       String?
+  isActive     Boolean  @default(true)
+  sortOrder    Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([isActive, sortOrder])
+}
+
+model AuditLog {
+  id        String   @id @default(uuid()) @db.Uuid
+  action    String
+  details   String?
+  ipAddress String?
+  createdAt DateTime @default(now())
+  userId    String?  @db.Uuid
+  user      User?    @relation(fields: [userId], references: [id])
+
+  @@index([action])
+  @@index([createdAt(sort: Desc)])
+}
+
+enum DevicePlatform {
+  ios
+  android
+  unknown
+}
+
+enum NotificationDeliveryStatus {
+  pending
+  sent
+  failed
+  invalid_token
+}
+
+enum NotificationChannel {
+  orders
+  engagement
+  marketing
+  system
+}
+
+enum NotificationCampaignAudience {
+  all_customers
+  admins
+}
+
+/// Expo push token bound to a logged-in user (multi-device supported).
+model DeviceToken {
+  id         String         @id @default(uuid()) @db.Uuid
+  userId     String         @db.Uuid
+  user       User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token      String         @unique
+  platform   DevicePlatform @default(unknown)
+  appVersion String?
+  lastSeenAt DateTime       @default(now())
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+
+  deliveries NotificationDelivery[]
+
+  @@index([userId])
+}
+
+/// Per-user channel preferences. Transactional order pushes stay enabled.
+model NotificationPreference {
+  userId             String  @id @db.Uuid
+  user               User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ordersEnabled      Boolean @default(true)
+  engagementEnabled  Boolean @default(true)
+  marketingEnabled   Boolean @default(true)
+  updatedAt          DateTime @updatedAt
+}
+
+/// In-app notification history + dedupe source of truth.
+model Notification {
+  id        String              @id @default(uuid()) @db.Uuid
+  userId    String              @db.Uuid
+  user      User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String
+  title     String
+  body      String
+  channel   NotificationChannel @default(orders)
+  /// Minimal routing payload: { type, orderId?, entityId?, productId? }
+  data      Json?
+  /// Unique event key to prevent duplicate pushes (e.g. userId:order_status:orderId:Shipped)
+  dedupeKey String              @unique
+  readAt    DateTime?
+  createdAt DateTime            @default(now())
+
+  deliveries NotificationDelivery[]
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([userId, readAt])
+  @@index([channel, createdAt(sort: Desc)])
+}
+
+/// Admin-composed broadcast audit trail.
+model NotificationCampaign {
+  id          String                       @id @default(uuid()) @db.Uuid
+  title       String
+  body        String
+  data        Json?
+  /// engagement | marketing only for customer broadcasts
+  channel     NotificationChannel
+  audience    NotificationCampaignAudience
+  createdById String                       @db.Uuid
+  createdBy   User                         @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  sentCount   Int                          @default(0)
+  createdAt   DateTime                     @default(now())
+
+  @@index([createdAt(sort: Desc)])
+}
+
+model NotificationDelivery {
+  id               String                      @id @default(uuid()) @db.Uuid
+  notificationId   String                      @db.Uuid
+  notification     Notification                @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+  deviceTokenId    String                      @db.Uuid
+  deviceToken      DeviceToken                 @relation(fields: [deviceTokenId], references: [id], onDelete: Cascade)
+  status           NotificationDeliveryStatus  @default(pending)
+  providerResponse String?
+  attempts         Int                         @default(0)
+  createdAt        DateTime                    @default(now())
+  updatedAt        DateTime                    @updatedAt
+
+  @@unique([notificationId, deviceTokenId])
+  @@index([status, createdAt])
+}
+

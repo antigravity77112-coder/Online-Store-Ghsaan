@@ -1,0 +1,347 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ========== Base Reset & Typography / إعادة تعيين القاعدة والخطوط ========== */
+@layer base {
+  :root {
+    --color-primary: #DAA520;
+    --color-secondary: #B8860B;
+    --color-accent: #DAA520;
+    --color-background: #F8F6EF;
+    --color-surface: #FFFFFF;
+    --color-text: #232323;
+    --color-textMuted: #64748b;
+    --color-border: #F0E2C5;
+    --color-success: #22c55e;
+    --color-warning: #f59e0b;
+    --color-error: #ef4444;
+
+    /* Runtime gold palette — derived from primary/secondary for Tailwind gold-* classes */
+    --gold-500: var(--color-primary);
+    --gold-600: var(--color-primary);
+    --gold-400: var(--color-secondary);
+    --gold-700: var(--color-secondary);
+    --gold-300: color-mix(in srgb, var(--color-primary) 65%, white);
+    --gold-200: color-mix(in srgb, var(--color-primary) 35%, white);
+    --gold-100: color-mix(in srgb, var(--color-primary) 18%, white);
+    --gold-50: color-mix(in srgb, var(--color-primary) 9%, white);
+    --gold-800: color-mix(in srgb, var(--color-secondary) 75%, black);
+    --gold-900: color-mix(in srgb, var(--color-secondary) 55%, black);
+    --gold-950: color-mix(in srgb, var(--color-secondary) 40%, black);
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  html[dir="rtl"] {
+    direction: rtl;
+  }
+
+  html[dir="ltr"] {
+    direction: ltr;
+  }
+
+  /* EN: Light mode base — bone background, slate-900 text
+     AR: قاعدة الوضع الفاتح — خلفية أبيض عظمي، نص slate-900 */
+  body {
+    @apply font-sans;
+    background-color: var(--color-background, #F8F6EF);
+    color: var(--color-text, #232323);
+  }
+
+  /* EN: Dark mode base — slate-950 background for a premium feel (not pure black)
+     AR: قاعدة الوضع الداكن — خلفية slate-950 لإحساس فاخر (ليس أسود نقي) */
+  .dark body {
+    background-color: var(--color-background-dark, #0a0a0a);
+    color: var(--color-text-on-dark, #f8fafc);
+  }
+
+  /* EN: Global dark mode form elements — ensures text, caret, and placeholder are visible
+     AR: عناصر النماذج في الوضع الداكن — يضمن ظهور النص والمؤشر والنص التوضيحي */
+  input,
+  select,
+  textarea {
+    color: theme('colors.slate.900');
+  }
+
+  select option {
+    background-color: #ffffff;
+    color: #0f172a;
+  }
+
+  .dark input,
+  .dark select,
+  .dark textarea {
+    color: theme('colors.slate.100');
+    -webkit-text-fill-color: theme('colors.slate.100');
+    caret-color: theme('colors.slate.100');
+  }
+
+  .dark input::placeholder,
+  .dark textarea::placeholder {
+    color: theme('colors.slate.500');
+  }
+
+  .dark select option {
+    background-color: theme('colors.slate.800');
+    color: theme('colors.slate.100');
+  }
+
+  /* EN: Keep autofill text readable on dark/auth inputs (Chrome/Edge/Safari)
+     AR: الحفاظ على وضوح نص الإكمال التلقائي في الحقول الداكنة */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  textarea:-webkit-autofill,
+  textarea:-webkit-autofill:hover,
+  textarea:-webkit-autofill:focus,
+  select:-webkit-autofill,
+  select:-webkit-autofill:hover,
+  select:-webkit-autofill:focus {
+    -webkit-text-fill-color: theme('colors.slate.100');
+    caret-color: theme('colors.slate.100');
+    -webkit-box-shadow: 0 0 0px 1000px rgba(15, 23, 42, 0.9) inset;
+    box-shadow: 0 0 0px 1000px rgba(15, 23, 42, 0.9) inset;
+    transition: background-color 9999s ease-in-out 0s;
+  }
+
+  /* EN: Keep native search clear control visible in dark mode (WebKit browsers)
+     AR: إبقاء زر المسح داخل حقل البحث واضحاً في الوضع الداكن (متصفحات WebKit) */
+  .dark input[type="search"]::-webkit-search-cancel-button {
+    filter: invert(1) brightness(1.4);
+    opacity: 0.95;
+    cursor: pointer;
+  }
+
+  ::selection {
+    @apply bg-gold-200 text-gold-900;
+  }
+
+  .dark ::selection {
+    @apply bg-gold-800 text-gold-100;
+  }
+
+  /* EN: Smooth color transitions when toggling theme — prevents jarring changes
+     AR: انتقالات لونية سلسة عند تبديل الثيم — تمنع التغييرات المفاجئة */
+  html.theme-transition,
+  html.theme-transition *,
+  html.theme-transition *::before,
+  html.theme-transition *::after {
+    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.15s ease !important;
+  }
+}
+
+/* ========== Utility Classes / أدوات مساعدة ========== */
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* EN: Skeleton shimmer for light mode
+     AR: وميض الهيكل العظمي للوضع الفاتح */
+  .skeleton-shimmer {
+    background: linear-gradient(90deg,
+        theme('colors.slate.200') 25%,
+        theme('colors.slate.100') 50%,
+        theme('colors.slate.200') 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s ease-in-out infinite;
+  }
+
+  /* EN: Skeleton shimmer for dark mode — darker grays
+     AR: وميض الهيكل العظمي للوضع الداكن — رماديات أغمق */
+  .dark .skeleton-shimmer {
+    background: linear-gradient(90deg,
+        theme('colors.slate.800') 25%,
+        theme('colors.slate.700') 50%,
+        theme('colors.slate.800') 75%);
+    background-size: 200% 100%;
+  }
+
+  .glass {
+    @apply bg-white/70 backdrop-blur-lg border border-white/20 shadow-sm;
+  }
+
+  .dark .glass {
+    @apply bg-slate-900/70 border-slate-700/30;
+  }
+
+  .focus-ring:focus {
+    @apply outline-none ring-2 ring-offset-2;
+    --tw-ring-color: color-mix(in srgb, var(--color-focus, var(--color-accent)) 50%, transparent);
+    --tw-ring-offset-color: var(--color-background, #F8F6EF);
+  }
+
+  .dark .focus-ring:focus {
+    --tw-ring-offset-color: var(--color-background-dark, #0a0a0a);
+  }
+
+  .img-placeholder {
+    @apply animate-pulse bg-slate-100;
+  }
+
+  .dark .img-placeholder {
+    @apply bg-slate-800;
+  }
+
+  /* EN: Minimum 44×44px touch target (Apple HIG / WCAG 2.5.5)
+     AR: هدف لمس بحد أدنى 44×44 بكسل */
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* EN: Safe-area bottom padding for notched phones (iPhone X+)
+     AR: حشوة سفلية آمنة لهواتف الشق */
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+}
+
+/* ========== Custom Scrollbar (for non-mobile) / شريط التمرير المخصص ========== */
+@media (min-width: 768px) {
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: theme('colors.slate.100');
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-secondary, theme('colors.gold.700'));
+    border-radius: 999px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-primary, theme('colors.gold.600'));
+  }
+
+  /* EN: Dark mode scrollbar — Gisaah Gold
+     AR: شريط تمرير الوضع الداكن — ذهبي قصة */
+  .dark ::-webkit-scrollbar-track {
+    background: var(--color-background-dark, #0a0a0a);
+  }
+
+  .dark ::-webkit-scrollbar-thumb {
+    background: theme('colors.gold.800');
+  }
+
+  .dark ::-webkit-scrollbar-thumb:hover {
+    background: theme('colors.gold.700');
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* ========== Offer Belt Marquee / حزام العروض المتحرك ========== */
+@keyframes offer-belt-scroll {
+  0% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.offer-belt-track {
+  animation: offer-belt-scroll 15s linear infinite;
+  will-change: transform;
+}
+
+.offer-belt-track:hover {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .offer-belt-track {
+    animation: none;
+    transform: none;
+  }
+
+  .gisaah-motion-carousel,
+  .gisaah-motion-carousel * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .category-belt-scroll {
+    scroll-behavior: auto;
+  }
+
+  .category-card:hover .card-shine-effect {
+    animation: none;
+  }
+}
+
+/* ========== Category Card Animations / رسوم بطاقات الأقسام ========== */
+/* EN: Subtle shine sweep effect on category card hover
+   AR: تأثير لمعان خفيف عند التمرير فوق بطاقة القسم */
+@keyframes card-shine {
+  0% {
+    transform: translateX(100%) rotate(12deg);
+  }
+
+  100% {
+    transform: translateX(-100%) rotate(12deg);
+  }
+}
+
+.category-belt-scroll {
+  scroll-behavior: smooth;
+  overscroll-behavior-x: contain;
+}
+
+.category-card:hover .card-shine-effect {
+  animation: card-shine 0.8s ease-out;
+}
+
+/* EN: Skeleton pulse for category cards
+   AR: نبض الهيكل العظمي لبطاقات الأقسام */
+.category-card-skeleton {
+  background: linear-gradient(110deg,
+      theme('colors.white') 30%,
+      theme('colors.bone.DEFAULT') 50%,
+      theme('colors.white') 70%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+.dark .category-card-skeleton {
+  background: linear-gradient(110deg,
+      theme('colors.slate.800') 30%,
+      theme('colors.slate.700') 50%,
+      theme('colors.slate.800') 70%);
+  background-size: 200% 100%;
+}
+
+/* ========== Below-the-fold Optimization / تحسين ما تحت الطي ========== */
+/* EN: content-visibility: auto tells the browser to skip rendering
+       off-screen content until it's near the viewport. This reduces
+       initial rendering work (lower TBT) on mobile devices.
+   AR: content-visibility: auto يخبر المتصفح بتخطي عرض المحتوى
+       خارج الشاشة حتى يقترب من منطقة العرض. هذا يقلل عمل
+       العرض الأولي (TBT أقل) على أجهزة الجوال. */
+footer {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 400px;
+}

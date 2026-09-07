@@ -1,0 +1,119 @@
+{
+  "headers": [
+    {
+      "source": "/index.html",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" },
+        { "key": "Pragma", "value": "no-cache" },
+        { "key": "Expires", "value": "0" }
+      ]
+    },
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+      ]
+    },
+    {
+      "source": "/(.*)\\.woff2",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+      ]
+    },
+    {
+      "source": "/Logo.png",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=86400, stale-while-revalidate=604800" }
+      ]
+    },
+    {
+      "source": "/(.*)\\.png",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=86400, stale-while-revalidate=604800" }
+      ]
+    },
+    {
+      "source": "/(.*)\\.svg",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=86400, stale-while-revalidate=604800" }
+      ]
+    },
+    {
+      "source": "/sitemap(.*)\\.xml",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=900, stale-while-revalidate=3600" },
+        { "key": "Content-Type", "value": "application/xml; charset=utf-8" }
+      ]
+    },
+    {
+      "source": "/robots.txt",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=86400" },
+        { "key": "Content-Type", "value": "text/plain; charset=utf-8" }
+      ]
+    },
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
+        { "key": "X-XSS-Protection", "value": "1; mode=block" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" }
+      ]
+    },
+    {
+      "source": "/((?!assets/).*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" },
+        { "key": "Pragma", "value": "no-cache" }
+      ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://online-store-ghsaan-66wk.vercel.app/api/:path*"
+    },
+    {
+      "source": "/sitemap.xml",
+      "destination": "https://online-store-ghsaan-66wk.vercel.app/api/seo/sitemap.xml"
+    },
+    {
+      "source": "/sitemap-index.xml",
+      "destination": "https://online-store-ghsaan-66wk.vercel.app/api/seo/sitemap-index.xml"
+    },
+    {
+      "source": "/sitemap-products.xml",
+      "destination": "https://online-store-ghsaan-66wk.vercel.app/api/seo/sitemap-products.xml"
+    },
+    {
+      "source": "/sitemap-categories.xml",
+      "destination": "https://online-store-ghsaan-66wk.vercel.app/api/seo/sitemap-categories.xml"
+    },
+    {
+      "source": "/sitemap-brands.xml",
+      "destination": "https://online-store-ghsaan-66wk.vercel.app/api/seo/sitemap-brands.xml"
+    },
+    {
+      "source": "/sitemap-scents.xml",
+      "destination": "https://online-store-ghsaan-66wk.vercel.app/api/seo/sitemap-scents.xml"
+    },
+    {
+      "source": "/sitemap-static.xml",
+      "destination": "https://online-store-ghsaan-66wk.vercel.app/api/seo/sitemap-static.xml"
+    },
+    {
+      "source": "/robots.txt",
+      "destination": "https://online-store-ghsaan-66wk.vercel.app/api/seo/robots.txt"
+    },
+    {
+      "source": "/product/:uuid([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})",
+      "destination": "https://online-store-ghsaan-66wk.vercel.app/api/seo/redirect/product/:uuid"
+    },
+    {
+      "source": "/((?!.*\\.[a-zA-Z0-9]+$).*)",
+      "destination": "/index.html"
+    }
+  ]
+}

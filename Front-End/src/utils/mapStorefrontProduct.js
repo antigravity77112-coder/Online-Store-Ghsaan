@@ -1,0 +1,31 @@
+import * as api from '../services/api';
+
+const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1560472355-536de3962603?w=800&q=80';
+
+/**
+ * Maps an API product to the storefront card/grid shape.
+ * Ratings and review counts are included only when provided by the API.
+ */
+export function mapStorefrontProduct(p) {
+  const rawImage = p.imageUrl || p.mainImageUrl || FALLBACK_IMAGE;
+  const mapped = {
+    id: p.id,
+    slug: p.slug || p.id,
+    title: p.title,
+    description: p.description || null,
+    image: rawImage,
+    price: p.price != null ? Number(p.price) : undefined,
+    currency: p.currency,
+    currencySymbol: api.CurrencySymbol[p.currency] || 'ريال',
+    badge: p.condition === 'New' ? null : p.condition === 'Used' ? 'Sale' : 'Local',
+    isPromoted: p.isPromoted || false,
+    isTrending: p.isTrending || false,
+    discountPrice: p.discountPrice ? Number(p.discountPrice) : undefined,
+    promotionLabel: p.promotionLabel || undefined,
+  };
+
+  if (p.rating != null) mapped.rating = p.rating;
+  if (p.reviewCount != null) mapped.reviewCount = p.reviewCount;
+
+  return mapped;
+}
