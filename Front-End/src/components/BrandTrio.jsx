@@ -6,7 +6,6 @@ import { DEFAULT_SITE_CONFIG, resolveMediaUrl, resolveSiteLogo } from '../config
 
 /**
  * Website brand mark: Smart Shopper | logo | المتسوق الذكي (LTR).
- * On narrow phones, English is hidden so the header does not overflow.
  * size: "header" | "splash"
  */
 export default function BrandTrio({
@@ -25,23 +24,23 @@ export default function BrandTrio({
   const isSplash = size === 'splash';
   const wordBox = isSplash
     ? 'w-auto max-w-[38vw] sm:max-w-[11rem] md:max-w-[13rem] min-w-0'
-    : 'w-auto max-w-[6.5rem] sm:max-w-[6.75rem] md:max-w-[9rem] lg:max-w-[10.5rem] min-w-0';
+    : 'w-auto max-w-[4.85rem] sm:max-w-[6.75rem] md:max-w-[9rem] lg:max-w-[10.5rem] min-w-0';
   const wordH = isSplash ? 'h-10 sm:h-12 md:h-14' : 'h-6 sm:h-8 md:h-9 lg:h-11';
   const wordText = isSplash
     ? 'text-base sm:text-xl md:text-2xl'
-    : 'text-xs sm:text-sm md:text-base lg:text-lg';
+    : 'text-[0.58rem] leading-tight sm:text-sm md:text-base lg:text-lg';
   const logoBox = isSplash
     ? 'w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-xl'
     : 'w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 lg:w-11 lg:h-11 rounded-md lg:rounded-xl';
   const trioGap = isSplash
     ? 'gap-1 sm:gap-1.5 md:gap-2'
-    : 'gap-1 sm:gap-1.5 md:gap-2';
+    : 'gap-0.5 sm:gap-1.5 md:gap-2';
 
-  const wordClass = `inline-flex items-center ${wordBox} ${wordH} min-w-0 overflow-hidden whitespace-nowrap font-display font-bold leading-none ${wordText} ${wordClassName}`;
+  const wordClass = `inline-flex items-center ${wordBox} ${wordH} min-w-0 overflow-hidden whitespace-nowrap font-display font-bold ${wordText} ${wordClassName}`;
 
   const inner = (
     <div className={`flex items-center justify-center max-w-full min-w-0 ${trioGap} ${className}`} dir="ltr">
-      <span className={`${wordClass} hidden sm:inline-flex justify-end`} title={brandShort}>
+      <span className={`${wordClass} justify-end text-end`} title={brandShort}>
         <span className="truncate">{brandShort}</span>
       </span>
 
@@ -61,7 +60,7 @@ export default function BrandTrio({
         )}
       </div>
 
-      <span className={`${wordClass} justify-start`} title={brandAr}>
+      <span className={`${wordClass} justify-start text-start`} title={brandAr}>
         <span className="truncate">{brandAr}</span>
       </span>
     </div>

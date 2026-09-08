@@ -172,10 +172,10 @@ const Layout = React.memo(({ children, homeMarketplace = false, hideMobileHeader
         }`}
       >
         <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
-          {/* Side columns stay flexible so the longer brand mark can use the center */}
-          <div className="grid h-[var(--mobile-header-height)] grid-cols-[minmax(0,1fr)_minmax(0,auto)_minmax(0,1fr)] items-center gap-x-0.5 overflow-x-clip sm:gap-x-3 md:h-auto md:min-h-16 md:py-1">
+          {/* Equal side rails keep BrandTrio visually centered */}
+          <div className="grid h-[var(--mobile-header-height)] grid-cols-[minmax(5rem,1fr)_minmax(0,auto)_minmax(5rem,1fr)] items-center gap-x-0.5 overflow-x-clip sm:gap-x-3 md:h-auto md:min-h-16 md:py-1">
             {/* START / RIGHT SIDE (Menu + Search) */}
-            <div className="flex items-center justify-start gap-0 sm:gap-1 min-w-0">
+            <div className="flex min-w-0 items-center justify-start gap-0 sm:gap-1">
               <button
                 className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 md:hidden ${
                   showShopChrome
@@ -213,13 +213,13 @@ const Layout = React.memo(({ children, homeMarketplace = false, hideMobileHeader
               )}
             </div>
 
-            {/* CENTER / BRAND — can shrink; own grid cell */}
-            <div className="min-w-0 flex justify-center overflow-hidden">
+            {/* CENTER / BRAND — Smart Shopper | logo | المتسوق الذكي */}
+            <div className="flex min-w-0 justify-center justify-self-center overflow-hidden px-0.5">
               <BrandTrio size="header" wordClassName={brandWordClass} />
             </div>
 
-            {/* END / LEFT SIDE (compact actions — icon-first so brand never gets blocked) */}
-            <div className="flex items-center justify-end gap-0 sm:gap-1 min-w-0">
+            {/* END / LEFT SIDE (theme + favorites — balances menu/search on the other rail) */}
+            <div className="flex min-w-0 items-center justify-end gap-0 sm:gap-1">
               {/* Desktop search — icon toggle only (full bar opens below) */}
               {!isProductsPage && (
                 <button
@@ -236,27 +236,6 @@ const Layout = React.memo(({ children, homeMarketplace = false, hideMobileHeader
                   <Search className="h-5 w-5" />
                 </button>
               )}
-
-              <button
-                type="button"
-                onClick={toggleTheme}
-                className={`hidden md:flex items-center justify-center min-w-[40px] min-h-[40px] p-2 rounded-xl transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 flex-shrink-0 ${
-                  showShopChrome
-                    ? 'md:text-gray-500 md:dark:text-slate-400 md:hover:text-gold-500 md:dark:hover:text-gold-400 md:hover:bg-gold-50 md:dark:hover:bg-gold-500/10'
-                    : 'text-gray-500 dark:text-slate-400 hover:text-gold-500 dark:hover:text-gold-400 hover:bg-gold-50 dark:hover:bg-gold-500/10'
-                }`}
-                aria-label={
-                  isDark ? t('settings.lightMode', 'تفعيل الوضع الفاتح') : t('settings.darkMode', 'تفعيل الوضع الداكن')
-                }
-                aria-pressed={isDark}
-                title={isDark ? t('settings.lightMode', 'الوضع الفاتح') : t('settings.darkMode', 'الوضع الداكن')}
-              >
-                {isDark ? (
-                  <Sun className="w-5 h-5 transition-transform hover:rotate-45 duration-300" aria-hidden="true" />
-                ) : (
-                  <Moon className="w-5 h-5 transition-transform hover:-rotate-12 duration-300" aria-hidden="true" />
-                )}
-              </button>
 
               {/* Admin — icon only in storefront header (never crowds the brand) */}
               {isAdmin && (
@@ -281,6 +260,28 @@ const Layout = React.memo(({ children, homeMarketplace = false, hideMobileHeader
                   <Package className="w-4 h-4" />
                 </Link>
               )}
+
+              {/* Night mode — beside favorites on mobile and desktop */}
+              <button
+                type="button"
+                onClick={toggleTheme}
+                className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 ${
+                  showShopChrome
+                    ? 'max-md:text-stone-200 max-md:hover:text-white max-md:hover:bg-white/10 md:text-gray-500 md:dark:text-slate-400 md:hover:text-gold-500 md:dark:hover:text-gold-400 md:hover:bg-gold-50 md:dark:hover:bg-gold-500/10'
+                    : 'text-gray-500 dark:text-slate-400 hover:text-gold-500 dark:hover:text-gold-400 hover:bg-gold-50 dark:hover:bg-gold-500/10'
+                }`}
+                aria-label={
+                  isDark ? t('settings.lightMode', 'تفعيل الوضع الفاتح') : t('settings.darkMode', 'تفعيل الوضع الداكن')
+                }
+                aria-pressed={isDark}
+                title={isDark ? t('settings.lightMode', 'الوضع الفاتح') : t('settings.darkMode', 'الوضع الداكن')}
+              >
+                {isDark ? (
+                  <Sun className="w-5 h-5 transition-transform hover:rotate-45 duration-300" aria-hidden="true" />
+                ) : (
+                  <Moon className="w-5 h-5 transition-transform hover:-rotate-12 duration-300" aria-hidden="true" />
+                )}
+              </button>
 
               {/* Favorites */}
               <Link
