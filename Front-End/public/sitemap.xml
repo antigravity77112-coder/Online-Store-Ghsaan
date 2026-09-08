@@ -50,7 +50,7 @@
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://online-store-ghsaan.vercel.app/category/digital-watches</loc>
+    <loc>https://online-store-ghsaan.vercel.app/category/pocket-watches</loc>
     <lastmod>2026-09-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
@@ -74,12 +74,6 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://online-store-ghsaan.vercel.app/category/pocket-watches</loc>
-    <lastmod>2026-09-08</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
     <loc>https://online-store-ghsaan.vercel.app/category/pocket-watche</loc>
     <lastmod>2026-09-08</lastmod>
     <changefreq>weekly</changefreq>
@@ -93,6 +87,12 @@
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/category/frashat</loc>
+    <lastmod>2026-09-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/category/digital-watches</loc>
     <lastmod>2026-09-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>

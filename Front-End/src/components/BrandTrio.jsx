@@ -38,12 +38,12 @@ export default function BrandTrio({
     logoBox = 'w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20';
     trioGap = 'gap-1 sm:gap-1.5 md:gap-2';
   } else if (isFooter) {
-    wordBox = 'w-auto max-w-[14rem] sm:max-w-[18rem] md:max-w-[22rem] min-w-0';
-    wordH = 'min-h-16 sm:min-h-20 md:min-h-24';
-    wordText = 'text-4xl sm:text-5xl md:text-6xl tracking-wide';
+    wordBox = 'w-auto max-w-none min-w-0 shrink';
+    wordH = 'min-h-10 sm:min-h-12 md:min-h-14';
+    wordText = 'text-lg sm:text-xl md:text-2xl lg:text-3xl tracking-wide';
     logoBox = 'w-28 h-28 sm:w-36 sm:h-36 md:w-44 md:h-44 lg:w-52 lg:h-52';
-    trioGap = 'gap-5 sm:gap-6 md:gap-8';
-    wordExtra = 'whitespace-normal';
+    trioGap = 'gap-3 sm:gap-4 md:gap-5';
+    wordExtra = 'whitespace-nowrap';
   } else {
     // Max logo inside fixed header height — do not grow the header bar.
     wordBox = 'w-auto max-w-[6.5rem] sm:max-w-[8rem] md:max-w-[9.5rem] lg:max-w-[11rem] min-w-0';
@@ -59,9 +59,12 @@ export default function BrandTrio({
   } font-display font-bold ${wordText} ${wordClassName}`;
 
   const inner = (
-    <div className={`flex items-center justify-center max-w-full min-w-0 ${trioGap} ${className}`} dir="ltr">
+    <div
+      className={`flex flex-nowrap items-center justify-center max-w-full min-w-0 ${trioGap} ${className}`}
+      dir="ltr"
+    >
       <span className={`${wordClass} justify-end text-end`} title={brandShort}>
-        <span className={isFooter ? '' : 'truncate'}>{brandShort}</span>
+        <span className={isFooter ? 'whitespace-nowrap' : 'truncate'}>{brandShort}</span>
       </span>
 
       <div
@@ -82,7 +85,7 @@ export default function BrandTrio({
       </div>
 
       <span className={`${wordClass} justify-start text-start`} title={brandAr}>
-        <span className={isFooter ? '' : 'truncate'}>{brandAr}</span>
+        <span className={isFooter ? 'whitespace-nowrap' : 'truncate'}>{brandAr}</span>
       </span>
     </div>
   );
