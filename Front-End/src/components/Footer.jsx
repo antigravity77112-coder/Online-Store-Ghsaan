@@ -168,7 +168,7 @@ const Footer = () => {
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 pt-10 pb-20 md:pb-10 md:pt-14">
         <div className="mb-10 flex flex-col items-center text-center md:mb-12">
           <div className="mb-6 flex w-full justify-center pt-2 sm:mb-8 sm:pt-4">
-            <BrandTrio size="header" wordClassName="text-white" />
+            <BrandTrio size="footer" wordClassName="text-white" />
           </div>
           <p className="mx-auto max-w-md text-xs leading-relaxed text-slate-400 line-clamp-3">
             {tagline}

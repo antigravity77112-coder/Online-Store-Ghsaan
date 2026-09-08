@@ -40,7 +40,8 @@ class SiteConfigController {
     ].includes(field);
     const url = await uploadBuffer(req.file.buffer, {
       folder: 'site-assets',
-      preserveFormat: isLogoField && req.file.mimetype === 'image/png',
+      // Logos/favicons must keep alpha; forcing jpg painted transparent areas white.
+      preserveFormat: isLogoField,
     });
     const config = await siteConfigService.updateConfig({ [field]: url });
     res.json({ url, field, config });

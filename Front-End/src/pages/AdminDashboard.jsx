@@ -185,6 +185,22 @@ const AdminDashboard = () => {
     );
   }, [setSearchParams]);
 
+  // Normalize invalid ?tab= values so refresh never lands on a stale/unknown section.
+  useEffect(() => {
+    const raw = searchParams.get("tab");
+    if (raw == null) return;
+    if (!ADMIN_TAB_IDS.has(raw)) {
+      setSearchParams(
+        (prev) => {
+          const params = new URLSearchParams(prev);
+          params.delete("tab");
+          return params;
+        },
+        { replace: true },
+      );
+    }
+  }, [searchParams, setSearchParams]);
+
   const [highlightOrderId, setHighlightOrderId] = useState(null);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");

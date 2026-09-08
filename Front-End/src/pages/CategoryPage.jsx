@@ -246,7 +246,6 @@ const CategoryPage = () => {
                 <option value="">الكل</option>
                 <option value="1">جديد</option>
                 <option value="2">مستعمل</option>
-                <option value="3">مُجدَّد</option>
               </select>
             </div>
             {activeFilterCount > 0 && (

@@ -208,7 +208,7 @@ const AdminBrandsTab = ({ onSuccessMsg }) => {
           {filteredBrands.map((brand) => (
             <div key={brand.id} className="group bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden hover:shadow-xl hover:shadow-gold-500/5 hover:border-gold-500/30 transition-all">
               {/* Image Area */}
-              <div className="aspect-[4/3] bg-slate-50 dark:bg-slate-900/50 flex items-center justify-center p-6 border-b border-slate-100 dark:border-slate-700 relative">
+              <div className="aspect-[4/3] bg-transparent flex items-center justify-center p-6 border-b border-slate-100 dark:border-slate-700 relative">
                 {brand.logoUrl ? (
                   <img src={brand.logoUrl} alt={brand.name} className="max-w-full max-h-full object-contain filter group-hover:scale-105 transition-transform duration-500" />
                 ) : (
@@ -288,7 +288,7 @@ const AdminBrandsTab = ({ onSuccessMsg }) => {
                   <div>
                     <label className="block text-xs font-bold text-slate-500 mb-1.5">الشعار (Logo)</label>
                     <div className="flex items-center gap-4 p-3 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-900/50 relative overflow-hidden">
-                      <div className="w-16 h-16 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg flex items-center justify-center overflow-hidden shrink-0 relative">
+                      <div className="w-16 h-16 bg-transparent border border-dashed border-slate-300 dark:border-slate-600 rounded-lg flex items-center justify-center overflow-hidden shrink-0 relative">
                         {form.logoUrl ? (
                           <img src={form.logoUrl} alt="Logo preview" className="w-full h-full object-contain p-1" />
                         ) : (

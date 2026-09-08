@@ -61,7 +61,6 @@ const Layout = React.memo(({ children, homeMarketplace = false, hideMobileHeader
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [desktopSearchOpen, setDesktopSearchOpen] = useState(false);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const { config } = useSiteConfig();
   const { t } = useTranslation();
@@ -78,13 +77,6 @@ const Layout = React.memo(({ children, homeMarketplace = false, hideMobileHeader
   const brandWordClass = showShopChrome
     ? 'text-stone-50 max-md:text-stone-50 md:text-slate-900 md:dark:text-white'
     : 'text-slate-900 dark:text-white';
-
-  useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 10);
-    window.addEventListener("scroll", handleScroll, { passive: true });
-
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
 
   useEffect(() => {
     if (isProductsPage) {
@@ -161,19 +153,15 @@ const Layout = React.memo(({ children, homeMarketplace = false, hideMobileHeader
       {/* شريط التنقل / Navigation Bar */}
       <div className={`sticky top-0 z-50 isolate ${hideMobileHeader ? 'max-md:hidden' : ''}`}>
       <header
-        className={`border-b md:transition-[background-color,box-shadow,backdrop-filter] md:duration-300 ${
+        className={`border-b md:bg-site-surface md:dark:bg-site-surface-dark md:shadow-sm ${
           showShopChrome
             ? 'max-md:bg-[#565656] max-md:border-white/15 md:border-site-border md:dark:border-site-border-dark'
             : 'max-md:bg-site-surface max-md:dark:bg-site-surface-dark max-md:border-site-border max-md:dark:border-site-border-dark md:border-site-border/60 md:dark:border-site-border-dark/60'
-        } ${
-          scrolled
-            ? 'md:bg-site-surface/80 md:dark:bg-site-surface-dark/80 md:backdrop-blur-xl md:shadow-md'
-            : 'md:bg-site-surface/70 md:dark:bg-site-surface-dark/70 md:backdrop-blur-lg md:shadow-sm'
         }`}
       >
         <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
           {/* Equal side rails keep BrandTrio visually centered */}
-          <div className="grid h-[var(--mobile-header-height)] grid-cols-[minmax(5rem,1fr)_minmax(0,auto)_minmax(5rem,1fr)] items-center gap-x-0.5 overflow-x-clip sm:gap-x-3 md:h-auto md:min-h-16 md:py-1">
+          <div className="grid h-[var(--mobile-header-height)] grid-cols-[minmax(3.5rem,auto)_minmax(0,1fr)_minmax(3.5rem,auto)] items-center gap-x-0.5 overflow-x-clip sm:gap-x-2 md:h-auto md:min-h-16 md:py-1 sm:grid-cols-[minmax(4.5rem,1fr)_minmax(0,auto)_minmax(4.5rem,1fr)]">
             {/* START / RIGHT SIDE (Menu + Search) */}
             <div className="flex min-w-0 items-center justify-start gap-0 sm:gap-1">
               <button

@@ -117,7 +117,11 @@ class BrandController {
         throw new Error('No file uploaded');
       }
 
-      const url = await uploadBuffer(req.file.buffer, 'brands');
+      const url = await uploadBuffer(req.file.buffer, {
+        folder: 'brands',
+        // Keep PNG/WebP alpha — default jpg flatten fills transparent pixels with white.
+        preserveFormat: true,
+      });
       res.json({ url });
     } catch (error) {
       throw error;

@@ -24,7 +24,12 @@ function uploadBuffer(buffer, folderOrOptions = 'uploads') {
   };
 
   if (options.preserveFormat || options.format === 'png') {
-    uploadOptions.format = 'png';
+    // Preserve alpha channel (logos). Prefer source format when known; else PNG.
+    if (options.format && options.format !== 'png') {
+      uploadOptions.format = options.format;
+    } else {
+      uploadOptions.format = 'png';
+    }
   } else if (options.format) {
     uploadOptions.format = options.format;
   } else {

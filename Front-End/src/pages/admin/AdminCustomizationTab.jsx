@@ -106,7 +106,7 @@ function AssetUpload({ field, label, sizeHint, url, onUploaded, uploading, setUp
   };
   return (
     <div className="flex items-center gap-3 p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/30 relative overflow-hidden">
-      <div className="w-14 h-14 rounded-lg overflow-hidden bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center flex-shrink-0 relative">
+      <div className="w-14 h-14 rounded-lg overflow-hidden bg-transparent border border-dashed border-slate-300 dark:border-slate-600 flex items-center justify-center flex-shrink-0 relative">
         {url ? <img src={url} alt="" className="w-full h-full object-contain" /> : <Image className="w-6 h-6 text-slate-300" />}
         <AdminUploadProgress active={uploading === field} />
       </div>
