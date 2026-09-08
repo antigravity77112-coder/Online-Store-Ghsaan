@@ -197,15 +197,15 @@ export const ProductCard: React.FC<ProductCardProps> = React.memo(({
           {title}
         </Link>
 
-        <div className="mt-1 flex flex-wrap items-baseline gap-x-1.5 gap-y-0 min-w-0" dir="ltr">
-          <span className={`text-sm sm:text-[15px] font-extrabold leading-none truncate ${
+        <div className="mt-1 flex flex-wrap items-baseline gap-x-1.5 gap-y-0 min-w-0">
+          <span className={`text-sm sm:text-[15px] font-extrabold leading-none ${
             hasDiscount || isPromoted ? 'text-[#e6533d] dark:text-[#ff7a62]' : 'text-stone-900 dark:text-white'
           }`}
           >
             {priceLabel}
           </span>
           {compareLabel && (
-            <span className="text-[10px] text-stone-400 dark:text-stone-500 line-through truncate">
+            <span className="text-[10px] text-stone-400 dark:text-stone-500 line-through">
               {compareLabel}
             </span>
           )}

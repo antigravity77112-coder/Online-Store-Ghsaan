@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { MapPin, Eye, Heart } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useFavorites } from '../context/FavoritesContext';
+import { useFormatDisplayPrice } from '../context/CurrencyContext';
 
 const cardVariants = {
   hidden: { opacity: 0, y: 30, scale: 0.97 },
@@ -12,7 +13,9 @@ const cardVariants = {
 const ProductCard = ({ id, image, title, price, city, condition, product }) => {
   const [imgLoaded, setImgLoaded] = useState(false);
   const { isFavorite, toggleFavorite } = useFavorites();
+  const formatPrice = useFormatDisplayPrice();
   const liked = isFavorite(id);
+  const currency = product?.currency;
 
   const conditionText = condition === 'New' ? 'جديد' : 'مستعمل';
 
@@ -117,14 +120,16 @@ const ProductCard = ({ id, image, title, price, city, condition, product }) => {
             {hasDiscount ? (
               <div className="flex items-center gap-2">
                 <span className="font-extrabold text-lg text-emerald-600 dark:text-emerald-400 tracking-tight">
-                  {Number(discountPrice).toLocaleString('en-US')}
+                  {formatPrice(discountPrice, currency)}
                 </span>
                 <span className="text-sm text-slate-400 line-through">
-                  {price}
+                  {formatPrice(price, currency)}
                 </span>
               </div>
             ) : (
-              <span className="font-extrabold text-lg text-gold-600 dark:text-gold-400 tracking-tight">{price}</span>
+              <span className="font-extrabold text-lg text-gold-600 dark:text-gold-400 tracking-tight">
+                {formatPrice(price, currency)}
+              </span>
             )}
           </div>
         </div>
