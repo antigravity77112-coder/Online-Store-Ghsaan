@@ -106,7 +106,7 @@ function AssetUpload({ field, label, sizeHint, url, onUploaded, uploading, setUp
   };
   return (
     <div className="flex items-center gap-3 p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/30 relative overflow-hidden">
-      <div className="w-14 h-14 rounded-lg overflow-hidden bg-transparent border border-dashed border-slate-300 dark:border-slate-600 flex items-center justify-center flex-shrink-0 relative">
+      <div className="w-14 h-14 overflow-hidden bg-transparent flex items-center justify-center flex-shrink-0 relative">
         {url ? <img src={url} alt="" className="w-full h-full object-contain" /> : <Image className="w-6 h-6 text-slate-300" />}
         <AdminUploadProgress active={uploading === field} />
       </div>
@@ -281,6 +281,9 @@ const AdminCustomizationTab = ({ config, setConfig, onSave, saving }) => {
           <Field label="Facebook"><input className={adminInputClass} value={config.facebookUrl || ''} onChange={(e) => set('facebookUrl', e.target.value)} dir="ltr" /></Field>
           <Field label="Instagram"><input className={adminInputClass} value={config.instagramUrl || ''} onChange={(e) => set('instagramUrl', e.target.value)} dir="ltr" /></Field>
           <Field label="TikTok"><input className={adminInputClass} value={config.tiktokUrl || ''} onChange={(e) => set('tiktokUrl', e.target.value)} dir="ltr" /></Field>
+          <Field label="Telegram"><input className={adminInputClass} value={config.telegramUrl || ''} onChange={(e) => set('telegramUrl', e.target.value)} dir="ltr" placeholder="https://t.me/..." /></Field>
+          <Field label="LinkedIn"><input className={adminInputClass} value={config.linkedinUrl || ''} onChange={(e) => set('linkedinUrl', e.target.value)} dir="ltr" placeholder="https://linkedin.com/..." /></Field>
+          <Field label="Threads"><input className={adminInputClass} value={config.threadsUrl || ''} onChange={(e) => set('threadsUrl', e.target.value)} dir="ltr" placeholder="https://threads.net/..." /></Field>
           <Field label="Twitter / X"><input className={adminInputClass} value={config.twitterUrl || ''} onChange={(e) => set('twitterUrl', e.target.value)} dir="ltr" /></Field>
           <Field label="YouTube"><input className={adminInputClass} value={config.youtubeUrl || ''} onChange={(e) => set('youtubeUrl', e.target.value)} dir="ltr" /></Field>
         </AdminCard>

@@ -34,7 +34,7 @@ export const DEFAULT_SITE_CONFIG = {
     error: '#EA0001',
   },
   contact: { phone: null, email: null, whatsapp: null, address: null, mapUrl: null },
-  social: { facebook: null, instagram: null, tiktok: null, twitter: null, youtube: null },
+  social: { facebook: null, instagram: null, tiktok: null, twitter: null, youtube: null, telegram: null, linkedin: null, threads: null },
   seo: {
     title: 'Smart Shopper | المتسوق الذكي',
     description: 'المتسوق الذكي — متجرك الإلكتروني لمنتجات متنوعة بأسعار منافسة وتجربة تسوق سهلة',

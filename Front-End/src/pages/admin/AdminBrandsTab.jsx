@@ -288,7 +288,7 @@ const AdminBrandsTab = ({ onSuccessMsg }) => {
                   <div>
                     <label className="block text-xs font-bold text-slate-500 mb-1.5">الشعار (Logo)</label>
                     <div className="flex items-center gap-4 p-3 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-900/50 relative overflow-hidden">
-                      <div className="w-16 h-16 bg-transparent border border-dashed border-slate-300 dark:border-slate-600 rounded-lg flex items-center justify-center overflow-hidden shrink-0 relative">
+                      <div className="w-16 h-16 bg-transparent flex items-center justify-center overflow-hidden shrink-0 relative">
                         {form.logoUrl ? (
                           <img src={form.logoUrl} alt="Logo preview" className="w-full h-full object-contain p-1" />
                         ) : (

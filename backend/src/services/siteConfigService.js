@@ -70,6 +70,7 @@ async function getAdminConfig() {
 const WRITABLE_SCALAR_FIELDS = [
   'aboutUsText', 'contactEmail', 'contactPhone', 'shippingOfferText',
   'facebookUrl', 'twitterUrl', 'whatsappUrl', 'instagramUrl', 'tiktokUrl',
+  'telegramUrl', 'linkedinUrl', 'threadsUrl',
   'seoTitle', 'seoDescription',
   'siteName', 'siteShortName', 'appName', 'tagline', 'siteDescription', 'copyrightText',
   'logoUrl', 'logoDarkUrl', 'logoMobileUrl', 'logoMobileDarkUrl', 'faviconUrl', 'ogImageUrl',

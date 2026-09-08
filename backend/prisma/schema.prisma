@@ -767,6 +767,9 @@ model SystemSetting {
   whatsappUrl       String?
   instagramUrl      String?
   tiktokUrl         String?
+  telegramUrl       String?
+  linkedinUrl       String?
+  threadsUrl        String?
   seoTitle          String?
   seoDescription    String?
   siteName          String   @default("Smart Shopper | المتسوق الذكي")

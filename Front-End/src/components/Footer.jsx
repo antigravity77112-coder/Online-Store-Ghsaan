@@ -3,9 +3,11 @@
  *
  * EN: Premium two-tier footer — brand + navigation + legal.
  *     Mobile accordions, desktop columns. Uses only real store data/routes.
+ *     Light: white surface; dark: dark surface.
  *
  * AR: تذييل احترافي من مستويين — العلامة + التنقل + القانوني.
  *     أكورديون على الجوال، أعمدة على سطح المكتب.
+ *     فاتح: خلفية بيضاء؛ داكن: خلفية داكنة.
  */
 
 import React, { useState } from "react";
@@ -16,6 +18,7 @@ import {
   Mail,
   Instagram,
   Facebook,
+  Linkedin,
   MapPin,
   Truck,
 } from "lucide-react";
@@ -47,7 +50,7 @@ function FooterNavLink({ to, label }) {
     <li>
       <Link
         to={to}
-        className="text-sm text-slate-400 hover:text-gold-400 transition-colors py-1 inline-block focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/50 rounded"
+        className="text-sm text-slate-600 hover:text-gold-600 dark:text-slate-400 dark:hover:text-gold-400 transition-colors py-1 inline-block focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/50 rounded"
       >
         {label}
       </Link>
@@ -58,7 +61,7 @@ function FooterNavLink({ to, label }) {
 function FooterColumn({ title, links }) {
   return (
     <nav aria-label={title}>
-      <h3 className="text-xs font-bold uppercase tracking-wider text-white mb-3">
+      <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white mb-3">
         {title}
       </h3>
       <ul className="space-y-1">
@@ -75,7 +78,7 @@ function FooterAccordion({ title, links, defaultOpen = false }) {
   const panelId = `footer-panel-${title.replace(/\s/g, "-")}`;
 
   return (
-    <div className="border-b border-white/10">
+    <div className="border-b border-slate-200 dark:border-white/10">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
@@ -83,7 +86,7 @@ function FooterAccordion({ title, links, defaultOpen = false }) {
         aria-expanded={open}
         aria-controls={panelId}
       >
-        <span className="text-sm font-bold text-white">{title}</span>
+        <span className="text-sm font-bold text-slate-900 dark:text-white">{title}</span>
         <ChevronDown
           className={`w-4 h-4 text-slate-500 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
         />
@@ -113,12 +116,53 @@ function TikTokIcon({ className }) {
   );
 }
 
+function TelegramIcon({ className }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
+      <path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z" />
+      <path d="m21.854 2.147-10.94 10.939" />
+    </svg>
+  );
+}
+
+function ThreadsIcon({ className }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
+      <path d="M19 7.5c-1.5-2.5-4-4-7-4-5 0-9 3.5-9 9s4 9 9 9c3.5 0 6.5-1.5 8-4" />
+      <path d="M8.5 12c0-2 1.5-3.5 3.5-3.5s3.5 1.5 3.5 3.5-1.5 3.5-3.5 3.5c-1.2 0-2.2-.6-2.8-1.5" />
+      <path d="M15.5 8.5c1 .8 1.5 2 1.5 3.5 0 3.5-2.5 6-6 6" />
+    </svg>
+  );
+}
+
+function YouTubeIcon({ className }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
+      <path d="M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17" />
+      <path d="m10 15 5-3-5-3z" />
+    </svg>
+  );
+}
+
+function XIcon({ className }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
+      <path d="M4 4l11.733 16h4.267l-11.733-16z" />
+      <path d="M4 20l6.768-6.768M15.042 9.042 20 4" />
+    </svg>
+  );
+}
+
 function SocialLinks({ social, className = "" }) {
   const links = [
     social?.instagram && { href: social.instagram, label: "انستغرام", Icon: Instagram },
     social?.facebook && { href: social.facebook, label: "فيسبوك", Icon: Facebook },
     social?.tiktok && { href: social.tiktok, label: "تيك توك", Icon: TikTokIcon },
-    social?.youtube && { href: social.youtube, label: "يوتيوب", Icon: TikTokIcon },
+    social?.telegram && { href: social.telegram, label: "تيليجرام", Icon: TelegramIcon },
+    social?.linkedin && { href: social.linkedin, label: "لينكدإن", Icon: Linkedin },
+    social?.threads && { href: social.threads, label: "ثريدز", Icon: ThreadsIcon },
+    social?.twitter && { href: social.twitter, label: "إكس", Icon: XIcon },
+    social?.youtube && { href: social.youtube, label: "يوتيوب", Icon: YouTubeIcon },
   ].filter(Boolean);
 
   if (!links.length) return null;
@@ -132,7 +176,7 @@ function SocialLinks({ social, className = "" }) {
           target="_blank"
           rel="noopener noreferrer"
           aria-label={label}
-          className="w-9 h-9 flex items-center justify-center rounded-lg border border-white/15 text-slate-400 hover:text-gold-400 hover:border-gold-600/50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/50"
+          className="w-9 h-9 flex items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:text-gold-600 hover:border-gold-500/40 dark:border-white/15 dark:text-slate-400 dark:hover:text-gold-400 dark:hover:border-gold-600/50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/50"
         >
           <Icon className="w-4 h-4" />
         </a>
@@ -155,11 +199,11 @@ const Footer = () => {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="mt-auto bg-black border-t border-white/10" dir="rtl">
+    <footer className="mt-auto bg-white border-t border-slate-200 dark:bg-slate-950 dark:border-white/10" dir="rtl">
       {shippingOffer && (
-        <div className="bg-black border-b border-white/10">
-          <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-2.5 flex items-center justify-center gap-2 text-xs font-medium text-slate-400">
-            <Truck className="w-3.5 h-3.5 text-gold-400 flex-shrink-0" />
+        <div className="bg-slate-50 border-b border-slate-200 dark:bg-slate-950 dark:border-white/10">
+          <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-2.5 flex items-center justify-center gap-2 text-xs font-medium text-slate-600 dark:text-slate-400">
+            <Truck className="w-3.5 h-3.5 text-gold-500 dark:text-gold-400 flex-shrink-0" />
             <span className="text-center">{shippingOffer}</span>
           </div>
         </div>
@@ -168,9 +212,9 @@ const Footer = () => {
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 pt-10 pb-20 md:pb-10 md:pt-14">
         <div className="mb-10 flex flex-col items-center text-center md:mb-12">
           <div className="mb-6 flex w-full justify-center pt-2 sm:mb-8 sm:pt-4">
-            <BrandTrio size="footer" wordClassName="text-white" />
+            <BrandTrio size="footer" wordClassName="text-slate-900 dark:text-white" />
           </div>
-          <p className="mx-auto max-w-md text-xs leading-relaxed text-slate-400 line-clamp-3">
+          <p className="mx-auto max-w-md text-xs leading-relaxed text-slate-600 dark:text-slate-400 line-clamp-3">
             {tagline}
           </p>
           <SocialLinks social={config.social} className="mt-5 justify-center" />
@@ -193,7 +237,7 @@ const Footer = () => {
             {phoneDigits && (
               <a
                 href={`tel:${phoneDigits}`}
-                className="inline-flex items-center gap-1.5 text-slate-400 hover:text-gold-400 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/50 rounded"
+                className="inline-flex items-center gap-1.5 text-slate-600 hover:text-gold-600 dark:text-slate-400 dark:hover:text-gold-400 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/50 rounded"
               >
                 <Phone className="w-3.5 h-3.5 flex-shrink-0" />
                 <span dir="ltr">{phone}</span>
@@ -202,7 +246,7 @@ const Footer = () => {
             {email && (
               <a
                 href={`mailto:${email}`}
-                className="inline-flex items-center gap-1.5 text-slate-400 hover:text-gold-400 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/50 rounded"
+                className="inline-flex items-center gap-1.5 text-slate-600 hover:text-gold-600 dark:text-slate-400 dark:hover:text-gold-400 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/50 rounded"
               >
                 <Mail className="w-3.5 h-3.5 flex-shrink-0" />
                 <span className="truncate max-w-[200px]">{email}</span>
@@ -210,7 +254,7 @@ const Footer = () => {
             )}
             <Link
               to="/branches"
-              className="inline-flex items-center gap-1.5 text-slate-400 hover:text-gold-400 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/50 rounded"
+              className="inline-flex items-center gap-1.5 text-slate-600 hover:text-gold-600 dark:text-slate-400 dark:hover:text-gold-400 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/50 rounded"
             >
               <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
               فروعنا
@@ -218,20 +262,20 @@ const Footer = () => {
           </div>
         )}
 
-        <div className="pt-4 border-t border-white/10 flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="pt-4 border-t border-slate-200 dark:border-white/10 flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-3">
           <p className="text-[11px] text-slate-500 text-center sm:text-right">
             {copyright.includes('©') ? copyright : `© ${currentYear} ${copyright}`}
           </p>
           <div className="flex items-center justify-center sm:justify-end gap-4 text-[11px]">
             <Link
               to="/privacy-policy"
-              className="text-slate-400 hover:text-gold-400 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/50 rounded"
+              className="text-slate-600 hover:text-gold-600 dark:text-slate-400 dark:hover:text-gold-400 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/50 rounded"
             >
               الخصوصية
             </Link>
             <Link
               to="/contact"
-              className="text-slate-400 hover:text-gold-400 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/50 rounded"
+              className="text-slate-600 hover:text-gold-600 dark:text-slate-400 dark:hover:text-gold-400 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/50 rounded"
             >
               الدعم
             </Link>

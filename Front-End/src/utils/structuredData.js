@@ -152,6 +152,11 @@ export function buildOrganizationSchema(siteConfig = {}) {
   if (social.instagram) schema.sameAs.push(social.instagram);
   if (social.facebook) schema.sameAs.push(social.facebook);
   if (social.twitter) schema.sameAs.push(social.twitter);
+  if (social.tiktok) schema.sameAs.push(social.tiktok);
+  if (social.youtube) schema.sameAs.push(social.youtube);
+  if (social.telegram) schema.sameAs.push(social.telegram);
+  if (social.linkedin) schema.sameAs.push(social.linkedin);
+  if (social.threads) schema.sameAs.push(social.threads);
   if (contact.whatsapp) schema.sameAs.push(contact.whatsapp);
 
   return schema;

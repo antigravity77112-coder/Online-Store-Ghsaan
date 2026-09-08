@@ -18,7 +18,7 @@ const PLACEMENTS = [
   { value: 'hero',         label: 'القسم الرئيسي (الهيرو)' },
   { value: 'promo_home',   label: 'قسم ترويجي - الرئيسية' },
   { value: 'announcement', label: 'شريط الإعلان العلوي' },
-  { value: 'category',     label: 'صفحة التصنيفات' },
+  { value: 'category',     label: 'صفحة الأقسام' },
   { value: 'product',      label: 'صفحة المنتج' },
   { value: 'sidebar',      label: 'الشريط الجانبي' },
   { value: 'footer',       label: 'التذييل' },

@@ -196,24 +196,24 @@ const AdminCategoriesTab = ({ openCategoryForm, addDisabled = false }) => {
 
   const handleDelete = async (id, name, hasChildren) => {
     if (hasChildren) {
-      alert(`لا يمكن حذف تصنيف "${name}" لأنه يحتوي على أقسام فرعية. يرجى حذف أو نقل الأقسام الفرعية أولاً.`);
+      alert(`لا يمكن حذف قسم "${name}" لأنه يحتوي على أقسام فرعية. يرجى حذف أو نقل الأقسام الفرعية أولاً.`);
       return;
     }
-    if (!confirm(`هل أنت متأكد من حذف تصنيف "${name}"؟ سيتم حذف جميع منتجاته.`)) return;
+    if (!confirm(`هل أنت متأكد من حذف قسم "${name}"؟ سيتم حذف جميع منتجاته.`)) return;
     try {
       await api.deleteCategory(id);
       mutate();
-      alert('تم حذف التصنيف');
+      alert('تم حذف القسم');
     } catch (err) {
-      alert('فشل حذف التصنيف: ' + (err.message || ''));
+      alert('فشل حذف القسم: ' + (err.message || ''));
     }
   };
 
   return (
     <div>
       <AdminToolbar
-        title="إدارة التصنيفات"
-        subtitle={Array.isArray(categoriesRaw) ? `${categoriesRaw.length} تصنيف · ${tree.length} رئيسي` : undefined}
+        title="إدارة الأقسام"
+        subtitle={Array.isArray(categoriesRaw) ? `${categoriesRaw.length} قسم · ${tree.length} رئيسي` : undefined}
         icon={Tag}
         actions={
           <>
@@ -224,7 +224,7 @@ const AdminCategoriesTab = ({ openCategoryForm, addDisabled = false }) => {
               </>
             )}
             <AdminPrimaryButton onClick={() => openCategoryForm(null)} disabled={addDisabled}>
-              <Plus className="w-4 h-4" /> إضافة تصنيف
+              <Plus className="w-4 h-4" /> إضافة قسم
             </AdminPrimaryButton>
           </>
         }
@@ -232,26 +232,26 @@ const AdminCategoriesTab = ({ openCategoryForm, addDisabled = false }) => {
 
       {/* Tree */}
       {isLoading ? (
-        <AdminLoading label="جاري تحميل التصنيفات..." />
+        <AdminLoading label="جاري تحميل الأقسام..." />
       ) : tree.length === 0 ? (
         <div className="text-center py-20 bg-white dark:bg-slate-900 rounded-2xl border border-dashed border-slate-300 dark:border-slate-700">
           <Tag className="w-16 h-16 text-slate-300 dark:text-slate-600 mx-auto mb-4" />
-          <h3 className="text-xl font-bold text-slate-800 dark:text-slate-200 mb-2">لا توجد تصنيفات</h3>
-          <p className="text-slate-500 dark:text-slate-400 mb-6">قم بإضافة أول تصنيف لترتيب منتجاتك</p>
+          <h3 className="text-xl font-bold text-slate-800 dark:text-slate-200 mb-2">لا توجد أقسام</h3>
+          <p className="text-slate-500 dark:text-slate-400 mb-6">قم بإضافة أول قسم لترتيب منتجاتك</p>
           <button
             type="button"
             onClick={() => openCategoryForm(null)}
             disabled={addDisabled}
             className="flex items-center gap-2 mx-auto px-6 py-3 bg-gold-600 text-white font-bold rounded-xl hover:bg-gold-500 transition-colors shadow-lg shadow-gold-600/20 disabled:opacity-50"
           >
-            <Plus className="w-5 h-5" /> إضافة تصنيف
+            <Plus className="w-5 h-5" /> إضافة قسم
           </button>
         </div>
       ) : (
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
           {/* Column headers */}
           <div className="flex items-center gap-3 px-4 py-2.5 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-500 dark:text-slate-400">
-            <span className="flex-1">التصنيف / الرابط</span>
+            <span className="flex-1">القسم / الرابط</span>
             <span className="w-16 text-left">المنتجات</span>
             <span className="w-16 text-left">الإجراءات</span>
           </div>

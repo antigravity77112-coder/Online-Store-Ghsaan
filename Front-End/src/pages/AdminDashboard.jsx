@@ -464,7 +464,7 @@ const AdminDashboard = () => {
   const handleSaveCategory = async () => {
     if (categorySaving) return;
     if (!categoryForm.name.trim()) {
-      setError("اسم التصنيف مطلوب");
+      setError("اسم القسم مطلوب");
       return;
     }
     const payload = {
@@ -486,16 +486,16 @@ const AdminDashboard = () => {
         await api.updateCategory(editingCategory.id, payload);
         mutate('allCategoriesAdmin');
         mutate('allCategories');
-        showSuccessMsg("تم تحديث التصنيف");
+        showSuccessMsg("تم تحديث القسم");
       } else {
         await api.createCategory(payload);
         mutate('allCategoriesAdmin');
         mutate('allCategories');
-        showSuccessMsg("تم إضافة التصنيف بنجاح 🎉");
+        showSuccessMsg("تم إضافة القسم بنجاح 🎉");
       }
       hardClearCategoryModal({ skipConfirm: true });
     } catch (err) {
-      setError("فشل حفظ التصنيف: " + (err.message || ""));
+      setError("فشل حفظ القسم: " + (err.message || ""));
     } finally {
       setCategorySaving(false);
     }
@@ -536,7 +536,7 @@ const AdminDashboard = () => {
       label: 'المتجر',
       items: [
         { id: 'products', label: 'المحتوى', icon: Package },
-        { id: 'categories', label: 'التصنيفات', icon: Tag },
+        { id: 'categories', label: 'الأقسام', icon: Tag },
         { id: 'brands', label: 'العلامات التجارية', icon: Crown },
         { id: 'scents', label: 'عائلات الروائح', icon: Sparkles },
       ],
@@ -828,32 +828,32 @@ const AdminDashboard = () => {
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4" onClick={softDismissCategoryModal}>
               <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} onClick={(e) => e.stopPropagation()} className="bg-white dark:bg-slate-800 rounded-3xl w-full max-w-md max-h-[90vh] overflow-y-auto shadow-2xl dark:border dark:border-slate-700">
                 <div className="flex flex-col sm:flex-row gap-3 sm:items-center justify-between p-5 border-b border-slate-100 dark:border-slate-700">
-                  <h3 className="text-lg font-bold text-slate-900 dark:text-white">{editingCategory ? "تعديل التصنيف" : "إضافة تصنيف جديد"}</h3>
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white">{editingCategory ? "تعديل القسم" : "إضافة قسم جديد"}</h3>
                   <button type="button" onClick={softDismissCategoryModal} className="p-1 hover:bg-slate-100 rounded-lg" aria-label="إخفاء النافذة"><X className="w-5 h-5 text-slate-400" /></button>
                 </div>
                 <div className="p-5 space-y-4">
                   {/* Basic Info */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="col-span-1 md:col-span-1">
-                      <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">اسم التصنيف <span className="text-red-500">*</span></label>
+                      <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">اسم القسم <span className="text-red-500">*</span></label>
                       <input type="text" value={categoryForm.name} onChange={(e) => updateCategoryForm(f => ({ ...f, name: e.target.value }))} className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-600 rounded-xl text-sm bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-gold-500/50" placeholder="مثال: إلكترونيات" />
                     </div>
                     <div className="col-span-1 md:col-span-1">
-                      <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">رابط التصنيف (Slug)</label>
+                      <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">رابط القسم (Slug)</label>
                       <input type="text" value={categoryForm.slug} onChange={(e) => updateCategoryForm(f => ({ ...f, slug: e.target.value }))} className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-600 rounded-xl text-sm bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-gold-500/50" placeholder="يتم توليده تلقائياً إذا تُرك فارغاً" />
                     </div>
                     <div className="col-span-1 md:col-span-2">
-                      <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">وصف التصنيف</label>
-                      <textarea rows="2" value={categoryForm.description} onChange={(e) => updateCategoryForm(f => ({ ...f, description: e.target.value }))} className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-600 rounded-xl text-sm bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-gold-500/50 resize-none" placeholder="وصف قصير للتصنيف..." />
+                      <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">وصف القسم</label>
+                      <textarea rows="2" value={categoryForm.description} onChange={(e) => updateCategoryForm(f => ({ ...f, description: e.target.value }))} className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-600 rounded-xl text-sm bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-gold-500/50 resize-none" placeholder="وصف قصير للقسم..." />
                     </div>
                     <div className="col-span-1 md:col-span-2 flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-700/50 rounded-xl border border-slate-200 dark:border-slate-600">
                       <div>
-                        <span className="text-sm font-semibold text-slate-700 dark:text-slate-300 block">حالة التصنيف</span>
-                        <span className="text-xs text-slate-500 dark:text-slate-400">تفعيل أو إخفاء التصنيف من المتجر</span>
+                        <span className="text-sm font-semibold text-slate-700 dark:text-slate-300 block">حالة القسم</span>
+                        <span className="text-xs text-slate-500 dark:text-slate-400">تفعيل أو إخفاء القسم من المتجر</span>
                       </div>
                       <AdminSwitch
                         checked={categoryForm.isActive}
-                        aria-label="حالة التصنيف"
+                        aria-label="حالة القسم"
                         onChange={(next) => updateCategoryForm((f) => ({ ...f, isActive: next }))}
                       />
                     </div>
@@ -887,7 +887,7 @@ const AdminDashboard = () => {
                   {/* Media */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-slate-100 dark:border-slate-700">
                     <div>
-                      <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">أيقونة التصنيف (صغيرة)</label>
+                      <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">أيقونة القسم (صغيرة)</label>
                       {categoryForm.iconUrl && (
                         <div className="mb-2 relative inline-block">
                           <div className="flex items-center gap-2">
@@ -915,7 +915,7 @@ const AdminDashboard = () => {
                       </div>
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">صورة التصنيف (كبيرة)</label>
+                      <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">صورة القسم (كبيرة)</label>
                       {categoryForm.imageUrl && (
                         <div className="mb-2 flex items-center gap-2">
                           <img src={categoryForm.imageUrl} alt="" className="w-16 h-10 rounded-lg object-cover border border-slate-200" />

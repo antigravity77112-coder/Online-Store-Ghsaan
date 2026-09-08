@@ -148,7 +148,7 @@ const BrandPage = () => {
             animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
             className="flex flex-col md:flex-row items-center gap-6 text-center md:text-right"
           >
-            <div className="w-24 h-24 md:w-36 md:h-36 bg-transparent dark:bg-transparent rounded-2xl shadow-md border border-slate-100 dark:border-slate-700 p-3 shrink-0 flex items-center justify-center">
+            <div className="w-24 h-24 md:w-36 md:h-36 bg-transparent p-1 shrink-0 flex items-center justify-center">
               {brand.logoUrl ? (
                 <img
                   src={getOptimizedImageUrl(brand.logoUrl, IMAGE_WIDTHS.THUMBNAIL)}

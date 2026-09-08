@@ -202,6 +202,9 @@ function toPublicConfig(merged, { client = 'web' } = {}) {
       tiktok: merged.tiktokUrl || null,
       twitter: merged.twitterUrl || null,
       youtube: merged.youtubeUrl || null,
+      telegram: merged.telegramUrl || null,
+      linkedin: merged.linkedinUrl || null,
+      threads: merged.threadsUrl || null,
     },
     seo: {
       title: merged.seoTitle,

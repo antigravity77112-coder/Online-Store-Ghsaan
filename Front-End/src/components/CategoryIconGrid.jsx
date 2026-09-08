@@ -1,17 +1,24 @@
 /**
- * CategoryIconGrid — حزام فئات أفقي (تمرير RTL؛ 7 ظاهرة على سطح المكتب)
+ * CategoryIconGrid — شبكة فئات بصفّين (موبايل 5 أعمدة، سطح المكتب 7)
  */
 
 import React from 'react';
 import CategoryTile from './CategoryTile';
 
-const SKELETON_COUNT = 7;
+const MOBILE_COLS = 5;
+const DESKTOP_COLS = 7;
+const ROWS = 2;
+const MOBILE_LIMIT = MOBILE_COLS * ROWS; // 10
+const DESKTOP_LIMIT = DESKTOP_COLS * ROWS; // 14
+const SKELETON_COUNT = DESKTOP_LIMIT;
 
 export default function CategoryIconGrid({
   categories = [],
   isLoading = false,
   showHeader = true,
 }) {
+  const visible = categories.slice(0, DESKTOP_LIMIT);
+
   return (
     <section
       id="categories-section"
@@ -27,8 +34,7 @@ export default function CategoryIconGrid({
       )}
 
       <div
-        className="category-belt-scroll flex gap-2 overflow-x-auto scrollbar-hide snap-x snap-mandatory pb-0.5 -mx-0.5 px-0.5 lg:gap-3"
-        style={{ WebkitOverflowScrolling: 'touch' }}
+        className="grid grid-cols-5 gap-x-2 gap-y-3 lg:grid-cols-7 lg:gap-x-3"
         dir="rtl"
         role="list"
       >
@@ -37,16 +43,16 @@ export default function CategoryIconGrid({
               <div
                 key={`cat-grid-skel-${i}`}
                 role="listitem"
-                className="snap-start flex-shrink-0 w-[calc((100%-0.5rem*3)/4)] sm:w-[calc((100%-0.5rem*4)/5)] lg:w-[calc((100%-0.75rem*6)/7)]"
+                className={i >= MOBILE_LIMIT ? 'hidden lg:block' : undefined}
               >
                 <CategoryTile isLoading />
               </div>
             ))
-          : categories.map((cat) => (
+          : visible.map((cat, i) => (
               <div
                 key={cat.id}
                 role="listitem"
-                className="snap-start flex-shrink-0 w-[calc((100%-0.5rem*3)/4)] sm:w-[calc((100%-0.5rem*4)/5)] lg:w-[calc((100%-0.75rem*6)/7)]"
+                className={i >= MOBILE_LIMIT ? 'hidden lg:block' : undefined}
               >
                 <CategoryTile category={cat} />
               </div>
