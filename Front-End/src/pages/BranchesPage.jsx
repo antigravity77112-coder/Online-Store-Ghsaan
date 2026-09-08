@@ -106,7 +106,7 @@ const BranchesPage = () => {
     <Layout>
       <SEO
         title="فروعنا ومواقعنا"
-        description="تعرف على مواقع فروع متجر قصة — العناوين، أوقات العمل، وأرقام التواصل."
+        description="تعرف على مواقع فروع المتسوق الذكي — العناوين، أوقات العمل، وأرقام التواصل."
       />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 mb-16">

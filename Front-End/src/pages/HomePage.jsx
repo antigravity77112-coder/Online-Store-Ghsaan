@@ -7,7 +7,6 @@ import Layout from '../components/Layout';
 import SEO from '../components/SEO';
 import BrandIntroOverlay from '../components/BrandIntroOverlay';
 import CategoryIconGrid from '../components/CategoryIconGrid';
-import ScentBelt from '../components/ScentBelt';
 import HeroSection from '../components/HeroSection';
 import PromoBannerMosaic from '../components/PromoBannerMosaic';
 import ProductVerticalSection from '../components/ProductVerticalSection';
@@ -15,7 +14,7 @@ import HomeServiceBar from '../components/HomeServiceBar';
 import HomeProductFeed from '../components/HomeProductFeed';
 import { useFavorites } from '../context/FavoritesContext';
 import { useSiteConfig } from '../context/SiteConfigContext';
-import { useCategories, useScents } from '../hooks/useProducts';
+import { useCategories } from '../hooks/useProducts';
 import { useHomeProducts } from '../hooks/useHomeProducts';
 import { mapStorefrontProduct } from '../utils/mapStorefrontProduct';
 
@@ -43,7 +42,7 @@ const HomePage = () => {
   }, []);
 
   const { data: categories, isLoading: categoriesLoading } = useCategories();
-  const { data: scents, isLoading: scentsLoading } = useScents({ limit: 10 });
+  // Scents hidden from storefront for clients — admin still manages them.
 
   const {
     featuredOffers,
@@ -165,22 +164,13 @@ const HomePage = () => {
 
           {trendingProducts.length > 0 && homeSections.trending?.visible !== false && (
             <ProductVerticalSection
-              title={homeSections.trending?.title || 'تريند'}
+              title={homeSections.trending?.title || 'تريندات'}
               viewAllHref="/products?trending=true"
               products={mapWithFavorites(trendingProducts)}
               isLoading={showSkeleton}
               loadingCount={SECTION_PREVIEW_COUNT}
               limit={SECTION_PREVIEW_COUNT}
               onFavorite={handleFavoriteToggle}
-            />
-          )}
-
-          {homeSections.scents?.visible !== false && (
-            <ScentBelt
-              scents={scents}
-              isLoading={scentsLoading}
-              title={homeSections.scents?.title || 'الروائح'}
-              variant="marketplace"
             />
           )}
 

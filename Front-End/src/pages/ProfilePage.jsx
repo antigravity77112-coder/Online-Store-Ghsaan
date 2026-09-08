@@ -21,12 +21,15 @@ import {
   ChevronLeft,
   ExternalLink,
   Crown,
+  Moon,
+  Sun,
 } from 'lucide-react';
 import Layout from '../components/Layout';
 import SEO from '../components/SEO';
 import { useAuth } from '../context/AuthContext';
 import { useLocale } from '../context/LocaleContext';
 import { useCurrency } from '../context/CurrencyContext';
+import { useTheme } from '../context/ThemeContext';
 import { DISPLAY_CURRENCIES } from '../utils/currency';
 import * as api from '../services/api';
 
@@ -100,6 +103,7 @@ const ProfilePage = () => {
   const { t } = useTranslation();
   const { language, changeLanguage } = useLocale();
   const { preferredCurrency, setPreferredCurrency } = useCurrency();
+  const { isDark, toggleTheme } = useTheme();
   const { user, isAuthenticated, loading: authLoading, checkAuthStatus } = useAuth();
   const navigate = useNavigate();
 
@@ -278,8 +282,8 @@ const ProfilePage = () => {
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col sm:flex-row sm:items-end gap-6">
             {/* Avatar */}
             <div className="relative shrink-0">
-              <div className="absolute -inset-1 rounded-3xl bg-gradient-to-br from-gold-400 via-gold-500 to-amber-600 opacity-80 blur-sm" />
-              <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-2xl bg-gradient-to-br from-gold-400 to-amber-600 flex items-center justify-center text-3xl sm:text-4xl font-black text-slate-900 shadow-2xl shadow-gold-500/30">
+              <div className="absolute -inset-1 rounded-3xl bg-gradient-to-br from-gold-400 via-gold-500 to-gold-700 opacity-80 blur-sm" />
+              <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-2xl bg-gradient-to-br from-gold-500 to-gold-700 flex items-center justify-center text-3xl sm:text-4xl font-black text-white shadow-2xl shadow-gold-500/30">
                 {getInitials(form.fullName || user?.fullName)}
               </div>
               <div className={`absolute -bottom-2 -left-2 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gradient-to-l ${role.color} text-white text-[10px] font-bold shadow-lg`}>
@@ -291,7 +295,7 @@ const ProfilePage = () => {
             <div className="flex-1 min-w-0 text-white">
               <div className="inline-flex items-center gap-2 rounded-full border border-gold-500/30 bg-gold-500/10 px-3 py-1 mb-3">
                 <Sparkles className="w-3.5 h-3.5 text-gold-400" />
-                <span className="text-xs font-bold text-gold-300">عضو GISAAH</span>
+                <span className="text-xs font-bold text-gold-300">عضو Smart Shopper</span>
               </div>
               <h1 className="text-3xl sm:text-4xl font-black tracking-tight truncate">
                 {form.fullName || user?.fullName || 'حسابي'}
@@ -491,7 +495,7 @@ const ProfilePage = () => {
                       <button
                         type="submit"
                         disabled={saving}
-                        className="w-full flex items-center justify-center gap-2.5 py-4 rounded-xl font-bold text-base text-slate-900 bg-gradient-to-l from-gold-400 via-gold-500 to-amber-500 hover:from-gold-300 hover:via-gold-400 hover:to-amber-400 focus:outline-none focus:ring-4 focus:ring-gold-500/30 shadow-lg shadow-gold-600/20 disabled:opacity-60 disabled:cursor-not-allowed active:scale-[0.98] transition-all"
+                        className="w-full flex items-center justify-center gap-2.5 py-4 rounded-xl font-bold text-base text-white bg-gradient-to-l from-gold-600 via-gold-500 to-gold-700 hover:from-gold-500 hover:via-gold-600 hover:to-gold-800 focus:outline-none focus:ring-4 focus:ring-gold-500/30 shadow-lg shadow-gold-600/20 disabled:opacity-60 disabled:cursor-not-allowed active:scale-[0.98] transition-all"
                       >
                         {saving ? (
                           <><Loader2 className="w-5 h-5 animate-spin" /> جاري الحفظ...</>
@@ -539,6 +543,37 @@ const ProfilePage = () => {
                           </button>
                         ))}
                       </div>
+                    </div>
+
+                    <div>
+                      <FieldLabel>{t('settings.appearance')}</FieldLabel>
+                      <button
+                        type="button"
+                        onClick={toggleTheme}
+                        className="w-full flex items-center justify-between gap-4 p-4 rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-bone/50 dark:bg-slate-800/50 hover:border-gold-300 dark:hover:border-gold-600/50 transition-all"
+                        aria-pressed={isDark}
+                      >
+                        <span className="flex items-center gap-3 text-sm font-bold text-slate-700 dark:text-slate-200">
+                          {isDark ? (
+                            <Sun className="w-5 h-5 text-gold-500" aria-hidden="true" />
+                          ) : (
+                            <Moon className="w-5 h-5 text-slate-500" aria-hidden="true" />
+                          )}
+                          {t('settings.darkMode')}
+                        </span>
+                        <span
+                          className={`relative inline-flex h-7 w-12 shrink-0 rounded-full transition-colors ${
+                            isDark ? 'bg-gold-500' : 'bg-slate-300 dark:bg-slate-600'
+                          }`}
+                          aria-hidden="true"
+                        >
+                          <span
+                            className={`absolute top-0.5 start-0.5 h-6 w-6 rounded-full bg-white shadow transition-[inset-inline-start] duration-200 ${
+                              isDark ? 'start-[1.375rem]' : 'start-0.5'
+                            }`}
+                          />
+                        </span>
+                      </button>
                     </div>
 
                     <div>

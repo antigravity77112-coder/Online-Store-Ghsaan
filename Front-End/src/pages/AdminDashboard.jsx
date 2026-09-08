@@ -50,21 +50,39 @@ import { useSiteConfig } from "../context/SiteConfigContext";
 import { DEFAULT_SITE_CONFIG, resolveSiteLogo } from "../config/siteConfigDefaults";
 import { useTheme } from "../context/ThemeContext";
 import { themeStatusError, themeStatusSuccess } from "../config/themeTokens";
-const AddProductFormLazy = React.lazy(() => import("../components/AddProductForm"));
+/** Eager import — avoids Vite "Failed to fetch dynamically imported module" flakes on Arabic paths. */
+import AdminUsersTab from "./admin/AdminUsersTab";
 
-const AdminDashboardTab = React.lazy(() => import("./admin/AdminDashboardTab"));
-const AdminOrdersTab = React.lazy(() => import("./admin/AdminOrdersTab"));
-const AdminUsersTab = React.lazy(() => import("./admin/AdminUsersTab"));
-const AdminProductsTab = React.lazy(() => import("./admin/AdminProductsTab"));
-const AdminCategoriesTab = React.lazy(() => import("./admin/AdminCategoriesTab"));
-const AdminStoreInfoTab = React.lazy(() => import("./admin/AdminStoreInfoTab"));
-const AdminCustomizationTab = React.lazy(() => import("./admin/AdminCustomizationTab"));
-const AdminRatesTab = React.lazy(() => import("./admin/AdminRatesTab"));
-const AdminBannersTab = React.lazy(() => import("./admin/AdminBannersTab"));
-const AdminBranchesTab = React.lazy(() => import("./admin/AdminBranchesTab"));
-const AdminBrandsTab = React.lazy(() => import("./admin/AdminBrandsTab"));
-const AdminScentsTab = React.lazy(() => import("./admin/AdminScentsTab"));
-const AdminNotificationsTab = React.lazy(() => import("./admin/AdminNotificationsTab"));
+/** Retry lazy imports once (Vite HMR / network flake common on non-ASCII project paths). */
+function lazyWithRetry(factory) {
+  return React.lazy(async () => {
+    try {
+      return await factory();
+    } catch (firstError) {
+      await new Promise((r) => setTimeout(r, 400));
+      try {
+        return await factory();
+      } catch {
+        throw firstError;
+      }
+    }
+  });
+}
+
+const AddProductFormLazy = lazyWithRetry(() => import("../components/AddProductForm"));
+
+const AdminDashboardTab = lazyWithRetry(() => import("./admin/AdminDashboardTab"));
+const AdminOrdersTab = lazyWithRetry(() => import("./admin/AdminOrdersTab"));
+const AdminProductsTab = lazyWithRetry(() => import("./admin/AdminProductsTab"));
+const AdminCategoriesTab = lazyWithRetry(() => import("./admin/AdminCategoriesTab"));
+const AdminStoreInfoTab = lazyWithRetry(() => import("./admin/AdminStoreInfoTab"));
+const AdminCustomizationTab = lazyWithRetry(() => import("./admin/AdminCustomizationTab"));
+const AdminRatesTab = lazyWithRetry(() => import("./admin/AdminRatesTab"));
+const AdminBannersTab = lazyWithRetry(() => import("./admin/AdminBannersTab"));
+const AdminBranchesTab = lazyWithRetry(() => import("./admin/AdminBranchesTab"));
+const AdminBrandsTab = lazyWithRetry(() => import("./admin/AdminBrandsTab"));
+const AdminScentsTab = lazyWithRetry(() => import("./admin/AdminScentsTab"));
+const AdminNotificationsTab = lazyWithRetry(() => import("./admin/AdminNotificationsTab"));
 
 const AdminTabFallback = () => (
   <div className="flex items-center justify-center py-20">
@@ -84,15 +102,33 @@ class ErrorBoundary extends React.Component {
     this.setState({ errorInfo });
     console.error("AdminDashboard ErrorBoundary caught an error:", error, errorInfo);
   }
+  componentDidUpdate(prevProps) {
+    if (prevProps.resetKey !== this.props.resetKey && this.state.hasError) {
+      this.setState({ hasError: false, error: null, errorInfo: null });
+    }
+  }
   render() {
     if (this.state.hasError) {
       return (
-        <div className="p-10 bg-white text-red-600 font-mono">
-          <h1 className="text-2xl font-bold mb-4">Something went wrong in AdminDashboard.</h1>
-          <p className="mb-4">{this.state.error && this.state.error.toString()}</p>
-          <pre className="text-sm bg-red-50 p-4 rounded overflow-auto">
-            {this.state.errorInfo && this.state.errorInfo.componentStack}
-          </pre>
+        <div className="p-8 sm:p-10 bg-white dark:bg-slate-900 rounded-2xl border border-red-200 dark:border-red-900 text-red-700 dark:text-red-300">
+          <h1 className="text-xl font-bold mb-2">حدث خطأ في لوحة التحكم</h1>
+          <p className="mb-4 text-sm font-mono break-all">{this.state.error && this.state.error.toString()}</p>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => this.setState({ hasError: false, error: null, errorInfo: null })}
+              className="px-4 py-2 rounded-xl bg-gold-600 text-white text-sm font-bold"
+            >
+              إعادة المحاولة
+            </button>
+            <button
+              type="button"
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-600 text-sm font-bold"
+            >
+              تحديث الصفحة
+            </button>
+          </div>
         </div>
       );
     }
@@ -106,6 +142,7 @@ const AdminDashboard = () => {
   const { isDark } = useTheme();
   const logo = resolveSiteLogo(config.media, { dark: isDark });
   const brandShort = config.brand?.siteShortName || DEFAULT_SITE_CONFIG.brand.siteShortName;
+  const brandAr = config.brand?.siteNameAr || DEFAULT_SITE_CONFIG.brand.siteNameAr;
   const navigate = useNavigate();
   const isAdmin = user?.role === "Admin";
 
@@ -347,7 +384,7 @@ const AdminDashboard = () => {
         { id: 'products', label: 'المحتوى', icon: Package },
         { id: 'categories', label: 'التصنيفات', icon: Tag },
         { id: 'brands', label: 'العلامات التجارية', icon: Crown },
-        { id: 'scents', label: 'عائلات العطور', icon: Sparkles },
+        { id: 'scents', label: 'عائلات الروائح', icon: Sparkles },
       ],
     },
     {
@@ -394,8 +431,7 @@ const AdminDashboard = () => {
   );
 
   return (
-    <ErrorBoundary>
-      <div className="min-h-screen bg-[#f8f6f1] dark:bg-slate-950 font-sans" dir="rtl">
+    <div className="min-h-screen bg-[#f8f6f1] dark:bg-slate-950 font-sans" dir="rtl">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,_rgba(218,165,32,0.06),_transparent_50%)] pointer-events-none" />
 
         <div className="relative flex min-h-screen">
@@ -409,7 +445,7 @@ const AdminDashboard = () => {
                 <div className="min-w-0 overflow-visible">
                   <div className="flex items-center gap-1.5 font-serif font-bold leading-tight" dir="ltr">
                     <span className="text-sm text-slate-900 dark:text-white truncate">{brandShort}</span>
-                    <span className="text-sm text-slate-900 dark:text-white">قصة</span>
+                    <span className="text-sm text-slate-900 dark:text-white">{brandAr}</span>
                   </div>
                   <p className="text-[11px] text-slate-400 truncate mt-0.5">لوحة المسؤول · {user?.fullName || 'مسؤول'}</p>
                 </div>
@@ -445,7 +481,7 @@ const AdminDashboard = () => {
               <div className="px-4 py-3 flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2.5 min-w-0">
                   <div className="w-9 h-9 rounded-xl overflow-hidden border border-gold-200/50 flex-shrink-0">
-                    <img src={logo} alt="GISAAH" className="w-full h-full object-cover scale-[1.12]" />
+                    <img src={logo} alt={brandShort} className="w-full h-full object-cover scale-[1.12]" />
                   </div>
                   <div className="min-w-0">
                     <p className="text-sm font-black text-slate-900 dark:text-white truncate">
@@ -464,7 +500,7 @@ const AdminDashboard = () => {
             {/* Desktop page header */}
             <header className="hidden lg:block border-b border-slate-200/60 dark:border-slate-800/80 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm">
               <div className="px-6 lg:px-8 py-5">
-                <p className="text-xs font-semibold text-gold-600 dark:text-gold-400 mb-1">GISAAH Admin</p>
+                <p className="text-xs font-semibold text-gold-600 dark:text-gold-400 mb-1">Smart Shopper Admin</p>
                 <h2 className="text-2xl font-black text-slate-900 dark:text-white">
                   {activeTabMeta?.label || 'لوحة التحكم'}
                 </h2>
@@ -508,6 +544,7 @@ const AdminDashboard = () => {
           </div>
 
           {/* Active Tab Content */}
+          <ErrorBoundary resetKey={activeTab}>
           <Suspense fallback={<AdminTabFallback />}>
           {activeTab === "dashboard" && (
             <AdminDashboardTab
@@ -539,7 +576,15 @@ const AdminDashboard = () => {
               }}
             />
           )}
-          {activeTab === "users" && <AdminUsersTab users={users} usersLoading={usersLoading} handleBlockUser={handleBlockUser} handleChangeRole={handleChangeRole} handleDeleteUser={handleDeleteUser} />}
+          {activeTab === "users" && (
+            <AdminUsersTab
+              users={users}
+              usersLoading={usersLoading}
+              handleBlockUser={handleBlockUser}
+              handleChangeRole={handleChangeRole}
+              handleDeleteUser={handleDeleteUser}
+            />
+          )}
           {activeTab === "products" && <AdminProductsTab openEditProductModal={openEditProductModal} />}
           {activeTab === "categories" && <AdminCategoriesTab openCategoryForm={openCategoryForm} />}
           {activeTab === "brands" && <AdminBrandsTab onSuccessMsg={showSuccessMsg} />}
@@ -559,6 +604,7 @@ const AdminDashboard = () => {
           )}
           {activeTab === "storeBackup" && <AdminStoreInfoTab />}
           </Suspense>
+          </ErrorBoundary>
 
             </div>
           </div>
@@ -607,7 +653,7 @@ const AdminDashboard = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="col-span-1 md:col-span-1">
                       <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">اسم التصنيف <span className="text-red-500">*</span></label>
-                      <input type="text" value={categoryForm.name} onChange={(e) => setCategoryForm(f => ({ ...f, name: e.target.value }))} className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-600 rounded-xl text-sm bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-gold-500/50" placeholder="مثال: عطر نسائي" />
+                      <input type="text" value={categoryForm.name} onChange={(e) => setCategoryForm(f => ({ ...f, name: e.target.value }))} className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-600 rounded-xl text-sm bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-gold-500/50" placeholder="مثال: إلكترونيات" />
                     </div>
                     <div className="col-span-1 md:col-span-1">
                       <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">رابط التصنيف (Slug)</label>
@@ -727,7 +773,6 @@ const AdminDashboard = () => {
           )}
         </AnimatePresence>
       </div>
-    </ErrorBoundary>
   );
 };
 

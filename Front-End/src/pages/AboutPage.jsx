@@ -4,20 +4,20 @@ import SEO from '../components/SEO';
 import { useSiteConfig } from '../context/SiteConfigContext';
 import { buildOrganizationSchema } from '../utils/structuredData';
 
-const DEFAULT_ABOUT = `متجر قصة هو المتجر الالكتروني الاول في اليمن لبيع العطور الاصلية فقط باسعار اقل من الموقع الرسمي ويوفر خدمة التوصيل باقل من 24 ساعة ويوفر خدمة عينات العطور لتجربة عطرية مميزة لا شبيه لها ☺️✨
+const DEFAULT_ABOUT = `المتسوق الذكي هو متجرك الإلكتروني لمنتجات متنوعة بأسعار منافسة وتجربة تسوق سهلة. نوفر توصيلاً سريعاً وخدمة عملاء موثوقة لتصل مشترياتك بأمان وراحة.
 
-في عالم الكوبي - خليك مع قصة ✨`;
+تسوق بذكاء مع المتسوق الذكي.`;
 
 const AboutPage = () => {
   const { config, isLoading } = useSiteConfig();
   const aboutText = String(config.content?.aboutUsText || '').trim() || DEFAULT_ABOUT;
-  const siteName = config.brand?.siteShortName || 'قصة';
+  const siteName = config.brand?.siteShortName || 'Smart Shopper';
 
   return (
     <Layout>
       <SEO
         title={`من نحن — ${siteName}`}
-        description={`${siteName} — متجر العطور الأصلية مع توصيل سريع.`}
+        description={`${siteName} — متجرك الإلكتروني لمنتجات متنوعة بأسعار منافسة وتجربة تسوق سهلة.`}
         jsonLd={[buildOrganizationSchema(config)]}
       />
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">

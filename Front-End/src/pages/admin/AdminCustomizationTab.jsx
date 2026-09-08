@@ -48,7 +48,7 @@ function ColorField({ label, detail, value, onChange }) {
       <div className="flex items-start gap-2.5">
         <input
           type="color"
-          value={value || '#DAA520'}
+          value={value || '#EA0001'}
           onChange={(e) => onChange(e.target.value)}
           className="w-10 h-10 rounded-lg cursor-pointer border border-site-border flex-shrink-0"
         />
@@ -65,7 +65,7 @@ function ColorField({ label, detail, value, onChange }) {
         onChange={(e) => onChange(e.target.value)}
         className={`${adminInputClass} font-mono text-sm`}
         dir="ltr"
-        placeholder="#DAA520"
+        placeholder="#EA0001"
       />
     </div>
   );

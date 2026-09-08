@@ -111,12 +111,15 @@ function formatNumber(num) {
   return String(rounded);
 }
 
-/** Format in native product currency (no conversion). */
+/** Format in native product currency (no conversion). Always: amount then symbol (e.g. 90 ر.س). */
 export function formatNativePrice(price, currency) {
   const num = Number(price);
   if (!Number.isFinite(num)) return '';
+  const amount = formatNumber(num);
   const symbol = getCurrencySymbol(currency);
-  return symbol ? `${formatNumber(num)} ${symbol}` : formatNumber(num);
+  if (!symbol) return amount;
+  // LRI…PDI keeps "90 ر.س" stable inside RTL layouts (avoids "ر.س 90")
+  return `\u2066${amount}\u00A0${symbol}\u2069`;
 }
 
 /**

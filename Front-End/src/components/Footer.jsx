@@ -1,5 +1,5 @@
 /**
- * Footer — تذييل متجر قصة
+ * Footer — تذييل المتسوق الذكي
  *
  * EN: Premium two-tier footer — brand + navigation + legal.
  *     Mobile accordions, desktop columns. Uses only real store data/routes.
@@ -151,7 +151,7 @@ const Footer = () => {
   const tagline = (config.content?.footerText || config.seo?.description || DEFAULT_SITE_CONFIG.content.footerText).trim();
   const logo = resolveMediaUrl(resolveSiteLogo(config.media, { dark: isDark })) || '/Logo_light_192.png';
   const siteName = config.brand?.siteShortName || DEFAULT_SITE_CONFIG.brand.siteShortName;
-  const siteNameAr = config.brand?.siteName?.includes('قصة') ? 'قصة' : (config.brand?.appName || '').split('|').pop()?.trim() || 'قصة';
+  const siteNameAr = config.brand?.siteNameAr || (config.brand?.siteName || '').split('|').pop()?.trim() || DEFAULT_SITE_CONFIG.brand.siteNameAr;
   const copyright = (config.brand?.copyrightText || `© ${new Date().getFullYear()} ${siteName} ${siteNameAr}. جميع الحقوق محفوظة.`).replace('{year}', String(new Date().getFullYear()));
 
   const currentYear = new Date().getFullYear();

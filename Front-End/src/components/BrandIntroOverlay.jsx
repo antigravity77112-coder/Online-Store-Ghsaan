@@ -7,12 +7,13 @@ import { DEFAULT_SITE_CONFIG } from '../config/siteConfigDefaults';
 const SESSION_KEY = 'gisaah_brand_intro_seen';
 
 /**
- * One-shot home intro: GISAAH from left, قصة from right → BrandTrio settles up → fade.
+ * One-shot home intro: English mark from left, Arabic from right → BrandTrio settles up → fade.
  */
 export default function BrandIntroOverlay() {
   const reduceMotion = useReducedMotion();
   const { config } = useSiteConfig();
   const brandShort = config.brand?.siteShortName || DEFAULT_SITE_CONFIG.brand.siteShortName;
+  const brandAr = config.brand?.siteNameAr || DEFAULT_SITE_CONFIG.brand.siteNameAr;
 
   const [visible, setVisible] = useState(() => {
     if (typeof window === 'undefined') return false;
@@ -89,7 +90,7 @@ export default function BrandIntroOverlay() {
           transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
           style={{ right: '12%' }}
         >
-          قــصـــــة
+          {brandAr}
         </motion.span>
       </div>
 

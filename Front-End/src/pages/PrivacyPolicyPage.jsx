@@ -11,7 +11,7 @@ const PrivacyPolicyPage = () => {
 
         <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-sm p-6 sm:p-8 space-y-6">
           <p className="text-slate-600 dark:text-slate-300 leading-relaxed">
-            نحن في متجر قصة نحترم خصوصيتك ونلتزم بحماية بياناتك الشخصية. توضح هذه السياسة كيفية جمع معلوماتك واستخدامها وحمايتها عند استخدامك للموقع.
+            نحن في المتسوق الذكي نحترم خصوصيتك ونلتزم بحماية بياناتك الشخصية. توضح هذه السياسة كيفية جمع معلوماتك واستخدامها وحمايتها عند استخدامك للموقع.
           </p>
 
           <div>

@@ -24,7 +24,7 @@ const CategoriesPage = () => {
 
   return (
     <Layout>
-      <SEO title="جميع الفئات" description="تصفح جميع فئات المنتجات في متجر قصة" />
+      <SEO title="جميع الفئات" description="تصفح جميع فئات المنتجات في المتسوق الذكي" />
 
       <div className="bg-white dark:bg-stone-950 min-h-screen">
         <div className="sticky top-14 sm:top-16 z-30 bg-white dark:bg-stone-950 border-b border-stone-100 dark:border-stone-800 px-2 py-2.5 sm:px-4">

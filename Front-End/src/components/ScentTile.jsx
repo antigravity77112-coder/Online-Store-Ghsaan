@@ -33,7 +33,7 @@ const ScentTile = React.memo(({ scent, isLoading = false }) => {
       type="button"
       onClick={() => navigate(href)}
       className="group flex flex-col items-center gap-1.5 px-1 py-2 w-full focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/50 rounded-xl"
-      aria-label={`تصفح عطور ${name}`}
+      aria-label={`تصفح منتجات ${name}`}
     >
       <div className="w-[60px] h-[60px] sm:w-16 sm:h-16 rounded-2xl overflow-hidden bg-gradient-to-br from-gold-50 to-amber-50 dark:from-gold-900/20 dark:to-slate-800 border border-slate-200/80 dark:border-slate-700 shadow-sm group-hover:shadow-md group-hover:border-gold-300 dark:group-hover:border-gold-600 transition-all duration-200 group-active:scale-95 flex items-center justify-center">
         {hasImage ? (

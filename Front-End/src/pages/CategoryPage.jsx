@@ -148,7 +148,7 @@ const CategoryPage = () => {
   };
 
   const seoTitle = categoryData?.metaTitle || `منتجات ${categoryName}`;
-  const seoDescription = categoryData?.metaDescription || `تصفح منتجات قسم ${categoryName} في متجر قصة — تسوق بسهولة وبأفضل الأسعار.`;
+  const seoDescription = categoryData?.metaDescription || `تصفح منتجات قسم ${categoryName} في المتسوق الذكي — تسوق بسهولة وبأفضل الأسعار.`;
   const canonicalKey = categoryData
     ? (categoryData.slug || categoryData.name)
     : slug;

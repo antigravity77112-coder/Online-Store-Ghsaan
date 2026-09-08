@@ -769,10 +769,10 @@ model SystemSetting {
   tiktokUrl         String?
   seoTitle          String?
   seoDescription    String?
-  siteName          String   @default("GISAAH | قصة")
-  siteShortName     String   @default("GISAAH")
-  appName           String   @default("GISAAH | قصة")
-  tagline           String   @default("في زمن الكوبي خليك مع قصة")
+  siteName          String   @default("Smart Shopper | المتسوق الذكي")
+  siteShortName     String   @default("Smart Shopper")
+  appName           String   @default("Smart Shopper | المتسوق الذكي")
+  tagline           String   @default("تسوق ذكي — منتجات متنوعة بأسعار منافسة")
   siteDescription   String?
   copyrightText     String?
   logoUrl           String?

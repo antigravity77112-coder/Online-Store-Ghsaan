@@ -11,7 +11,6 @@ const TABS = (t) => [
   { id: 'offers', label: t('nav.offers'), href: '/products?promoted=true' },
   { id: 'trending', label: t('nav.trending'), href: '/products?trending=true' },
   { id: 'new', label: t('nav.newArrivals'), href: '/products?sort=newest' },
-  { id: 'scents', label: t('nav.scents'), href: '/scents' },
   { id: 'products', label: t('nav.products'), href: '/products' },
 ];
 
@@ -32,7 +31,7 @@ export default function HomeCategoryTabs() {
 
   return (
     <nav
-      className="md:hidden bg-[#2f271f] border-b border-gold-500/20"
+      className="md:hidden bg-[#565656] border-b border-white/15"
       aria-label={t('nav.browseStore', 'تصفح المتجر')}
     >
       <div className="flex overflow-x-auto scrollbar-hide snap-x snap-mandatory px-1">
@@ -44,13 +43,13 @@ export default function HomeCategoryTabs() {
               to={tab.href}
               className={`relative flex-shrink-0 snap-start px-3.5 pt-2.5 pb-3.5 text-xs font-bold whitespace-nowrap min-h-[44px] flex items-center leading-normal transition-colors ${
                 active
-                  ? 'text-gold-400'
-                  : 'text-stone-300/90 hover:text-stone-100'
+                  ? 'text-white'
+                  : 'text-white/70 hover:text-white'
               }`}
             >
               {tab.label}
               {active && (
-                <span className="absolute inset-x-3 bottom-1.5 h-0.5 rounded-full bg-gradient-to-r from-gold-600 via-gold-400 to-gold-600" aria-hidden="true" />
+                <span className="absolute inset-x-3 bottom-1.5 h-0.5 rounded-full bg-[#EA0001]" aria-hidden="true" />
               )}
             </Link>
           );

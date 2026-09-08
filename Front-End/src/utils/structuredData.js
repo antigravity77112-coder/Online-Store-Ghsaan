@@ -60,7 +60,7 @@ export function buildProductSchema(product) {
     sku: product.id,
     brand: {
       '@type': 'Brand',
-      name: product.categoryName || 'GISAAH',
+      name: product.categoryName || 'Smart Shopper',
     },
     offers: {
       '@type': 'Offer',
@@ -70,7 +70,7 @@ export function buildProductSchema(product) {
       availability,
       seller: {
         '@type': 'Organization',
-        name: 'GISAAH | قصة',
+        name: 'Smart Shopper | المتسوق الذكي',
       },
       itemCondition: product.condition === 'Used' || product.condition === 2
         ? 'https://schema.org/UsedCondition'
@@ -127,11 +127,11 @@ export function buildOrganizationSchema(siteConfig = {}) {
   const schema = {
     '@context': 'https://schema.org',
     '@type': 'Organization',
-    name: brand.siteName || 'GISAAH | قصة',
+    name: brand.siteName || 'Smart Shopper | المتسوق الذكي',
     url: BASE_URL,
     logo: abs(logoUrl),
     image: abs(ogImage),
-    description: seo.description || brand.description || 'متجر العطور الفاخرة الأصلية في اليمن',
+    description: seo.description || brand.description || 'المتسوق الذكي — متجرك الإلكتروني لمنتجات متنوعة بأسعار منافسة وتجربة تسوق سهلة',
     contactPoint: {
       '@type': 'ContactPoint',
       contactType: 'customer service',
@@ -163,7 +163,7 @@ export function buildWebSiteSchema() {
   return {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
-    name: 'GISAAH | قصة',
+    name: 'Smart Shopper | المتسوق الذكي',
     url: BASE_URL,
     potentialAction: {
       '@type': 'SearchAction',
@@ -206,7 +206,7 @@ export function buildFAQSchema(faqs) {
  * @param {string} listName - Name of the list (e.g., category name)
  * @returns {Object} JSON-LD ItemList schema
  */
-export function buildItemListSchema(products, listName = 'منتجات متجر قصة') {
+export function buildItemListSchema(products, listName = 'منتجات المتسوق الذكي') {
   if (!products || products.length === 0) return null;
 
   return {

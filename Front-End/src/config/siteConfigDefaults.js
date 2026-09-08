@@ -2,12 +2,13 @@
 
 export const DEFAULT_SITE_CONFIG = {
   brand: {
-    siteName: 'GISAAH | قصة',
-    siteShortName: 'GISAAH',
-    appName: 'GISAAH | قصة',
-    tagline: 'في زمن الكوبي خليك مع قصة',
-    description: 'في زمن الكوبي خليك مع قصة — متجر العطور الفاخرة الأصلية',
-    copyrightText: '© GISAAH قصة. جميع الحقوق محفوظة.',
+    siteName: 'Smart Shopper | المتسوق الذكي',
+    siteShortName: 'Smart Shopper',
+    siteNameAr: 'المتسوق الذكي',
+    appName: 'Smart Shopper | المتسوق الذكي',
+    tagline: 'تسوق ذكي — منتجات متنوعة بأسعار منافسة',
+    description: 'المتسوق الذكي — متجرك الإلكتروني لمنتجات متنوعة بأسعار منافسة وتجربة تسوق سهلة',
+    copyrightText: '© Smart Shopper المتسوق الذكي. جميع الحقوق محفوظة.',
   },
   media: {
     logoUrl: '/Logo_light_192.png',
@@ -18,25 +19,25 @@ export const DEFAULT_SITE_CONFIG = {
     ogImageUrl: '/og-share.png',
   },
   theme: {
-    primary: '#DAA520',
-    secondary: '#B8860B',
-    accent: '#DAA520',
-    background: '#F8F6EF',
+    primary: '#EA0001',
+    secondary: '#B80001',
+    accent: '#EA0001',
+    background: '#FFFFFF',
     surface: '#FFFFFF',
-    text: '#232323',
-    textMuted: '#64748b',
-    border: '#F0E2C5',
+    text: '#565656',
+    textMuted: '#7A7A7A',
+    border: '#E5E5E5',
     success: '#22c55e',
     warning: '#f59e0b',
-    error: '#ef4444',
+    error: '#EA0001',
   },
   contact: { phone: null, email: null, whatsapp: null, address: null, mapUrl: null },
   social: { facebook: null, instagram: null, tiktok: null, twitter: null, youtube: null },
   seo: {
-    title: 'GISAAH | قصة',
-    description: 'في زمن الكوبي خليك مع قصة — متجر العطور الفاخرة الأصلية',
-    ogTitle: 'GISAAH | قصة',
-    ogDescription: 'في زمن الكوبي خليك مع قصة — متجر العطور الفاخرة الأصلية',
+    title: 'Smart Shopper | المتسوق الذكي',
+    description: 'المتسوق الذكي — متجرك الإلكتروني لمنتجات متنوعة بأسعار منافسة وتجربة تسوق سهلة',
+    ogTitle: 'Smart Shopper | المتسوق الذكي',
+    ogDescription: 'المتسوق الذكي — متجرك الإلكتروني لمنتجات متنوعة بأسعار منافسة وتجربة تسوق سهلة',
     ogImageUrl: '/og-share.png',
   },
   content: {
@@ -49,7 +50,7 @@ export const DEFAULT_SITE_CONFIG = {
     sections: {
       bestSellers: { title: 'العروض الحصرية', subtitle: 'منتجات مميزة وعروض مختارة', visible: true },
       newArrivals: { title: 'وصل حديثاً', subtitle: '', visible: true },
-      trending: { title: 'تريند', subtitle: 'المنتجات الأكثر طلباً الآن', visible: true },
+      trending: { title: 'تريندات', subtitle: 'المنتجات الأكثر طلباً الآن', visible: true },
       featured: { title: 'منتجات مميزة', subtitle: 'مختارات من أفضل المنتجات', visible: true },
       categories: { title: 'الفئات', subtitle: '', visible: true },
     },
@@ -67,15 +68,63 @@ function mergeHomepageSections(defaults, fromApi) {
   return merged;
 }
 
+/** Replace legacy GISAAH / قصة brand strings still returned by the API */
+function sanitizeBrand(brand = {}) {
+  const base = { ...DEFAULT_SITE_CONFIG.brand, ...brand };
+  const looksLegacy = (value) => {
+    if (typeof value !== 'string' || !value.trim()) return true;
+    const v = value.trim();
+    if (/GISAAH|Gisaah|GISAah/i.test(v)) return true;
+    if (v === 'قصة' || v === 'قــصـــــة' || v === 'GISAAH | قصة') return true;
+    return false;
+  };
+
+  return {
+    ...base,
+    siteName: looksLegacy(base.siteName) ? DEFAULT_SITE_CONFIG.brand.siteName : base.siteName,
+    siteShortName: looksLegacy(base.siteShortName) ? DEFAULT_SITE_CONFIG.brand.siteShortName : base.siteShortName,
+    siteNameAr: looksLegacy(base.siteNameAr) ? DEFAULT_SITE_CONFIG.brand.siteNameAr : (base.siteNameAr || DEFAULT_SITE_CONFIG.brand.siteNameAr),
+    appName: looksLegacy(base.appName) ? DEFAULT_SITE_CONFIG.brand.appName : base.appName,
+    tagline: looksLegacy(base.tagline) || (typeof base.tagline === 'string' && base.tagline.includes('خليك مع قصة'))
+      ? DEFAULT_SITE_CONFIG.brand.tagline
+      : (base.tagline || DEFAULT_SITE_CONFIG.brand.tagline),
+    description: looksLegacy(base.description) || (typeof base.description === 'string' && (base.description.includes('خليك مع قصة') || base.description.includes('متجر العطور')))
+      ? DEFAULT_SITE_CONFIG.brand.description
+      : (base.description || DEFAULT_SITE_CONFIG.brand.description),
+    copyrightText: looksLegacy(base.copyrightText)
+      ? DEFAULT_SITE_CONFIG.brand.copyrightText
+      : (base.copyrightText || DEFAULT_SITE_CONFIG.brand.copyrightText),
+  };
+}
+
+function sanitizeSeo(seo = {}) {
+  const base = { ...DEFAULT_SITE_CONFIG.seo, ...seo };
+  const looksLegacy = (value) => {
+    if (typeof value !== 'string' || !value.trim()) return true;
+    const v = value.trim();
+    if (/GISAAH|Gisaah|GISAah/i.test(v)) return true;
+    if (v.includes('خليك مع قصة') || v.includes('متجر العطور')) return true;
+    return false;
+  };
+
+  return {
+    ...base,
+    title: looksLegacy(base.title) ? DEFAULT_SITE_CONFIG.seo.title : base.title,
+    description: looksLegacy(base.description) ? DEFAULT_SITE_CONFIG.seo.description : base.description,
+    ogTitle: looksLegacy(base.ogTitle) ? DEFAULT_SITE_CONFIG.seo.ogTitle : base.ogTitle,
+    ogDescription: looksLegacy(base.ogDescription) ? DEFAULT_SITE_CONFIG.seo.ogDescription : base.ogDescription,
+  };
+}
+
 export function mergeSiteConfig(apiConfig) {
   if (!apiConfig) return DEFAULT_SITE_CONFIG;
   return {
-    brand: { ...DEFAULT_SITE_CONFIG.brand, ...apiConfig.brand },
+    brand: sanitizeBrand(apiConfig.brand),
     media: { ...DEFAULT_SITE_CONFIG.media, ...apiConfig.media },
     theme: { ...DEFAULT_SITE_CONFIG.theme, ...apiConfig.theme },
     contact: { ...DEFAULT_SITE_CONFIG.contact, ...apiConfig.contact },
     social: { ...DEFAULT_SITE_CONFIG.social, ...apiConfig.social },
-    seo: { ...DEFAULT_SITE_CONFIG.seo, ...apiConfig.seo },
+    seo: sanitizeSeo(apiConfig.seo),
     content: { ...DEFAULT_SITE_CONFIG.content, ...apiConfig.content },
     homepage: {
       ...DEFAULT_SITE_CONFIG.homepage,

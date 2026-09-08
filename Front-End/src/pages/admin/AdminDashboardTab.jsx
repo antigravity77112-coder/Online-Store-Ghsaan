@@ -234,7 +234,7 @@ const AdminDashboardTab = ({ stats, statsLoading, orders, onNavigateTab, userNam
           <div>
             <div className="inline-flex items-center gap-2 rounded-full bg-gold-500/15 border border-gold-500/30 px-3 py-1 mb-3">
               <Sparkles className="w-3.5 h-3.5 text-gold-400" />
-              <span className="text-xs font-bold text-gold-300">لوحة تحكم GISAAH</span>
+              <span className="text-xs font-bold text-gold-300">لوحة تحكم Smart Shopper</span>
             </div>
             <h2 className="text-2xl sm:text-3xl font-black text-white mb-1">
               {getGreeting()}، {userName || 'مسؤول'} ✨
@@ -302,8 +302,8 @@ const AdminDashboardTab = ({ stats, statsLoading, orders, onNavigateTab, userNam
                 <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
                   <defs>
                     <linearGradient id="adminRevenueGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#DAA520" stopOpacity={0.35} />
-                      <stop offset="95%" stopColor="#DAA520" stopOpacity={0} />
+                      <stop offset="5%" stopColor="#EA0001" stopOpacity={0.35} />
+                      <stop offset="95%" stopColor="#EA0001" stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <XAxis dataKey="name" stroke="#94a3b8" fontSize={11} tickMargin={8} />
@@ -313,7 +313,7 @@ const AdminDashboardTab = ({ stats, statsLoading, orders, onNavigateTab, userNam
                     contentStyle={{ backgroundColor: '#0f172a', border: '1px solid rgba(218,165,32,0.3)', borderRadius: '12px', color: '#fff' }}
                     formatter={(value) => [formatCurrency(value), 'الإيرادات']}
                   />
-                  <Area type="monotone" dataKey="revenue" stroke="#DAA520" strokeWidth={2.5} fill="url(#adminRevenueGrad)" />
+                  <Area type="monotone" dataKey="revenue" stroke="#EA0001" strokeWidth={2.5} fill="url(#adminRevenueGrad)" />
                 </AreaChart>
               </ResponsiveContainer>
               ) : (

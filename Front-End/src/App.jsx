@@ -40,8 +40,6 @@ const ProductsPage = React.lazy(() => import("./pages/ProductsPage"));
 const CategoryPage = React.lazy(() => import("./pages/CategoryPage"));
 const CategoriesPage = React.lazy(() => import("./pages/CategoriesPage"));
 const BrandPage = React.lazy(() => import("./pages/BrandPage"));
-const ScentPage = React.lazy(() => import("./pages/ScentPage"));
-const ScentsPage = React.lazy(() => import("./pages/ScentsPage"));
 const ProductGridDemo = React.lazy(
   () => import("./components/HighConversionGrid/ProductGridDemo"),
 );
@@ -140,8 +138,8 @@ const App = () => {
           <Route path="/categories" element={<CategoriesPage />} />
           <Route path="/category/:slug" element={<CategoryPage />} />
           <Route path="/brand/:slug" element={<BrandPage />} />
-          <Route path="/scents" element={<ScentsPage />} />
-          <Route path="/scents/:slug" element={<ScentPage />} />
+          <Route path="/scents" element={<Navigate to="/" replace />} />
+          <Route path="/scents/:slug" element={<Navigate to="/" replace />} />
           {import.meta.env.DEV && (
             <Route path="/product-grid-demo" element={<ProductGridDemo />} />
           )}

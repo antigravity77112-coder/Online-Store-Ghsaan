@@ -34,7 +34,7 @@ export default function HomeSearchStrip() {
         type="search"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        placeholder="ابحث عن عطرك المفضل..."
+        placeholder="ابحث عن منتجاتك المفضلة..."
         className="w-full min-h-[44px] pr-10 pl-4 py-2.5 text-sm text-right rounded-full border border-slate-200/80 dark:border-slate-700/80 bg-white dark:bg-slate-900/80 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 focus-visible:border-gold-400/50 shadow-sm"
       />
     </form>

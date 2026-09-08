@@ -441,9 +441,9 @@ async function getRss(req, res) {
   let xml = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>GISAAH | قصة — أحدث العطور</title>
+    <title>Smart Shopper | المتسوق الذكي — أحدث المنتجات</title>
     <link>${BASE_URL}</link>
-    <description>أحدث العطور الفاخرة الأصلية في متجر قصة</description>
+    <description>أحدث المنتجات في المتسوق الذكي</description>
     <language>ar</language>
     <lastBuildDate>${now}</lastBuildDate>
     <atom:link href="${BASE_URL}/api/seo/rss.xml" rel="self" type="application/rss+xml"/>

@@ -16,7 +16,7 @@ import {
   Home,
   BadgePercent,
   Sparkles,
-  TrendingUp,
+  Flame,
   Info,
   Phone,
   MapPin,
@@ -70,7 +70,6 @@ const Layout = React.memo(({ children, homeMarketplace = false, hideMobileHeader
     { to: "/", label: t("nav.home") },
     { to: "/products", label: t("nav.products") },
     { to: "/categories", label: t("nav.categories") },
-    { to: "/scents", label: t("nav.scents") },
     { to: "/products?promoted=true", label: t("nav.offers") },
     { to: "/products?trending=true", label: t("nav.trending") },
   ]), [t]);
@@ -153,7 +152,7 @@ const Layout = React.memo(({ children, homeMarketplace = false, hideMobileHeader
       <header
         className={`transition-all duration-300 ${
           showShopChrome
-            ? 'max-md:bg-[#2f271f] max-md:border-b max-md:border-gold-500/20 max-md:shadow-md max-md:shadow-black/10'
+            ? 'max-md:bg-[#565656] max-md:border-b max-md:border-white/15 max-md:shadow-md max-md:shadow-black/10'
             : scrolled
               ? 'bg-site-surface/80 dark:bg-site-surface-dark/80 backdrop-blur-xl shadow-md border-b border-site-border/60 dark:border-site-border-dark/60'
               : 'bg-site-surface/70 dark:bg-site-surface-dark/70 backdrop-blur-lg border-b border-site-border dark:border-site-border-dark shadow-sm'
@@ -232,17 +231,23 @@ const Layout = React.memo(({ children, homeMarketplace = false, hideMobileHeader
               )}
 
               <button
+                type="button"
                 onClick={toggleTheme}
-                className="hidden p-2 rounded-xl text-gray-500 dark:text-slate-400 hover:text-gold-500 dark:hover:text-gold-400 hover:bg-gold-50 dark:hover:bg-gold-500/10 transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40"
+                className={`flex items-center justify-center min-w-[40px] min-h-[40px] p-2 rounded-xl transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 flex-shrink-0 ${
+                  showShopChrome
+                    ? 'max-md:text-stone-200 max-md:hover:text-white max-md:hover:bg-white/10 md:text-gray-500 md:dark:text-slate-400 md:hover:text-gold-500 md:dark:hover:text-gold-400 md:hover:bg-gold-50 md:dark:hover:bg-gold-500/10'
+                    : 'text-gray-500 dark:text-slate-400 hover:text-gold-500 dark:hover:text-gold-400 hover:bg-gold-50 dark:hover:bg-gold-500/10'
+                }`}
                 aria-label={
-                  isDark ? "تفعيل الوضع الفاتح" : "تفعيل الوضع الداكن"
+                  isDark ? t('settings.lightMode', 'تفعيل الوضع الفاتح') : t('settings.darkMode', 'تفعيل الوضع الداكن')
                 }
-                title={isDark ? "الوضع الفاتح" : "الوضع الداكن"}
+                aria-pressed={isDark}
+                title={isDark ? t('settings.lightMode', 'الوضع الفاتح') : t('settings.darkMode', 'الوضع الداكن')}
               >
                 {isDark ? (
-                  <Sun className="w-5 h-5 transition-transform hover:rotate-45 duration-300" />
+                  <Sun className="w-5 h-5 transition-transform hover:rotate-45 duration-300" aria-hidden="true" />
                 ) : (
-                  <Moon className="w-5 h-5 transition-transform hover:-rotate-12 duration-300" />
+                  <Moon className="w-5 h-5 transition-transform hover:-rotate-12 duration-300" aria-hidden="true" />
                 )}
               </button>
 
@@ -379,10 +384,6 @@ const Layout = React.memo(({ children, homeMarketplace = false, hideMobileHeader
                 <Link to="/categories" onClick={() => setIsMobileMenuOpen(false)} className={mobileNavLinkClass}>
                   <LayoutGrid className="w-5 h-5 text-gold-500" /> {t('nav.categories')}
                 </Link>
-
-                <Link to="/scents" onClick={() => setIsMobileMenuOpen(false)} className={mobileNavLinkClass}>
-                  <Sparkles className="w-5 h-5 text-amber-500" /> {t('nav.scents')}
-                </Link>
                 
                 {/* 2. جميع المنتجات */}
                 <Link to="/products" onClick={() => setIsMobileMenuOpen(false)} className={mobileNavLinkClass}>
@@ -405,7 +406,7 @@ const Layout = React.memo(({ children, homeMarketplace = false, hideMobileHeader
                 </Link>
 
                 <Link to="/products?trending=true" onClick={() => setIsMobileMenuOpen(false)} className={mobileNavLinkClass}>
-                  <TrendingUp className="w-5 h-5 text-gold-600" /> {t('nav.trending')}
+                  <Flame className="w-5 h-5 text-gold-600" /> {t('nav.trending')}
                 </Link>
                 
                 {/* 4. المنتجات الجديدة */}
@@ -462,6 +463,38 @@ const Layout = React.memo(({ children, homeMarketplace = false, hideMobileHeader
                       </button>
                     ))}
                   </div>
+                </div>
+
+                {/* Appearance / dark mode */}
+                <div className="px-4 py-2" role="group" aria-label={t('settings.appearance')}>
+                  <p className="text-xs font-bold text-slate-500 dark:text-slate-400 mb-2">{t('settings.appearance')}</p>
+                  <button
+                    type="button"
+                    onClick={toggleTheme}
+                    className="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/80 text-sm font-bold text-slate-700 dark:text-slate-200 hover:border-gold-300 dark:hover:border-gold-600 transition-all"
+                    aria-pressed={isDark}
+                  >
+                    <span className="flex items-center gap-3">
+                      {isDark ? (
+                        <Sun className="w-5 h-5 text-gold-500" aria-hidden="true" />
+                      ) : (
+                        <Moon className="w-5 h-5 text-slate-500" aria-hidden="true" />
+                      )}
+                      {t('settings.darkMode')}
+                    </span>
+                    <span
+                      className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${
+                        isDark ? 'bg-gold-500' : 'bg-slate-300 dark:bg-slate-600'
+                      }`}
+                      aria-hidden="true"
+                    >
+                      <span
+                        className={`absolute top-0.5 start-0.5 inline-block h-5 w-5 rounded-full bg-white shadow transition-[inset-inline-start] duration-200 ${
+                          isDark ? 'start-[1.375rem]' : 'start-0.5'
+                        }`}
+                      />
+                    </span>
+                  </button>
                 </div>
 
                 <div className={mobileMenuDividerClass} />
@@ -545,7 +578,7 @@ const Layout = React.memo(({ children, homeMarketplace = false, hideMobileHeader
       )}
 
       {/* المحتوى الرئيسي / Main Content */}
-      <main className={`w-full pb-16 md:pb-0 ${homeMarketplace ? '' : 'flex-grow'}`}>{children}</main>
+      <main className={`w-full pb-24 md:pb-0 ${homeMarketplace ? '' : 'flex-grow'}`}>{children}</main>
 
       <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full ${showFooterOnMobile ? '' : 'hidden md:block'} ${homeMarketplace ? 'mt-2' : ''}`}>
         <BannerRenderer placement="footer" />

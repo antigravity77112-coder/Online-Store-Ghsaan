@@ -310,7 +310,7 @@ const ProductDetailsPage = () => {
 
   const handleShare = async () => {
     const shareData = {
-      title: product?.title || "متجر قصة",
+      title: product?.title || "المتسوق الذكي",
       text: `شاهد هذا المنتج: ${product?.title}`,
       url: window.location.href,
     };
@@ -448,28 +448,69 @@ const ProductDetailsPage = () => {
     displayStock > 0 ? { icon: ShieldCheck, text: "متوفر للطلب" } : null,
   ].filter(Boolean);
 
+  const quantityStepper = (
+    <div
+      className="inline-flex items-center border border-stone-300 dark:border-stone-600 rounded-sm overflow-hidden shrink-0"
+      aria-label="الكمية"
+    >
+      <button
+        type="button"
+        onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+        disabled={quantity <= 1}
+        className="min-w-[40px] min-h-[40px] flex items-center justify-center text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-800 disabled:opacity-40"
+        aria-label="تقليل الكمية"
+      >
+        <Minus className="w-4 h-4" aria-hidden="true" />
+      </button>
+      <span className="w-10 text-center text-sm font-bold text-stone-900 dark:text-white" aria-live="polite">
+        {quantity}
+      </span>
+      <button
+        type="button"
+        onClick={() => setQuantity((q) => Math.min(displayStock || 999, q + 1))}
+        disabled={quantity >= displayStock}
+        className="min-w-[40px] min-h-[40px] flex items-center justify-center text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-800 disabled:opacity-40"
+        aria-label="زيادة الكمية"
+      >
+        <Plus className="w-4 h-4" aria-hidden="true" />
+      </button>
+    </div>
+  );
+
   const purchaseBlock = (
     <div className="flex flex-col px-3 sm:px-0 pt-3 sm:pt-0">
-      <h1 className="text-sm sm:text-base font-medium text-stone-800 dark:text-stone-200 leading-snug mb-2">
-        {product.title}
-      </h1>
+      {/* RTL: title/desc/price on the right, quantity on the left */}
+      <div className="mb-3 flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <h1 className="text-base sm:text-lg font-extrabold text-stone-900 dark:text-white leading-snug">
+            {product.title}
+          </h1>
+          {product.description?.trim() ? (
+            <p className="mt-1.5 text-sm text-stone-500 dark:text-stone-400 leading-relaxed line-clamp-3">
+              {product.description.trim()}
+            </p>
+          ) : null}
 
-      <div className="mb-3">
-        <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5" dir="ltr">
-          <span className="text-2xl sm:text-3xl font-extrabold text-[#e6533d] dark:text-[#ff7a62] tracking-tight">
-            {formatPrice(finalPrice, product.currency)}
-          </span>
-          {hasDiscount && (
-            <span className="text-sm text-stone-400 line-through">
-              {formatPrice(displayPrice, product.currency)}
-            </span>
-          )}
+          <div className="mt-2.5">
+            <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+              <span className="text-2xl sm:text-3xl font-extrabold text-[#e6533d] dark:text-[#ff7a62] tracking-tight tabular-nums">
+                {formatPrice(finalPrice, product.currency)}
+              </span>
+              {hasDiscount && (
+                <span className="text-sm text-stone-400 line-through tabular-nums">
+                  {formatPrice(displayPrice, product.currency)}
+                </span>
+              )}
+            </div>
+            {hasDiscount && (
+              <p className="text-xs font-semibold text-[#e6533d] mt-1">
+                وفر {formatPrice(savingsAmount, product.currency)} ({discountPercent}%)
+              </p>
+            )}
+          </div>
         </div>
-        {hasDiscount && (
-          <p className="text-xs font-semibold text-[#e6533d] mt-1">
-            وفر {formatPrice(savingsAmount, product.currency)} ({discountPercent}%)
-          </p>
-        )}
+
+        {quantityStepper}
       </div>
 
       <div className="hidden lg:flex items-center gap-1 flex-shrink-0 mb-3">
@@ -630,31 +671,6 @@ const ProductDetailsPage = () => {
           </span>
         </button>
       ) : null}
-
-      <div className="mb-4 flex items-center justify-between gap-3">
-        <p className="text-xs font-extrabold text-stone-900 dark:text-white">الكمية</p>
-        <div className="inline-flex items-center border border-stone-300 dark:border-stone-600 rounded-sm overflow-hidden">
-          <button
-            type="button"
-            onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-            disabled={quantity <= 1}
-            className="min-w-[40px] min-h-[40px] flex items-center justify-center text-stone-700 hover:bg-stone-50 disabled:opacity-40"
-            aria-label="تقليل الكمية"
-          >
-            <Minus className="w-4 h-4" aria-hidden="true" />
-          </button>
-          <span className="w-10 text-center text-sm font-bold text-stone-900 dark:text-white" aria-live="polite">{quantity}</span>
-          <button
-            type="button"
-            onClick={() => setQuantity((q) => Math.min(displayStock || 999, q + 1))}
-            disabled={quantity >= displayStock}
-            className="min-w-[40px] min-h-[40px] flex items-center justify-center text-stone-700 hover:bg-stone-50 disabled:opacity-40"
-            aria-label="زيادة الكمية"
-          >
-            <Plus className="w-4 h-4" aria-hidden="true" />
-          </button>
-        </div>
-      </div>
 
       <div className="hidden lg:flex flex-col gap-2 mb-4">
         <button
@@ -833,7 +849,7 @@ const ProductDetailsPage = () => {
     <Layout homeMarketplace hideMobileHeader>
       <SEO
         title={product.title}
-        description={product.description?.substring(0, 160) || `تسوق ${product.title} على متجر قصة.`}
+        description={product.description?.substring(0, 160) || `تسوق ${product.title} على المتسوق الذكي.`}
         image={galleryImages[0]}
         type="product"
         canonicalPath={`/product/${product.slug}`}
@@ -904,7 +920,7 @@ const ProductDetailsPage = () => {
 
       <div
         className="lg:hidden fixed inset-x-0 z-40 bg-white dark:bg-stone-950 border-t border-stone-200 dark:border-stone-800 px-3 py-2.5"
-        style={{ bottom: "calc(3.75rem + env(safe-area-inset-bottom))" }}
+        style={{ bottom: "calc(4.5rem + env(safe-area-inset-bottom))" }}
       >
         <div className="flex items-center gap-2.5 max-w-6xl mx-auto">
           <button
@@ -971,7 +987,7 @@ const ProductDetailsPage = () => {
         <div
           role="status"
           aria-live="polite"
-          className="fixed bottom-[calc(7.5rem+env(safe-area-inset-bottom))] lg:bottom-8 left-1/2 -translate-x-1/2 z-50 max-w-[min(90vw,20rem)] px-4 py-2.5 rounded-sm bg-stone-900/95 text-white text-sm font-medium text-center shadow-lg motion-reduce:transition-none transition-opacity"
+          className="fixed bottom-[calc(8.25rem+env(safe-area-inset-bottom))] lg:bottom-8 left-1/2 -translate-x-1/2 z-50 max-w-[min(90vw,20rem)] px-4 py-2.5 rounded-sm bg-stone-900/95 text-white text-sm font-medium text-center shadow-lg motion-reduce:transition-none transition-opacity"
         >
           {feedbackMessage}
         </div>

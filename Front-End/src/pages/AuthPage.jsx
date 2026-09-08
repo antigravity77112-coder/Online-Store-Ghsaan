@@ -75,7 +75,7 @@ const AuthPage = () => {
   const navigate = useNavigate();
   const { config } = useSiteConfig();
   const logo = resolveMediaUrl(resolveSiteLogo(config.media, { dark: isDark })) || '/Logo_192.png';
-  const brandName = config.brand?.siteShortName || 'GISAAH';
+  const brandName = config.brand?.siteShortName || 'Smart Shopper';
   const tagline = config.brand?.tagline || 'تجربة تسوق فاخرة';
 
   const [isLogin, setIsLogin] = useState(true);
@@ -529,7 +529,7 @@ const AuthPage = () => {
                       <button
                         type="submit"
                         disabled={isLoading || lockoutTimeLeft > 0}
-                        className="relative w-full overflow-hidden flex items-center justify-center gap-2.5 py-4 mt-2 rounded-xl font-bold text-base text-slate-900 bg-gradient-to-l from-gold-400 via-gold-500 to-amber-500 hover:from-gold-300 hover:via-gold-400 hover:to-amber-400 focus:outline-none focus:ring-4 focus:ring-gold-500/30 shadow-lg shadow-gold-600/25 disabled:opacity-60 disabled:cursor-not-allowed active:scale-[0.98] transition-all"
+                        className="relative w-full overflow-hidden flex items-center justify-center gap-2.5 py-4 mt-2 rounded-xl font-bold text-base text-white bg-gradient-to-l from-gold-600 via-gold-500 to-gold-700 hover:from-gold-500 hover:via-gold-600 hover:to-gold-800 focus:outline-none focus:ring-4 focus:ring-gold-500/30 shadow-lg shadow-gold-600/25 disabled:opacity-60 disabled:cursor-not-allowed active:scale-[0.98] transition-all"
                       >
                         {isLoading ? (
                           <>

@@ -260,7 +260,7 @@ const AdminScentsTab = ({ onSuccessMsg }) => {
   return (
     <div>
       <AdminToolbar
-        title="عائلات العطور"
+        title="عائلات الروائح"
         subtitle={`${stats.total} رائحة · ${stats.active} نشطة · ${stats.withProducts} مرتبطة بمنتجات`}
         icon={Sparkles}
         actions={(
@@ -334,7 +334,7 @@ const AdminScentsTab = ({ onSuccessMsg }) => {
         <AdminEmptyState
           icon={Sparkles}
           title={searchQuery || statusFilter !== 'all' ? 'لا توجد نتائج' : 'لا توجد روائح'}
-          description={searchQuery || statusFilter !== 'all' ? 'جرّب تغيير البحث أو الفلتر' : 'أضف أول عائلة عطر لتسهيل اكتشاف المنتجات'}
+          description={searchQuery || statusFilter !== 'all' ? 'جرّب تغيير البحث أو الفلتر' : 'أضف أول عائلة رائحة لتسهيل اكتشاف المنتجات'}
           action={!searchQuery && statusFilter === 'all' && (
             <AdminPrimaryButton onClick={() => handleOpenModal()}>
               <Plus className="w-4 h-4" /> إضافة رائحة

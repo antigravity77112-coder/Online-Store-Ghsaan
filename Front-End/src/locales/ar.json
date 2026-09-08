@@ -40,8 +40,8 @@
     "mainNavigation": "التنقل الرئيسي",
     "scents": "الروائح",
     "all": "الكل",
-    "trending": "تريند",
-    "trendingShort": "تريند",
+    "trending": "تريندات",
+    "trendingShort": "تريندات",
     "shop": "تسوق",
     "browseStore": "تصفح المتجر"
   },
@@ -96,6 +96,7 @@
     "buyerDesc": "تسوق واطلب بسهولة",
     "appearance": "المظهر",
     "darkMode": "الوضع الليلي",
+    "lightMode": "الوضع الفاتح",
     "aboutStore": "عن المتجر",
     "callUs": "اتصل بنا",
     "email": "البريد الإلكتروني",

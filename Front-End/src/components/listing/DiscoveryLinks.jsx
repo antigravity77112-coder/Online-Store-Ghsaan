@@ -1,11 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { LayoutGrid, Sparkles, Heart, BadgePercent, TrendingUp } from 'lucide-react';
+import { LayoutGrid, Heart, BadgePercent, Flame } from 'lucide-react';
 
 const DISCOVERY_LINKS = [
   { to: '/categories', label: 'تصفح الفئات', icon: LayoutGrid },
-  { to: '/scents', label: 'استكشف الروائح', icon: Sparkles },
-  { to: '/products?trending=true', label: 'تريند', icon: TrendingUp },
+  { to: '/products?trending=true', label: 'تريندات', icon: Flame },
   { to: '/products?promoted=true', label: 'العروض الحصرية', icon: BadgePercent },
   { to: '/favorites', label: 'المفضلة', icon: Heart },
 ];

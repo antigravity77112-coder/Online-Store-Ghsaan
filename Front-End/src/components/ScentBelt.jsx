@@ -30,7 +30,7 @@ const ScentBeltItem = React.memo(({ scent, marketplace }) => {
         type="button"
         onClick={() => navigate(href)}
         className="flex flex-col items-center gap-1 min-h-[44px] w-[18%] min-w-[64px] max-w-[76px] focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 rounded-lg"
-        aria-label={`تصفح عطور ${name}`}
+        aria-label={`تصفح منتجات ${name}`}
       >
         <div className="w-full aspect-square rounded-full overflow-hidden bg-stone-100 dark:bg-stone-800 ring-1 ring-stone-200/80 dark:ring-stone-700/80">
           {imageUrl ? (
@@ -58,7 +58,7 @@ const ScentBeltItem = React.memo(({ scent, marketplace }) => {
       type="button"
       onClick={() => navigate(href)}
       className="group flex flex-col items-center gap-1.5 flex-shrink-0 w-[72px] sm:w-[80px] focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/50 rounded-lg"
-      aria-label={`تصفح عطور ${name}`}
+      aria-label={`تصفح منتجات ${name}`}
     >
       <div className="relative w-14 h-14 sm:w-[60px] sm:h-[60px] rounded-2xl overflow-hidden bg-gradient-to-br from-gold-50 to-amber-50 dark:from-gold-900/20 dark:to-slate-800 border border-slate-200/80 dark:border-slate-700 shadow-sm group-hover:shadow-md transition-all group-active:scale-95 flex items-center justify-center">
         {imageUrl ? (
@@ -85,7 +85,7 @@ const ScentBelt = React.memo(({
   scents = [],
   isLoading = false,
   limit = HOME_SCENT_LIMIT,
-  title = 'اختر رائحتك المفضلة',
+  title = 'اختر مجموعتك المفضلة',
   variant = 'default',
 }) => {
   const scrollRef = useRef(null);

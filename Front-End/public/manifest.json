@@ -1,11 +1,11 @@
 {
-  "name": "GISAAH | قصة",
-  "short_name": "GISAAH",
-  "description": "متجر العطور الفاخرة - في زمن الكوبي خليك مع قصة",
+  "name": "Smart Shopper | المتسوق الذكي",
+  "short_name": "Smart Shopper",
+  "description": "المتسوق الذكي — متجرك الإلكتروني لمنتجات متنوعة بأسعار منافسة وتجربة تسوق سهلة",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#c9a84c",
+  "theme_color": "#EA0001",
   "icons": [
     {
       "src": "/favicon.png",

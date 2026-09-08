@@ -1,17 +1,17 @@
-/** GISAAH default configuration — used when DB fields are null/missing */
+/** Smart Shopper default configuration — used when DB fields are null/missing */
 
 const DEFAULT_THEME = {
-  primary: '#DAA520',
-  secondary: '#B8860B',
-  accent: '#DAA520',
-  background: '#F8F6EF',
+  primary: '#EA0001',
+  secondary: '#B80001',
+  accent: '#EA0001',
+  background: '#FFFFFF',
   surface: '#FFFFFF',
-  text: '#232323',
-  textMuted: '#64748b',
-  border: '#F0E2C5',
+  text: '#565656',
+  textMuted: '#7A7A7A',
+  border: '#E5E5E5',
   success: '#22c55e',
   warning: '#f59e0b',
-  error: '#ef4444',
+  error: '#EA0001',
 };
 
 const DEFAULT_HOMEPAGE = {
@@ -26,12 +26,13 @@ const DEFAULT_HOMEPAGE = {
 };
 
 const DEFAULT_BRAND = {
-  siteName: 'GISAAH | قصة',
-  siteShortName: 'GISAAH',
-  appName: 'GISAAH | قصة',
-  tagline: 'في زمن الكوبي خليك مع قصة',
-  siteDescription: 'في زمن الكوبي خليك مع قصة — متجر العطور الفاخرة الأصلية',
-  copyrightText: '© GISAAH قصة. جميع الحقوق محفوظة.',
+  siteName: 'Smart Shopper | المتسوق الذكي',
+  siteShortName: 'Smart Shopper',
+  siteNameAr: 'المتسوق الذكي',
+  appName: 'Smart Shopper | المتسوق الذكي',
+  tagline: 'تسوق ذكي — منتجات متنوعة بأسعار منافسة',
+  siteDescription: 'المتسوق الذكي — متجرك الإلكتروني لمنتجات متنوعة بأسعار منافسة وتجربة تسوق سهلة',
+  copyrightText: '© Smart Shopper المتسوق الذكي. جميع الحقوق محفوظة.',
 };
 
 const DEFAULT_MEDIA = {
@@ -44,15 +45,46 @@ const DEFAULT_MEDIA = {
 };
 
 const DEFAULT_SEO = {
-  seoTitle: 'GISAAH | قصة',
-  seoDescription: 'في زمن الكوبي خليك مع قصة — متجر العطور الفاخرة الأصلية',
-  ogTitle: 'GISAAH | قصة',
-  ogDescription: 'في زمن الكوبي خليك مع قصة — متجر العطور الفاخرة الأصلية',
+  seoTitle: 'Smart Shopper | المتسوق الذكي',
+  seoDescription: 'المتسوق الذكي — متجرك الإلكتروني لمنتجات متنوعة بأسعار منافسة وتجربة تسوق سهلة',
+  ogTitle: 'Smart Shopper | المتسوق الذكي',
+  ogDescription: 'المتسوق الذكي — متجرك الإلكتروني لمنتجات متنوعة بأسعار منافسة وتجربة تسوق سهلة',
 };
 
 const DEFAULT_FOOTER = {
   footerText: 'متجرك الإلكتروني — منتجات متنوعة بأسعار منافسة وتجربة تسوق سهلة.',
 };
+
+/** Legacy GISAAH / قصة values still stored in DB — remap to Smart Shopper */
+const LEGACY_BRAND_MAP = {
+  siteName: new Set(['GISAAH | قصة', 'GISAAH|قصة', 'GISAAH']),
+  siteShortName: new Set(['GISAAH', 'Gisaah', 'GISAah']),
+  appName: new Set(['GISAAH | قصة', 'GISAAH|قصة', 'GISAAH']),
+  tagline: new Set(['في زمن الكوبي خليك مع قصة']),
+  siteDescription: new Set([
+    'في زمن الكوبي خليك مع قصة — متجر العطور الفاخرة الأصلية',
+  ]),
+  copyrightText: new Set(['© GISAAH قصة. جميع الحقوق محفوظة.']),
+  seoTitle: new Set(['GISAAH | قصة', 'GISAAH']),
+  seoDescription: new Set([
+    'في زمن الكوبي خليك مع قصة — متجر العطور الفاخرة الأصلية',
+  ]),
+  ogTitle: new Set(['GISAAH | قصة', 'GISAAH']),
+  ogDescription: new Set([
+    'في زمن الكوبي خليك مع قصة — متجر العطور الفاخرة الأصلية',
+  ]),
+};
+
+function replaceLegacyBrandValue(field, value, fallback) {
+  if (value == null || typeof value !== 'string') return fallback;
+  const trimmed = value.trim();
+  if (!trimmed) return fallback;
+  const legacy = LEGACY_BRAND_MAP[field];
+  if (legacy && legacy.has(trimmed)) return fallback;
+  // Any remaining GISAAH brand string from older DB rows
+  if (/GISAAH|Gisaah|GISAah/i.test(trimmed)) return fallback;
+  return trimmed;
+}
 
 const HEX_COLOR = /^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/;
 
@@ -100,22 +132,22 @@ function mergeRecord(record) {
 
   return {
     ...r,
-    siteName: r.siteName || DEFAULT_BRAND.siteName,
-    siteShortName: r.siteShortName || DEFAULT_BRAND.siteShortName,
-    appName: r.appName || DEFAULT_BRAND.appName,
-    tagline: r.tagline || DEFAULT_BRAND.tagline,
-    siteDescription: r.siteDescription || DEFAULT_SEO.seoDescription,
-    copyrightText: r.copyrightText || DEFAULT_BRAND.copyrightText,
+    siteName: replaceLegacyBrandValue('siteName', r.siteName, DEFAULT_BRAND.siteName),
+    siteShortName: replaceLegacyBrandValue('siteShortName', r.siteShortName, DEFAULT_BRAND.siteShortName),
+    appName: replaceLegacyBrandValue('appName', r.appName, DEFAULT_BRAND.appName),
+    tagline: replaceLegacyBrandValue('tagline', r.tagline, DEFAULT_BRAND.tagline),
+    siteDescription: replaceLegacyBrandValue('siteDescription', r.siteDescription, DEFAULT_SEO.seoDescription),
+    copyrightText: replaceLegacyBrandValue('copyrightText', r.copyrightText, DEFAULT_BRAND.copyrightText),
     logoUrl: pickUrl(r.logoUrl, DEFAULT_MEDIA.logoUrl),
     logoDarkUrl: pickUrl(r.logoDarkUrl, DEFAULT_MEDIA.logoDarkUrl),
     logoMobileUrl: pickUrl(r.logoMobileUrl, DEFAULT_MEDIA.logoMobileUrl),
     logoMobileDarkUrl: pickUrl(r.logoMobileDarkUrl, DEFAULT_MEDIA.logoMobileDarkUrl),
     faviconUrl: pickUrl(r.faviconUrl, DEFAULT_MEDIA.faviconUrl),
     ogImageUrl: pickUrl(r.ogImageUrl, DEFAULT_MEDIA.ogImageUrl),
-    ogTitle: r.ogTitle || r.seoTitle || DEFAULT_SEO.ogTitle,
-    ogDescription: r.ogDescription || r.seoDescription || DEFAULT_SEO.ogDescription,
-    seoTitle: r.seoTitle || DEFAULT_SEO.seoTitle,
-    seoDescription: r.seoDescription || DEFAULT_SEO.seoDescription,
+    ogTitle: replaceLegacyBrandValue('ogTitle', r.ogTitle || r.seoTitle, DEFAULT_SEO.ogTitle),
+    ogDescription: replaceLegacyBrandValue('ogDescription', r.ogDescription || r.seoDescription, DEFAULT_SEO.ogDescription),
+    seoTitle: replaceLegacyBrandValue('seoTitle', r.seoTitle, DEFAULT_SEO.seoTitle),
+    seoDescription: replaceLegacyBrandValue('seoDescription', r.seoDescription, DEFAULT_SEO.seoDescription),
     footerText: r.footerText || DEFAULT_FOOTER.footerText,
     themeConfig: theme,
     homepageConfig: homepage,
@@ -143,6 +175,7 @@ function toPublicConfig(merged, { client = 'web' } = {}) {
     brand: {
       siteName: merged.siteName,
       siteShortName: merged.siteShortName,
+      siteNameAr: DEFAULT_BRAND.siteNameAr,
       appName: merged.appName,
       tagline: merged.tagline,
       description: merged.siteDescription,

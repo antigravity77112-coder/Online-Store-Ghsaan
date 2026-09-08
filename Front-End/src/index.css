@@ -5,17 +5,17 @@
 /* ========== Base Reset & Typography / إعادة تعيين القاعدة والخطوط ========== */
 @layer base {
   :root {
-    --color-primary: #DAA520;
-    --color-secondary: #B8860B;
-    --color-accent: #DAA520;
-    --color-background: #F8F6EF;
+    --color-primary: #EA0001;
+    --color-secondary: #B80001;
+    --color-accent: #EA0001;
+    --color-background: #FFFFFF;
     --color-surface: #FFFFFF;
-    --color-text: #232323;
-    --color-textMuted: #64748b;
-    --color-border: #F0E2C5;
+    --color-text: #565656;
+    --color-textMuted: #7A7A7A;
+    --color-border: #E5E5E5;
     --color-success: #22c55e;
     --color-warning: #f59e0b;
-    --color-error: #ef4444;
+    --color-error: #EA0001;
 
     /* Runtime gold palette — derived from primary/secondary for Tailwind gold-* classes */
     --gold-500: var(--color-primary);
@@ -45,12 +45,12 @@
     direction: ltr;
   }
 
-  /* EN: Light mode base — bone background, slate-900 text
-     AR: قاعدة الوضع الفاتح — خلفية أبيض عظمي، نص slate-900 */
+  /* EN: Light mode base — white background, brand gray text
+     AR: قاعدة الوضع الفاتح — خلفية بيضاء، نص رمادي العلامة */
   body {
     @apply font-sans;
-    background-color: var(--color-background, #F8F6EF);
-    color: var(--color-text, #232323);
+    background-color: var(--color-background, #FFFFFF);
+    color: var(--color-text, #565656);
   }
 
   /* EN: Dark mode base — slate-950 background for a premium feel (not pure black)
@@ -191,7 +191,7 @@
   .focus-ring:focus {
     @apply outline-none ring-2 ring-offset-2;
     --tw-ring-color: color-mix(in srgb, var(--color-focus, var(--color-accent)) 50%, transparent);
-    --tw-ring-offset-color: var(--color-background, #F8F6EF);
+    --tw-ring-offset-color: var(--color-background, #FFFFFF);
   }
 
   .dark .focus-ring:focus {
@@ -240,7 +240,7 @@
   }
 
   /* EN: Dark mode scrollbar — Gisaah Gold
-     AR: شريط تمرير الوضع الداكن — ذهبي قصة */
+     AR: شريط تمرير الوضع الداكن — ذهبي المتسوق الذكي */
   .dark ::-webkit-scrollbar-track {
     background: var(--color-background-dark, #0a0a0a);
   }

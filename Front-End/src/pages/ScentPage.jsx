@@ -125,7 +125,7 @@ const ScentPage = () => {
     <Layout>
       <SEO
         title={scent.name}
-        description={scent.description || `اكتشف عطور ${scent.name} في متجر قصة.`}
+        description={scent.description || `اكتشف منتجات ${scent.name} في المتسوق الذكي.`}
         image={scent.imageUrl}
       />
 

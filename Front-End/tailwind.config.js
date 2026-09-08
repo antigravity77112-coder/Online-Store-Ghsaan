@@ -38,43 +38,44 @@ export default {
           'accent-soft': 'var(--color-accent-soft)',
           'accent-soft-dark': 'var(--color-accent-soft-dark)',
         },
-        // Gisaah Gold Palette — wired to runtime CSS variables from site config
+        // Brand accent scale (token name kept as gold-* for existing class usage)
+        // Primary #EA0001 · hover #B80001 — wired to runtime CSS variables
         gold: {
-          50: 'var(--gold-50, #FBF8F1)',
-          100: 'var(--gold-100, #F7F0E2)',
-          200: 'var(--gold-200, #F0E2C5)',
-          300: 'var(--gold-300, #E8D4A8)',
-          400: 'var(--gold-400, #B8860B)',
-          500: 'var(--gold-500, #DAA520)',
-          600: 'var(--gold-600, #DAA520)',
-          700: 'var(--gold-700, #B8860B)',
-          800: 'var(--gold-800, #916A09)',
-          900: 'var(--gold-900, #6D5007)',
-          950: 'var(--gold-950, #362803)',
+          50: 'var(--gold-50, #FFF0F0)',
+          100: 'var(--gold-100, #FFE0E0)',
+          200: 'var(--gold-200, #FFB3B3)',
+          300: 'var(--gold-300, #FF7A7A)',
+          400: 'var(--gold-400, #B80001)',
+          500: 'var(--gold-500, #EA0001)',
+          600: 'var(--gold-600, #EA0001)',
+          700: 'var(--gold-700, #B80001)',
+          800: 'var(--gold-800, #8A0001)',
+          900: 'var(--gold-900, #5C0001)',
+          950: 'var(--gold-950, #2E0000)',
         },
-        // Gisaah Neutral Overrides
+        // Brand Neutral Overrides — #565656 text
         slate: {
-          900: '#232323', // Gisaah Text (LIGHT)
-          950: '#0F0F0F', // Screen Background (NIGHT)
+          900: '#565656',
+          950: '#0F0F0F',
         },
         gray: {
-          900: '#232323', // Gisaah Text (LIGHT)
-          950: '#0F0F0F', // Screen Background (NIGHT)
+          900: '#565656',
+          950: '#0F0F0F',
         },
-        // Bone Palette (Background/Light) - Centers on #F8F6EF
+        // Page / surface background — white brand
         bone: {
-          DEFAULT: 'var(--color-background, #F8F6EF)',
-          50: 'var(--color-background, #FCFBF8)',
-          100: 'var(--color-background, #F8F6EF)',
-          200: '#EFEADD',
-          300: '#E4DBCA',
-          400: '#D6C8B2',
-          500: '#C7B49A',
-          600: '#B59E81',
-          700: '#9E8669',
-          800: '#867056',
-          900: '#6D5B46',
-          950: '#40352A',
+          DEFAULT: 'var(--color-background, #FFFFFF)',
+          50: 'var(--color-background, #FFFFFF)',
+          100: 'var(--color-background, #FFFFFF)',
+          200: '#F2F2F2',
+          300: '#E5E5E5',
+          400: '#D0D0D0',
+          500: '#B8B8B8',
+          600: '#9A9A9A',
+          700: '#7A7A7A',
+          800: '#565656',
+          900: '#3D3D3D',
+          950: '#1F1F1F',
         },
       },
       fontFamily: {

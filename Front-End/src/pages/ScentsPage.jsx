@@ -1,5 +1,5 @@
 /**
- * ScentsPage — تصفح جميع عائلات العطور
+ * ScentsPage — تصفح جميع عائلات الروائح
  */
 
 import React, { useState, useMemo } from 'react';
@@ -26,18 +26,18 @@ const ScentsPage = () => {
 
   return (
     <Layout>
-      <SEO title="عائلات العطور" description="اختر رائحتك المفضلة واكتشف العطور المناسبة في متجر قصة" />
+      <SEO title="عائلات الروائح" description="اختر مجموعتك المفضلة واكتشف المنتجات المناسبة في المتسوق الذكي" />
 
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-5 pb-24 md:pb-10">
         <header className="mb-4 sm:mb-5">
           <div className="flex items-center gap-2 mb-1">
             <Sparkles className="w-5 h-5 text-gold-500" />
             <h1 className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white tracking-tight">
-              اختر رائحتك المفضلة
+              اختر مجموعتك المفضلة
             </h1>
           </div>
           <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
-            تصفح عائلات العطور واكتشف المنتجات التي تناسب ذوقك
+            تصفح عائلات الروائح واكتشف المنتجات التي تناسب ذوقك
           </p>
           {!isLoading && scents.length > 0 && (
             <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1">

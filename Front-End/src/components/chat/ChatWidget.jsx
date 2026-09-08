@@ -46,7 +46,7 @@ const LazyMarkdown = ({ content }) => (
 export const ChatWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([
-    { role: 'assistant', content: 'مرحباً بك 👋\nأنا مساعد قصة. اكتب لي ما تبحث عنه وسأقترح لك من المنتجات المتوفرة في المتجر فقط.' }
+    { role: 'assistant', content: 'مرحباً بك 👋\nأنا مساعد المتسوق الذكي. اكتب لي ما تبحث عنه وسأقترح لك من المنتجات المتوفرة في المتجر فقط.' }
   ]);
   const [inputVal, setInputVal] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -110,7 +110,7 @@ export const ChatWidget = () => {
             <div className="flex items-center gap-2">
               <Bot className="w-6 h-6" />
               <div>
-                <h3 className="font-semibold text-sm">مساعد GISAAH</h3>
+                <h3 className="font-semibold text-sm">مساعد المتسوق الذكي</h3>
                 <p className="text-xs text-gold-200">متصل الآن وجاهز للمساعدة</p>
               </div>
             </div>

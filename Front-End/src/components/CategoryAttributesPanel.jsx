@@ -29,7 +29,7 @@ function AttributeForm({ initial, onSave, onCancel, loading }) {
         <input
           value={form.name}
           onChange={e => set('name', e.target.value)}
-          placeholder="مثال: التركيز، الجنس، عائلة العطر"
+          placeholder="مثال: اللون، الحجم، خصائص المنتج"
           className="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-gold-500/40"
         />
       </div>

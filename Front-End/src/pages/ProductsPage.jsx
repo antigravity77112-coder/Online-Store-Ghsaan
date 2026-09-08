@@ -127,7 +127,7 @@ const ProductsPage = () => {
   }, [activeProducts, toggleFavorite]);
 
   const pageTitle = trendingOnly
-    ? 'تريند'
+    ? 'تريندات'
     : offersOnly
     ? 'العروض الحصرية'
     : committedSearch.trim()
@@ -137,7 +137,7 @@ const ProductsPage = () => {
   const sectionTitle = committedSearch.trim()
     ? `نتائج: "${committedSearch.trim()}"`
     : trendingOnly
-      ? 'تريند'
+      ? 'تريندات'
       : offersOnly
       ? 'العروض الحصرية'
       : activeCategory === 'الكل' ? 'جميع المنتجات' : activeCategory;
@@ -148,7 +148,7 @@ const ProductsPage = () => {
 
   return (
     <Layout>
-      <SEO title="جميع المنتجات" description="تصفح جميع العطور الفاخرة المتاحة في متجر قصة." />
+      <SEO title="جميع المنتجات" description="تصفح جميع المنتجات المتاحة في المتسوق الذكي." />
       <main className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 pt-4 pb-12 lg:pb-16">
 
         <div className="flex items-center gap-3 mb-4">

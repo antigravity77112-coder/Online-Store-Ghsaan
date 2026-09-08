@@ -37,7 +37,7 @@ function mapProductToItem(product, index = 0) {
     price: Number(product.discountPrice || product.price || 0),
     currency: mapCurrency(product.currency),
     index,
-    item_brand: 'GISAAH',
+    item_brand: 'Smart Shopper',
     quantity: product.quantity || 1,
   };
 }

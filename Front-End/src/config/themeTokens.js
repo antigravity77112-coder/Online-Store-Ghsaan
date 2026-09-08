@@ -41,12 +41,12 @@ export const THEME_COLOR_DETAILS = [
   {
     key: 'primary',
     label: 'أساسي',
-    appliesTo: 'الأزرار الذهبية، الروابط، شريط التمرير، لهجات العلامة التجارية (gold-500 / gold-600)',
+    appliesTo: 'الأزرار الرئيسية، الروابط، شريط التمرير، لهجات العلامة التجارية (أحمر #EA0001)',
   },
   {
     key: 'secondary',
     label: 'ثانوي',
-    appliesTo: 'الدرجات الداكنة من الذهبي، حالة hover، gold-400 و gold-700',
+    appliesTo: 'الدرجات الداكنة من الأحمر، حالة hover (#B80001)',
   },
   {
     key: 'accent',
@@ -56,17 +56,17 @@ export const THEME_COLOR_DETAILS = [
   {
     key: 'background',
     label: 'الخلفية',
-    appliesTo: 'خلفية الصفحة الرئيسية في الوضع الفاتح والداكن',
+    appliesTo: 'خلفية الصفحة الرئيسية في الوضع الفاتح والداكن (#FFFFFF)',
   },
   {
     key: 'surface',
     label: 'السطح / البطاقات',
-    appliesTo: 'البطاقات، حقول الإدخال، الهيدر، التذييل، لوحات لوحة التحكم',
+    appliesTo: 'البطاقات، حقول الإدخال، الهيدر، التذييل، لوحات لوحة التحكم (#FFFFFF)',
   },
   {
     key: 'text',
     label: 'النص',
-    appliesTo: 'النص الرئيسي للصفحة والعناوين الأساسية',
+    appliesTo: 'النص الرئيسي للصفحة والعناوين الأساسية (#565656)',
   },
   {
     key: 'textMuted',

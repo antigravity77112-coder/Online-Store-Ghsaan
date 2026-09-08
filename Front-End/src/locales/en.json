@@ -40,8 +40,8 @@
     "mainNavigation": "Main navigation",
     "scents": "Scents",
     "all": "All",
-    "trending": "Trending",
-    "trendingShort": "Trending",
+    "trending": "Trends",
+    "trendingShort": "Trends",
     "shop": "Shop",
     "browseStore": "Browse store"
   },
@@ -96,6 +96,7 @@
     "buyerDesc": "Shop and order with ease",
     "appearance": "Appearance",
     "darkMode": "Dark mode",
+    "lightMode": "Light mode",
     "aboutStore": "About the store",
     "callUs": "Call us",
     "email": "Email",

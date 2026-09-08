@@ -2,7 +2,7 @@ const { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } = require('@googl
 const prisma = require('../prismaClient');
 
 const SYSTEM_PROMPT = `
-أنت مساعد تسوق لمتجر Gisaah.
+أنت مساعد تسوق لمتجر المتسوق الذكي (Smart Shopper).
 
 قواعد إلزامية:
 1) اللغة الافتراضية للرد هي العربية.

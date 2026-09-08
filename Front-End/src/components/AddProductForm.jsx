@@ -1161,7 +1161,7 @@ const AddProductForm = ({ onSuccess, onCancel, editProduct }) => {
         </select>
       </div>
 
-      {/* الروائح / عائلات العطور */}
+      {/* الروائح / عائلات الروائح */}
       <div>
         <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5">الروائح (اختياري)</label>
         <ScentPicker
