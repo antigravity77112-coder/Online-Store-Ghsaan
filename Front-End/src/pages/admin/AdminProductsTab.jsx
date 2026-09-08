@@ -15,6 +15,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import * as api from '../../services/api';
+import { formatNativePrice } from '../../utils/currency';
 import useSWR from 'swr';
 import useSWRInfinite from 'swr/infinite';
 import InfiniteScrollTrigger from '../../components/InfiniteScrollTrigger';
@@ -349,7 +350,7 @@ const AdminProductsTab = ({ openEditProductModal, hasProductDraft, onResumeProdu
                       </div>
 
                       <p className="text-sm font-extrabold text-slate-900 dark:text-white text-center">
-                        {p.price.toLocaleString('en-US')} {api.getCurrencySymbol(p.currency)}
+                        {formatNativePrice(p.price, p.currency)}
                       </p>
                       <p className="text-sm font-semibold text-slate-700 dark:text-slate-300 text-center">{p.stockQuantity}</p>
                       <p className="text-xs text-slate-500 text-center truncate">{p.categoryName || '—'}</p>
@@ -377,7 +378,7 @@ const AdminProductsTab = ({ openEditProductModal, hasProductDraft, onResumeProdu
                         </div>
                       </div>
                       <div className="grid grid-cols-2 gap-2 text-sm pl-8">
-                        <div><span className="text-[10px] text-slate-400 block">السعر</span><span className="font-bold">{p.price.toLocaleString('en-US')}</span></div>
+                        <div><span className="text-[10px] text-slate-400 block">السعر</span><span className="font-bold">{formatNativePrice(p.price, p.currency)}</span></div>
                         <div><span className="text-[10px] text-slate-400 block">المخزون</span><span className="font-semibold">{p.stockQuantity}</span></div>
                       </div>
                       <div className="flex justify-end gap-1 pl-8 border-t border-slate-100 dark:border-slate-800 pt-2">

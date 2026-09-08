@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import useSWR from 'swr';
 import * as api from '../services/api';
+import { AdminSwitch } from '../pages/admin/AdminUI';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const TYPE_LABELS = { TEXT: 'نص', NUMBER: 'رقم', BOOLEAN: 'نعم/لا', SELECT: 'اختيار واحد', MULTI_SELECT: 'اختيارات متعددة' };
@@ -74,12 +75,12 @@ function AttributeForm({ initial, onSave, onCancel, loading }) {
           { key: 'isSearchable',  label: 'قابل للبحث' },
         ].map(({ key, label }) => (
           <label key={key} className="flex items-center gap-2 cursor-pointer select-none">
-            <div
-              onClick={() => set(key, !form[key])}
-              className={`w-9 h-5 rounded-full transition-colors relative flex-shrink-0 ${form[key] ? 'bg-gold-500' : 'bg-slate-300 dark:bg-slate-600'}`}
-            >
-              <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${form[key] ? 'translate-x-4' : 'translate-x-0.5'}`} />
-            </div>
+            <AdminSwitch
+              size="sm"
+              checked={!!form[key]}
+              aria-label={label}
+              onChange={(next) => set(key, next)}
+            />
             <span className="text-xs text-slate-600 dark:text-slate-300">{label}</span>
           </label>
         ))}

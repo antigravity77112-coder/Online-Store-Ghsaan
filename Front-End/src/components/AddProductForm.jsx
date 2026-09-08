@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Upload, X, Loader2, ImagePlus, AlertCircle, Cloud, CheckCircle, Sparkles, Star, Search, ChevronDown } from 'lucide-react';
 import * as api from '../services/api';
-import { OptionPicker, BooleanPicker, parseAttrOptions, adminInputClass, adminSelectClass } from '../pages/admin/AdminUI';
+import { OptionPicker, BooleanPicker, parseAttrOptions, adminInputClass, adminSelectClass, AdminSwitch } from '../pages/admin/AdminUI';
+import { formatNativePrice } from '../utils/currency';
 import { ScentPicker } from './ScentPicker';
 import {
   cartesianSelections,
@@ -681,6 +682,10 @@ const AddProductForm = ({ onSuccess, onCancel, editProduct, onDirtyChange }) => 
       }
     }
 
+    const stockForSave = form.hasVariants
+      ? form.variants.reduce((sum, v) => sum + (parseInt(v.stockQuantity, 10) || 0), 0)
+      : (parseInt(form.stockQuantity, 10) || 0);
+
     setLoading(true);
     setError('');
 
@@ -691,7 +696,7 @@ const AddProductForm = ({ onSuccess, onCancel, editProduct, onDirtyChange }) => 
           description: form.description,
           price: parseFloat(form.price),
           currency: form.currency,
-          stockQuantity: parseInt(form.stockQuantity, 10) || 0,
+          stockQuantity: stockForSave,
           condition: parseInt(form.condition, 10) || 1,
           categoryId: form.categoryId || editProduct.categoryId,
           images: form.imageUrls.map(url => ({ url, altText: form.imageAltTexts[url] || null })),
@@ -719,7 +724,7 @@ const AddProductForm = ({ onSuccess, onCancel, editProduct, onDirtyChange }) => 
           price: parseFloat(form.price),
           currency: form.currency,
           condition: parseInt(form.condition, 10) || 1,
-          stockQuantity: parseInt(form.stockQuantity, 10) || 0,
+          stockQuantity: stockForSave,
           categoryId: form.categoryId,
           images: form.imageUrls.map(url => ({ url, altText: form.imageAltTexts[url] || null })),
           isPromoted: form.isPromoted,
@@ -815,6 +820,14 @@ const AddProductForm = ({ onSuccess, onCancel, editProduct, onDirtyChange }) => 
           </select>
         </div>
       </div>
+      {form.price !== '' && form.price != null && Number(form.price) > 0 ? (
+        <p className="text-xs text-slate-500 dark:text-slate-400 -mt-2">
+          المعاينة:{' '}
+          <span className="font-bold text-slate-800 dark:text-slate-200">
+            {formatNativePrice(form.price, form.currency)}
+          </span>
+        </p>
+      ) : null}
 
       {/* التصنيف — قبل المتغيرات لأن خصائص اللون/المقاس تعتمد عليه */}
       <CategoryCombobox
@@ -847,16 +860,12 @@ const AddProductForm = ({ onSuccess, onCancel, editProduct, onDirtyChange }) => 
               {form.categoryId ? 'تفعيل خيارات متعددة للمنتج' : 'اختر التصنيف أولاً'}
             </span>
           </div>
-          <button
-            type="button"
-            role="switch"
-            aria-checked={form.hasVariants}
+          <AdminSwitch
+            checked={form.hasVariants}
             disabled={!form.categoryId}
-            onClick={() => setForm(prev => ({ ...prev, hasVariants: !prev.hasVariants }))}
-            className={`relative inline-flex h-7 w-12 flex-shrink-0 items-center rounded-full transition-colors duration-300 focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed ${form.hasVariants ? 'bg-gold-500' : 'bg-slate-300 dark:bg-slate-600'}`}
-          >
-            <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform duration-300 ${form.hasVariants ? 'translate-x-6' : 'translate-x-1'}`} />
-          </button>
+            aria-label="يحتوي على متغيرات"
+            onChange={(next) => setForm((prev) => ({ ...prev, hasVariants: next }))}
+          />
         </div>
       </div>
 
@@ -1251,45 +1260,21 @@ const AddProductForm = ({ onSuccess, onCancel, editProduct, onDirtyChange }) => 
         {/* Toggle Switch for isPromoted */}
         <div className="flex items-center justify-between">
           <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">منتج مُروّج (عرض / مميز)</label>
-          <button
-            type="button"
-            role="switch"
-            aria-checked={form.isPromoted}
-            onClick={() => setForm(prev => ({ ...prev, isPromoted: !prev.isPromoted }))}
-            className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-gold-500/40 ${
-              form.isPromoted
-                ? 'bg-gradient-to-r from-gold-500 to-purple-500 shadow-lg shadow-gold-500/25'
-                : 'bg-slate-200 dark:bg-slate-600'
-            }`}
-          >
-            <span
-              className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-md transition-transform duration-300 ${
-                form.isPromoted ? 'translate-x-6' : 'translate-x-1'
-              }`}
-            />
-          </button>
+          <AdminSwitch
+            checked={form.isPromoted}
+            aria-label="منتج مروج"
+            onChange={(next) => setForm((prev) => ({ ...prev, isPromoted: next }))}
+          />
         </div>
 
         {/* Toggle Switch for isTrending */}
         <div className="flex items-center justify-between">
           <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">تريند</label>
-          <button
-            type="button"
-            role="switch"
-            aria-checked={form.isTrending}
-            onClick={() => setForm(prev => ({ ...prev, isTrending: !prev.isTrending }))}
-            className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-stone-500/40 ${
-              form.isTrending
-                ? 'bg-stone-900 dark:bg-stone-100 shadow-lg'
-                : 'bg-slate-200 dark:bg-slate-600'
-            }`}
-          >
-            <span
-              className={`inline-block h-5 w-5 transform rounded-full bg-white dark:bg-stone-900 shadow-md transition-transform duration-300 ${
-                form.isTrending ? 'translate-x-6' : 'translate-x-1'
-              }`}
-            />
-          </button>
+          <AdminSwitch
+            checked={form.isTrending}
+            aria-label="تريند"
+            onChange={(next) => setForm((prev) => ({ ...prev, isTrending: next }))}
+          />
         </div>
 
         {/* Discount Price */}
@@ -1547,14 +1532,25 @@ const AddProductForm = ({ onSuccess, onCancel, editProduct, onDirtyChange }) => 
         </div>
         <div>
           <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5">الكمية بالمخزون</label>
-          <input
-            type="number"
-            name="stockQuantity"
-            value={form.stockQuantity}
-            onChange={handleChange}
-            min="0"
-            className="w-full px-4 py-3 border border-slate-200 dark:border-slate-600 rounded-xl text-sm bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-gold-500/40 focus:border-gold-400"
-          />
+          {form.hasVariants ? (
+            <div className="w-full px-4 py-3 border border-dashed border-slate-200 dark:border-slate-600 rounded-xl text-sm bg-slate-50 dark:bg-slate-800/60 text-slate-600 dark:text-slate-300">
+              <span className="font-bold text-slate-900 dark:text-white">
+                {form.variants.reduce((sum, v) => sum + (parseInt(v.stockQuantity, 10) || 0), 0)}
+              </span>
+              <span className="text-xs text-slate-500 mr-2">
+                {' '}مجموع كميات المتغيرات ({form.variants.length} متغير) — عدّل الكمية في صفوف المتغيرات أعلاه
+              </span>
+            </div>
+          ) : (
+            <input
+              type="number"
+              name="stockQuantity"
+              value={form.stockQuantity}
+              onChange={handleChange}
+              min="0"
+              className="w-full px-4 py-3 border border-slate-200 dark:border-slate-600 rounded-xl text-sm bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-gold-500/40 focus:border-gold-400"
+            />
+          )}
         </div>
         <div>
           <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5">تنبيه المخزون المنخفض</label>

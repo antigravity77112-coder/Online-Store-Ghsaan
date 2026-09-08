@@ -106,7 +106,12 @@ export function convertAmount(amount, fromCurrency, toCurrency, rates = displayR
 
 function formatNumber(num) {
   const rounded = Math.round(num * 100) / 100;
-  if (rounded >= 1000) return rounded.toLocaleString('en-US');
+  // Western digits + Arabic thousands separator (e.g. 8،000)
+  if (rounded >= 1000) {
+    const [intPart, decPart] = String(rounded).split('.');
+    const withSep = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, '\u060C');
+    return decPart != null ? `${withSep}.${decPart}` : withSep;
+  }
   if (Number.isInteger(rounded)) return String(rounded);
   return String(rounded);
 }

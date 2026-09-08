@@ -49,6 +49,7 @@ import * as api from "../services/api";
 import { useSiteConfig } from "../context/SiteConfigContext";
 import { DEFAULT_SITE_CONFIG, resolveSiteLogo } from "../config/siteConfigDefaults";
 import { confirmDiscardDraft } from "../utils/adminDraftConfirm";
+import { AdminSwitch } from "./admin/AdminUI";
 import { useTheme } from "../context/ThemeContext";
 import { themeStatusError, themeStatusSuccess } from "../config/themeTokens";
 /** Eager import — avoids Vite "Failed to fetch dynamically imported module" flakes on Arabic paths. */
@@ -779,9 +780,11 @@ const AdminDashboard = () => {
                         <span className="text-sm font-semibold text-slate-700 dark:text-slate-300 block">حالة التصنيف</span>
                         <span className="text-xs text-slate-500 dark:text-slate-400">تفعيل أو إخفاء التصنيف من المتجر</span>
                       </div>
-                      <button type="button" role="switch" aria-checked={categoryForm.isActive} onClick={() => updateCategoryForm(f => ({ ...f, isActive: !f.isActive }))} className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors duration-300 focus:outline-none ${categoryForm.isActive ? 'bg-gold-500' : 'bg-slate-300 dark:bg-slate-600'}`}>
-                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-300 ${categoryForm.isActive ? 'translate-x-6' : 'translate-x-1'}`} />
-                      </button>
+                      <AdminSwitch
+                        checked={categoryForm.isActive}
+                        aria-label="حالة التصنيف"
+                        onChange={(next) => updateCategoryForm((f) => ({ ...f, isActive: next }))}
+                      />
                     </div>
                   </div>
 

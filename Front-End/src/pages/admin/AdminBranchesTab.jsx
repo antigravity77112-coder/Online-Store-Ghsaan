@@ -5,7 +5,7 @@ import {
   Phone, Clock, Link, ToggleLeft, ToggleRight, X, Save
 } from 'lucide-react';
 import * as api from '../../services/api';
-import { AdminToolbar, AdminPrimaryButton, AdminEmptyState, AdminLoading } from './AdminUI';
+import { AdminToolbar, AdminPrimaryButton, AdminEmptyState, AdminLoading, AdminSwitch } from './AdminUI';
 
 const EMPTY_FORM = {
   name: '', address: '', city: '', phone: '', whatsapp: '',
@@ -149,10 +149,12 @@ const BranchFormModal = ({ branch, onClose, onSaved }) => {
 
             {/* Active toggle */}
             <div className="sm:col-span-2 flex items-center gap-3">
-              <button type="button" onClick={() => set('isActive', !form.isActive)}
-                className={`relative w-11 h-6 rounded-full transition-colors ${form.isActive ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-600'}`}>
-                <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${form.isActive ? 'translate-x-1' : 'translate-x-6'}`} />
-              </button>
+              <AdminSwitch
+                checked={!!form.isActive}
+                aria-label="حالة الفرع"
+                onChange={(next) => set('isActive', next)}
+                className={form.isActive ? '!bg-emerald-500' : ''}
+              />
               <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">
                 {form.isActive ? 'الفرع نشط (يظهر للعملاء)' : 'الفرع مخفي'}
               </span>

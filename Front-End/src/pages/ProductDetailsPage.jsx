@@ -3,7 +3,6 @@ import { useParams, useNavigate } from "react-router-dom";
 import {
   Heart,
   Share2,
-  ChevronLeft,
   ChevronRight,
   Check,
   Loader2,
@@ -735,7 +734,9 @@ const ProductDetailsPage = () => {
   const galleryBlock = (
     <div className="w-full -mx-3 sm:mx-0">
       <div
-        className="relative aspect-[4/5] sm:aspect-square bg-white dark:bg-stone-900 overflow-hidden touch-pan-y"
+        className={`relative aspect-[4/5] sm:aspect-square bg-white dark:bg-stone-900 overflow-hidden touch-pan-y ${
+          galleryImages.length > 1 ? "cursor-grab active:cursor-grabbing select-none" : ""
+        }`}
         {...(galleryImages.length > 1 ? gallerySwipe : {})}
       >
         <img
@@ -782,22 +783,6 @@ const ProductDetailsPage = () => {
 
         {galleryImages.length > 1 && (
           <>
-            <button
-              type="button"
-              onClick={goToPrevImage}
-              className="hidden sm:flex absolute right-2 top-1/2 -translate-y-1/2 min-w-[40px] min-h-[40px] items-center justify-center bg-white/90 rounded-full shadow-sm border border-stone-200"
-              aria-label="الصورة السابقة"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
-            <button
-              type="button"
-              onClick={goToNextImage}
-              className="hidden sm:flex absolute left-2 top-1/2 -translate-y-1/2 min-w-[40px] min-h-[40px] items-center justify-center bg-white/90 rounded-full shadow-sm border border-stone-200"
-              aria-label="الصورة التالية"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
             <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1 px-2 py-1 rounded-full bg-black/35">
               {galleryImages.map((_, idx) => (
                 <button

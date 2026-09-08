@@ -260,3 +260,44 @@ export function AdminFadeIn({ children, delay = 0, className = '' }) {
     </motion.div>
   );
 }
+
+/**
+ * RTL-safe switch: thumb uses logical `start-*` so ON moves toward the end in Arabic.
+ */
+export function AdminSwitch({
+  checked = false,
+  onChange,
+  disabled = false,
+  size = 'md',
+  'aria-label': ariaLabel,
+  className = '',
+}) {
+  const isSm = size === 'sm';
+  const track = isSm ? 'h-5 w-9' : 'h-6 w-11';
+  const thumb = isSm ? 'h-4 w-4' : 'h-5 w-5';
+  const thumbOn = isSm ? 'start-[1.125rem]' : 'start-[1.375rem]';
+
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      aria-label={ariaLabel}
+      disabled={disabled}
+      onClick={() => {
+        if (disabled) return;
+        onChange?.(!checked);
+      }}
+      className={`relative inline-flex ${track} flex-shrink-0 items-center rounded-full transition-colors duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 disabled:opacity-40 disabled:cursor-not-allowed ${
+        checked ? 'bg-gold-500' : 'bg-slate-300 dark:bg-slate-600'
+      } ${className}`}
+    >
+      <span
+        className={`absolute top-0.5 start-0.5 inline-block ${thumb} rounded-full bg-white shadow transition-[inset-inline-start] duration-200 ${
+          checked ? thumbOn : 'start-0.5'
+        }`}
+      />
+    </button>
+  );
+}
+
