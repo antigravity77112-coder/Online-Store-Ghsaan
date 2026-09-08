@@ -42,7 +42,7 @@ export default function BrandTrio({
     wordH = 'min-h-10 sm:min-h-12 md:min-h-14';
     wordText = 'text-lg sm:text-xl md:text-2xl lg:text-3xl tracking-wide';
     logoBox = 'w-28 h-28 sm:w-36 sm:h-36 md:w-44 md:h-44 lg:w-52 lg:h-52';
-    trioGap = 'gap-3 sm:gap-4 md:gap-5';
+    trioGap = 'gap-0';
     wordExtra = 'whitespace-nowrap';
   } else {
     // Max logo inside fixed header height — do not grow the header bar.
@@ -63,7 +63,10 @@ export default function BrandTrio({
       className={`flex flex-nowrap items-center justify-center max-w-full min-w-0 ${trioGap} ${className}`}
       dir="ltr"
     >
-      <span className={`${wordClass} justify-end text-end`} title={brandShort}>
+      <span
+        className={`${wordClass} justify-end text-end ${isFooter ? '-me-3 sm:-me-4 md:-me-5' : ''}`}
+        title={brandShort}
+      >
         <span className={isFooter ? 'whitespace-nowrap' : 'truncate'}>{brandShort}</span>
       </span>
 
@@ -84,7 +87,10 @@ export default function BrandTrio({
         />
       </div>
 
-      <span className={`${wordClass} justify-start text-start`} title={brandAr}>
+      <span
+        className={`${wordClass} justify-start text-start ${isFooter ? '-ms-3 sm:-ms-4 md:-ms-5' : ''}`}
+        title={brandAr}
+      >
         <span className={isFooter ? 'whitespace-nowrap' : 'truncate'}>{brandAr}</span>
       </span>
     </div>
