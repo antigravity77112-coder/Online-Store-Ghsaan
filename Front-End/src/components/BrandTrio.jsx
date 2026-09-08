@@ -38,17 +38,17 @@ export default function BrandTrio({
     logoBox = 'w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20';
     trioGap = 'gap-1 sm:gap-1.5 md:gap-2';
   } else if (isFooter) {
-    wordBox = 'w-auto max-w-[10rem] sm:max-w-[12rem] md:max-w-[14rem] min-w-0';
-    wordH = 'min-h-10 sm:min-h-12';
-    wordText = 'text-xl sm:text-2xl tracking-wide';
-    logoBox = 'w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16';
-    trioGap = 'gap-3 sm:gap-4 md:gap-5';
+    wordBox = 'w-auto max-w-[11rem] sm:max-w-[14rem] md:max-w-[16rem] min-w-0';
+    wordH = 'min-h-12 sm:min-h-14 md:min-h-16';
+    wordText = 'text-2xl sm:text-3xl md:text-4xl tracking-wide';
+    logoBox = 'w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 lg:w-28 lg:h-28';
+    trioGap = 'gap-4 sm:gap-5 md:gap-6';
     wordExtra = 'whitespace-normal';
   } else {
     wordBox = 'w-auto max-w-[7.25rem] sm:max-w-[8.5rem] md:max-w-[10rem] lg:max-w-[11.5rem] min-w-0';
-    wordH = 'h-7 sm:h-8 md:h-9 lg:h-11';
+    wordH = 'h-10 sm:h-11 md:h-12 lg:h-14';
     wordText = 'text-[0.68rem] leading-tight sm:text-sm md:text-base lg:text-lg';
-    logoBox = 'w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 lg:w-11 lg:h-11';
+    logoBox = 'w-11 h-11 sm:w-12 sm:h-12 md:w-14 md:h-14 lg:w-16 lg:h-16';
     trioGap = 'gap-1 sm:gap-1.5 md:gap-2';
   }
 
@@ -68,8 +68,8 @@ export default function BrandTrio({
         <img
           src={logo}
           alt={`شعار ${brandShort}`}
-          width={isSplash ? 80 : isFooter ? 64 : 56}
-          height={isSplash ? 80 : isFooter ? 64 : 56}
+          width={isSplash ? 80 : isFooter ? 112 : 64}
+          height={isSplash ? 80 : isFooter ? 112 : 64}
           fetchPriority="high"
           className="w-full h-full object-contain object-center scale-[1.05] transition-transform group-hover:scale-[1.1] duration-300"
         />

@@ -161,7 +161,7 @@ const Layout = React.memo(({ children, homeMarketplace = false, hideMobileHeader
       >
         <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
           {/* Equal side rails keep BrandTrio visually centered */}
-          <div className="grid h-[var(--mobile-header-height)] grid-cols-[minmax(3.5rem,auto)_minmax(0,1fr)_minmax(3.5rem,auto)] items-center gap-x-0.5 overflow-x-clip sm:gap-x-2 md:h-auto md:min-h-16 md:py-1 sm:grid-cols-[minmax(4.5rem,1fr)_minmax(0,auto)_minmax(4.5rem,1fr)]">
+          <div className="grid h-[var(--mobile-header-height)] grid-cols-[minmax(3.5rem,auto)_minmax(0,1fr)_minmax(3.5rem,auto)] items-center gap-x-0.5 overflow-x-clip sm:gap-x-2 md:h-auto md:min-h-[4.5rem] md:py-1.5 sm:grid-cols-[minmax(4.5rem,1fr)_minmax(0,auto)_minmax(4.5rem,1fr)]">
             {/* START / RIGHT SIDE (Menu + Search) */}
             <div className="flex min-w-0 items-center justify-start gap-0 sm:gap-1">
               <button

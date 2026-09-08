@@ -18,7 +18,7 @@
     --color-error: #EA0001;
 
     /* Stable mobile chrome dimensions — shared by Layout, tabs, bottom nav, and PDP CTAs */
-    --mobile-header-height: 3.5rem;
+    --mobile-header-height: 3.75rem;
     --mobile-shop-tabs-height: 2.5rem;
     --mobile-shop-chrome-height: calc(
       var(--mobile-header-height) + var(--mobile-shop-tabs-height)

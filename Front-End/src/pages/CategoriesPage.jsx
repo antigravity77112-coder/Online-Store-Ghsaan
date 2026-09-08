@@ -9,8 +9,7 @@ import SEO from '../components/SEO';
 import CategoryTile from '../components/CategoryTile';
 import { useCategories } from '../hooks/useProducts';
 
-const SKELETON_COUNT = 15;
-const GRID_COLS = 5;
+const SKELETON_COUNT = 14;
 
 const CategoriesPage = () => {
   const { data: categories, isLoading } = useCategories();
@@ -55,8 +54,8 @@ const CategoriesPage = () => {
           )}
 
           <div
-            className="grid gap-x-2 gap-y-3 sm:gap-x-2.5 sm:gap-y-3.5"
-            style={{ gridTemplateColumns: `repeat(${GRID_COLS}, minmax(0, 1fr))` }}
+            className="grid grid-cols-4 gap-x-2 gap-y-3 sm:grid-cols-5 sm:gap-x-2.5 sm:gap-y-3.5 lg:grid-cols-7 lg:gap-x-3"
+            dir="rtl"
           >
             {isLoading
               ? Array.from({ length: SKELETON_COUNT }).map((_, i) => (

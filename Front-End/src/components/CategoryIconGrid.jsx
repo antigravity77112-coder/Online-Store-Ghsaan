@@ -1,23 +1,56 @@
 /**
- * CategoryIconGrid — شبكة فئات بصفّين (موبايل 5 أعمدة، سطح المكتب 7)
+ * CategoryIconGrid — صفّان × 7 أعمدة على سطح المكتب مع تمرير أفقي RTL
  */
 
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import CategoryTile from './CategoryTile';
 
-const MOBILE_COLS = 5;
-const DESKTOP_COLS = 7;
 const ROWS = 2;
-const MOBILE_LIMIT = MOBILE_COLS * ROWS; // 10
-const DESKTOP_LIMIT = DESKTOP_COLS * ROWS; // 14
-const SKELETON_COUNT = DESKTOP_LIMIT;
+
+function useVisibleCols() {
+  const [cols, setCols] = useState(7);
+
+  useEffect(() => {
+    const lg = window.matchMedia('(min-width: 1024px)');
+    const sm = window.matchMedia('(min-width: 640px)');
+    const sync = () => {
+      if (lg.matches) setCols(7);
+      else if (sm.matches) setCols(5);
+      else setCols(4);
+    };
+    sync();
+    lg.addEventListener('change', sync);
+    sm.addEventListener('change', sync);
+    return () => {
+      lg.removeEventListener('change', sync);
+      sm.removeEventListener('change', sync);
+    };
+  }, []);
+
+  return cols;
+}
+
+function chunkList(list, size) {
+  if (!size || size < 1) return [list];
+  const pages = [];
+  for (let i = 0; i < list.length; i += size) {
+    pages.push(list.slice(i, i + size));
+  }
+  return pages;
+}
 
 export default function CategoryIconGrid({
   categories = [],
   isLoading = false,
   showHeader = true,
 }) {
-  const visible = categories.slice(0, DESKTOP_LIMIT);
+  const cols = useVisibleCols();
+  const pageSize = cols * ROWS;
+
+  const pages = useMemo(
+    () => chunkList(isLoading ? Array.from({ length: pageSize }, (_, i) => ({ id: `skel-${i}` })) : categories, pageSize),
+    [categories, isLoading, pageSize],
+  );
 
   return (
     <section
@@ -34,29 +67,24 @@ export default function CategoryIconGrid({
       )}
 
       <div
-        className="grid grid-cols-5 gap-x-2 gap-y-3 lg:grid-cols-7 lg:gap-x-3"
+        className="category-belt-scroll flex gap-3 overflow-x-auto scrollbar-hide snap-x snap-mandatory pb-0.5 -mx-0.5 px-0.5"
+        style={{ WebkitOverflowScrolling: 'touch' }}
         dir="rtl"
         role="list"
       >
-        {isLoading
-          ? Array.from({ length: SKELETON_COUNT }).map((_, i) => (
-              <div
-                key={`cat-grid-skel-${i}`}
-                role="listitem"
-                className={i >= MOBILE_LIMIT ? 'hidden lg:block' : undefined}
-              >
-                <CategoryTile isLoading />
-              </div>
-            ))
-          : visible.map((cat, i) => (
-              <div
-                key={cat.id}
-                role="listitem"
-                className={i >= MOBILE_LIMIT ? 'hidden lg:block' : undefined}
-              >
-                <CategoryTile category={cat} />
+        {pages.map((page, pageIndex) => (
+          <div
+            key={`cat-page-${pageIndex}`}
+            className="grid w-full min-w-full flex-shrink-0 snap-start grid-cols-4 gap-x-2 gap-y-3 sm:grid-cols-5 lg:grid-cols-7 lg:gap-x-3"
+            role="presentation"
+          >
+            {page.map((cat) => (
+              <div key={cat.id} role="listitem">
+                {isLoading ? <CategoryTile isLoading /> : <CategoryTile category={cat} />}
               </div>
             ))}
+          </div>
+        ))}
       </div>
     </section>
   );
