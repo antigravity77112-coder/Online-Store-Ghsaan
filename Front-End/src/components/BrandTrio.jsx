@@ -38,17 +38,19 @@ export default function BrandTrio({
     logoBox = 'w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20';
     trioGap = 'gap-1 sm:gap-1.5 md:gap-2';
   } else if (isFooter) {
-    wordBox = 'w-auto max-w-[11rem] sm:max-w-[14rem] md:max-w-[16rem] min-w-0';
-    wordH = 'min-h-12 sm:min-h-14 md:min-h-16';
-    wordText = 'text-2xl sm:text-3xl md:text-4xl tracking-wide';
-    logoBox = 'w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 lg:w-28 lg:h-28';
-    trioGap = 'gap-4 sm:gap-5 md:gap-6';
+    wordBox = 'w-auto max-w-[14rem] sm:max-w-[18rem] md:max-w-[22rem] min-w-0';
+    wordH = 'min-h-16 sm:min-h-20 md:min-h-24';
+    wordText = 'text-4xl sm:text-5xl md:text-6xl tracking-wide';
+    logoBox = 'w-28 h-28 sm:w-36 sm:h-36 md:w-44 md:h-44 lg:w-52 lg:h-52';
+    trioGap = 'gap-5 sm:gap-6 md:gap-8';
     wordExtra = 'whitespace-normal';
   } else {
-    wordBox = 'w-auto max-w-[7.25rem] sm:max-w-[8.5rem] md:max-w-[10rem] lg:max-w-[11.5rem] min-w-0';
-    wordH = 'h-10 sm:h-11 md:h-12 lg:h-14';
-    wordText = 'text-[0.68rem] leading-tight sm:text-sm md:text-base lg:text-lg';
-    logoBox = 'w-11 h-11 sm:w-12 sm:h-12 md:w-14 md:h-14 lg:w-16 lg:h-16';
+    // Max logo inside fixed header height — do not grow the header bar.
+    wordBox = 'w-auto max-w-[6.5rem] sm:max-w-[8rem] md:max-w-[9.5rem] lg:max-w-[11rem] min-w-0';
+    wordH = 'h-8 sm:h-9 md:h-10';
+    wordText = 'text-[0.65rem] leading-tight sm:text-sm md:text-base lg:text-lg';
+    logoBox =
+      'h-[calc(var(--mobile-header-height)-0.4rem)] w-[calc(var(--mobile-header-height)-0.4rem)] md:h-14 md:w-14 lg:h-[3.65rem] lg:w-[3.65rem]';
     trioGap = 'gap-1 sm:gap-1.5 md:gap-2';
   }
 
@@ -63,15 +65,19 @@ export default function BrandTrio({
       </span>
 
       <div
-        className={`relative ${logoBox} bg-transparent flex items-center justify-center p-0 overflow-hidden flex-shrink-0`}
+        className={`relative ${logoBox} bg-transparent flex items-center justify-center p-0 overflow-visible flex-shrink-0`}
       >
         <img
           src={logo}
           alt={`شعار ${brandShort}`}
-          width={isSplash ? 80 : isFooter ? 112 : 64}
-          height={isSplash ? 80 : isFooter ? 112 : 64}
+          width={isSplash ? 80 : isFooter ? 208 : 64}
+          height={isSplash ? 80 : isFooter ? 208 : 64}
           fetchPriority="high"
-          className="w-full h-full object-contain object-center scale-[1.05] transition-transform group-hover:scale-[1.1] duration-300"
+          className={`w-full h-full object-contain object-center transition-transform duration-300 ${
+            isFooter
+              ? 'scale-100 group-hover:scale-[1.04]'
+              : 'scale-[1.35] md:scale-[1.45] group-hover:scale-[1.5]'
+          }`}
         />
       </div>
 
