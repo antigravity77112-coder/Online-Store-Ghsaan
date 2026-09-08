@@ -48,6 +48,7 @@ import useSWR, { preload, mutate } from "swr";
 import * as api from "../services/api";
 import { useSiteConfig } from "../context/SiteConfigContext";
 import { DEFAULT_SITE_CONFIG, resolveSiteLogo } from "../config/siteConfigDefaults";
+import { confirmDiscardDraft } from "../utils/adminDraftConfirm";
 import { useTheme } from "../context/ThemeContext";
 import { themeStatusError, themeStatusSuccess } from "../config/themeTokens";
 /** Eager import — avoids Vite "Failed to fetch dynamically imported module" flakes on Arabic paths. */
@@ -199,19 +200,44 @@ const AdminDashboard = () => {
   }, [adminConfigData]);
 
   // Modals & Forms local state
-  const [showProductForm, setShowProductForm] = useState(false);
+  const [productModalOpen, setProductModalOpen] = useState(false);
+  const [productFormMounted, setProductFormMounted] = useState(false);
+  const [productFormKey, setProductFormKey] = useState(0);
+  const [productFormDirty, setProductFormDirty] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [showCategoryForm, setShowCategoryForm] = useState(false);
   const [editingCategory, setEditingCategory] = useState(null);
-  const [categoryForm, setCategoryForm] = useState({ name: "", slug: "", iconUrl: "", description: "", imageUrl: "", parentId: "", isActive: true, sortOrder: 0, metaTitle: "", metaDescription: "" });
+  const [categoryFormDirty, setCategoryFormDirty] = useState(false);
+  const [categoryDraftActive, setCategoryDraftActive] = useState(false);
+  const emptyCategoryForm = { name: "", slug: "", iconUrl: "", description: "", imageUrl: "", parentId: "", isActive: true, sortOrder: 0, metaTitle: "", metaDescription: "" };
+  const [categoryForm, setCategoryForm] = useState(emptyCategoryForm);
+  const categoryBaselineRef = React.useRef(JSON.stringify(emptyCategoryForm));
 
-  const { data: allCategories } = useSWR(isAuth && showCategoryForm ? "allCategories" : null, () => api.getCategories());
+  const { data: allCategories } = useSWR(isAuth && (showCategoryForm || categoryDraftActive) ? "allCategories" : null, () => api.getCategories());
 
   useEffect(() => {
     if (!isAuthenticated || !isAdmin) {
       navigate("/auth", { replace: true });
     }
   }, [isAuthenticated, isAdmin, navigate]);
+
+  useEffect(() => {
+    if (!productModalOpen) return undefined;
+    const onKey = (e) => {
+      if (e.key === "Escape") setProductModalOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [productModalOpen]);
+
+  useEffect(() => {
+    if (!showCategoryForm) return undefined;
+    const onKey = (e) => {
+      if (e.key === "Escape") setShowCategoryForm(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [showCategoryForm]);
 
   const showSuccessMsg = (msg) => {
     setSuccess(msg);
@@ -260,19 +286,50 @@ const AdminDashboard = () => {
     }
   };
 
-  const handleProductCreated = () => {
-    setShowProductForm(false);
+  const softDismissProductModal = () => {
+    setProductModalOpen(false);
+  };
+
+  const hardClearProductModal = ({ skipConfirm = false } = {}) => {
+    if (!skipConfirm && !confirmDiscardDraft(productFormDirty)) return;
+    setProductModalOpen(false);
+    setProductFormMounted(false);
     setEditingProduct(null);
-    showSuccessMsg(editingProduct ? "تم تعديل المنتج بنجاح! ✅" : "تم إضافة المنتج بنجاح! 🎉");
+    setProductFormDirty(false);
+    setProductFormKey((k) => k + 1);
+  };
+
+  const handleProductCreated = () => {
+    const wasEdit = Boolean(editingProduct?.id);
+    hardClearProductModal({ skipConfirm: true });
+    showSuccessMsg(wasEdit ? "تم تعديل المنتج بنجاح! ✅" : "تم إضافة المنتج بنجاح! 🎉");
     mutate((key) => Array.isArray(key) && key[0] === 'adminProducts');
   };
 
   const openEditProductModal = async (product) => {
+    // Reopen soft-dismissed add draft
     if (!product?.id) {
-      setEditingProduct(product);
-      setShowProductForm(true);
+      if (productFormMounted && !editingProduct?.id) {
+        setProductModalOpen(true);
+        return;
+      }
+      if (productFormMounted && productFormDirty && !confirmDiscardDraft(true)) return;
+      setEditingProduct(null);
+      setProductFormDirty(false);
+      setProductFormKey((k) => k + 1);
+      setProductFormMounted(true);
+      setProductModalOpen(true);
       return;
     }
+
+    // Reopen soft-dismissed edit of the same product
+    if (productFormMounted && editingProduct?.id === product.id) {
+      setProductModalOpen(true);
+      return;
+    }
+
+    if (productFormMounted && productFormDirty && !confirmDiscardDraft(true)) return;
+
     try {
       const fullProduct = await api.getProductById(product.id);
       if (!fullProduct) throw new Error('Product not found');
@@ -281,18 +338,48 @@ const AdminDashboard = () => {
       alert('تعذر تحميل بيانات المنتج الكاملة. يرجى المحاولة مرة أخرى قبل التعديل حتى لا تُفقد صور المنتج.');
       return;
     }
-    setShowProductForm(true);
+    setProductFormDirty(false);
+    setProductFormKey((k) => k + 1);
+    setProductFormMounted(true);
+    setProductModalOpen(true);
   };
 
-  const closeProductModal = () => {
-    setShowProductForm(false);
-    setEditingProduct(null);
+  const updateCategoryForm = (updater) => {
+    setCategoryForm((prev) => {
+      const next = typeof updater === 'function' ? updater(prev) : updater;
+      setCategoryFormDirty(JSON.stringify(next) !== categoryBaselineRef.current);
+      setCategoryDraftActive(true);
+      return next;
+    });
+  };
+
+  const resetCategoryFormState = () => {
+    setEditingCategory(null);
+    setCategoryForm(emptyCategoryForm);
+    categoryBaselineRef.current = JSON.stringify(emptyCategoryForm);
+    setCategoryFormDirty(false);
+    setCategoryDraftActive(false);
+  };
+
+  const softDismissCategoryModal = () => {
+    setShowCategoryForm(false);
+  };
+
+  const hardClearCategoryModal = ({ skipConfirm = false } = {}) => {
+    if (!skipConfirm && !confirmDiscardDraft(categoryFormDirty)) return;
+    setShowCategoryForm(false);
+    resetCategoryFormState();
   };
 
   const openCategoryForm = (cat = null) => {
     if (cat) {
+      if (categoryDraftActive && editingCategory?.id === cat.id) {
+        setShowCategoryForm(true);
+        return;
+      }
+      if (categoryDraftActive && categoryFormDirty && !confirmDiscardDraft(true)) return;
       setEditingCategory(cat);
-      setCategoryForm({
+      const next = {
         name: cat.name,
         slug: cat.slug || "",
         iconUrl: cat.iconUrl || "",
@@ -303,10 +390,22 @@ const AdminDashboard = () => {
         sortOrder: cat.sortOrder || 0,
         metaTitle: cat.metaTitle || "",
         metaDescription: cat.metaDescription || "",
-      });
+      };
+      setCategoryForm(next);
+      categoryBaselineRef.current = JSON.stringify(next);
+      setCategoryFormDirty(false);
+      setCategoryDraftActive(true);
     } else {
+      if (categoryDraftActive && !editingCategory) {
+        setShowCategoryForm(true);
+        return;
+      }
+      if (categoryDraftActive && categoryFormDirty && !confirmDiscardDraft(true)) return;
       setEditingCategory(null);
-      setCategoryForm({ name: "", slug: "", iconUrl: "", description: "", imageUrl: "", parentId: "", isActive: true, sortOrder: 0, metaTitle: "", metaDescription: "" });
+      setCategoryForm(emptyCategoryForm);
+      categoryBaselineRef.current = JSON.stringify(emptyCategoryForm);
+      setCategoryFormDirty(false);
+      setCategoryDraftActive(true);
     }
     setShowCategoryForm(true);
   };
@@ -341,7 +440,7 @@ const AdminDashboard = () => {
         mutate('allCategories');
         showSuccessMsg("تم إضافة التصنيف بنجاح 🎉");
       }
-      setShowCategoryForm(false);
+      hardClearCategoryModal({ skipConfirm: true });
     } catch (err) {
       setError("فشل حفظ التصنيف: " + (err.message || ""));
     }
@@ -585,7 +684,13 @@ const AdminDashboard = () => {
               handleDeleteUser={handleDeleteUser}
             />
           )}
-          {activeTab === "products" && <AdminProductsTab openEditProductModal={openEditProductModal} />}
+          {activeTab === "products" && (
+            <AdminProductsTab
+              openEditProductModal={openEditProductModal}
+              hasProductDraft={productFormMounted && !productModalOpen && productFormDirty}
+              onResumeProductDraft={() => setProductModalOpen(true)}
+            />
+          )}
           {activeTab === "categories" && <AdminCategoriesTab openCategoryForm={openCategoryForm} />}
           {activeTab === "brands" && <AdminBrandsTab onSuccessMsg={showSuccessMsg} />}
           {activeTab === "scents" && <AdminScentsTab onSuccessMsg={showSuccessMsg} />}
@@ -610,65 +715,71 @@ const AdminDashboard = () => {
           </div>
         </div>
 
-        {/* Add/Edit Product Modal */}
-        <AnimatePresence>
-          {showProductForm && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-3 sm:p-6" onClick={closeProductModal}>
-              <motion.div
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 16 }}
-                transition={{ duration: 0.25 }}
-                onClick={(e) => e.stopPropagation()}
-                className="bg-white dark:bg-slate-900 rounded-3xl w-full max-w-lg lg:max-w-4xl max-h-[92vh] flex flex-col shadow-2xl border border-slate-200/80 dark:border-slate-700/80 overflow-hidden"
-              >
-                <div className="flex-shrink-0 flex items-center justify-between gap-3 px-5 py-4 border-b border-slate-100 dark:border-slate-800 bg-gradient-to-l from-gold-50/50 to-white dark:from-gold-900/10 dark:to-slate-900">
-                  <div>
-                    <h3 className="text-lg font-black text-slate-900 dark:text-white">{editingProduct ? "تعديل المنتج" : "إضافة منتج جديد"}</h3>
-                    <p className="text-xs text-slate-500 mt-0.5">املأ التفاصيل واختر الخيارات من البطاقات أدناه</p>
-                  </div>
-                  <button type="button" onClick={closeProductModal} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors"><X className="w-5 h-5 text-slate-400" /></button>
+        {/* Add/Edit Product Modal — stays mounted while soft-dismissed to preserve draft */}
+        {productFormMounted && (
+          <div
+            className={`fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-3 sm:p-6 ${
+              productModalOpen ? "" : "invisible pointer-events-none"
+            }`}
+            aria-hidden={!productModalOpen}
+            onClick={softDismissProductModal}
+          >
+            <div
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white dark:bg-slate-900 rounded-3xl w-full max-w-lg lg:max-w-4xl max-h-[92vh] flex flex-col shadow-2xl border border-slate-200/80 dark:border-slate-700/80 overflow-hidden"
+            >
+              <div className="flex-shrink-0 flex items-center justify-between gap-3 px-5 py-4 border-b border-slate-100 dark:border-slate-800 bg-gradient-to-l from-gold-50/50 to-white dark:from-gold-900/10 dark:to-slate-900">
+                <div>
+                  <h3 className="text-lg font-black text-slate-900 dark:text-white">{editingProduct ? "تعديل المنتج" : "إضافة منتج جديد"}</h3>
+                  <p className="text-xs text-slate-500 mt-0.5">املأ التفاصيل واختر الخيارات من البطاقات أدناه</p>
                 </div>
-                <div className="flex-1 overflow-y-auto overscroll-contain">
-                  <Suspense fallback={<AdminTabFallback />}>
-                    <AddProductFormLazy onSuccess={handleProductCreated} onCancel={closeProductModal} editProduct={editingProduct} />
-                  </Suspense>
-                </div>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+                <button type="button" onClick={softDismissProductModal} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors" aria-label="إخفاء النافذة"><X className="w-5 h-5 text-slate-400" /></button>
+              </div>
+              <div className="flex-1 overflow-y-auto overscroll-contain">
+                <Suspense fallback={<AdminTabFallback />}>
+                  <AddProductFormLazy
+                    key={productFormKey}
+                    onSuccess={handleProductCreated}
+                    onCancel={() => hardClearProductModal()}
+                    onDirtyChange={setProductFormDirty}
+                    editProduct={editingProduct}
+                  />
+                </Suspense>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Category Form Modal */}
         <AnimatePresence>
           {showCategoryForm && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4" onClick={() => setShowCategoryForm(false)}>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4" onClick={softDismissCategoryModal}>
               <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} onClick={(e) => e.stopPropagation()} className="bg-white dark:bg-slate-800 rounded-3xl w-full max-w-md max-h-[90vh] overflow-y-auto shadow-2xl dark:border dark:border-slate-700">
                 <div className="flex flex-col sm:flex-row gap-3 sm:items-center justify-between p-5 border-b border-slate-100 dark:border-slate-700">
                   <h3 className="text-lg font-bold text-slate-900 dark:text-white">{editingCategory ? "تعديل التصنيف" : "إضافة تصنيف جديد"}</h3>
-                  <button onClick={() => setShowCategoryForm(false)} className="p-1 hover:bg-slate-100 rounded-lg"><X className="w-5 h-5 text-slate-400" /></button>
+                  <button type="button" onClick={softDismissCategoryModal} className="p-1 hover:bg-slate-100 rounded-lg" aria-label="إخفاء النافذة"><X className="w-5 h-5 text-slate-400" /></button>
                 </div>
                 <div className="p-5 space-y-4">
                   {/* Basic Info */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="col-span-1 md:col-span-1">
                       <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">اسم التصنيف <span className="text-red-500">*</span></label>
-                      <input type="text" value={categoryForm.name} onChange={(e) => setCategoryForm(f => ({ ...f, name: e.target.value }))} className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-600 rounded-xl text-sm bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-gold-500/50" placeholder="مثال: إلكترونيات" />
+                      <input type="text" value={categoryForm.name} onChange={(e) => updateCategoryForm(f => ({ ...f, name: e.target.value }))} className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-600 rounded-xl text-sm bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-gold-500/50" placeholder="مثال: إلكترونيات" />
                     </div>
                     <div className="col-span-1 md:col-span-1">
                       <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">رابط التصنيف (Slug)</label>
-                      <input type="text" value={categoryForm.slug} onChange={(e) => setCategoryForm(f => ({ ...f, slug: e.target.value }))} className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-600 rounded-xl text-sm bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-gold-500/50" placeholder="يتم توليده تلقائياً إذا تُرك فارغاً" />
+                      <input type="text" value={categoryForm.slug} onChange={(e) => updateCategoryForm(f => ({ ...f, slug: e.target.value }))} className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-600 rounded-xl text-sm bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-gold-500/50" placeholder="يتم توليده تلقائياً إذا تُرك فارغاً" />
                     </div>
                     <div className="col-span-1 md:col-span-2">
                       <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">وصف التصنيف</label>
-                      <textarea rows="2" value={categoryForm.description} onChange={(e) => setCategoryForm(f => ({ ...f, description: e.target.value }))} className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-600 rounded-xl text-sm bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-gold-500/50 resize-none" placeholder="وصف قصير للتصنيف..." />
+                      <textarea rows="2" value={categoryForm.description} onChange={(e) => updateCategoryForm(f => ({ ...f, description: e.target.value }))} className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-600 rounded-xl text-sm bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-gold-500/50 resize-none" placeholder="وصف قصير للتصنيف..." />
                     </div>
                     <div className="col-span-1 md:col-span-2 flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-700/50 rounded-xl border border-slate-200 dark:border-slate-600">
                       <div>
                         <span className="text-sm font-semibold text-slate-700 dark:text-slate-300 block">حالة التصنيف</span>
                         <span className="text-xs text-slate-500 dark:text-slate-400">تفعيل أو إخفاء التصنيف من المتجر</span>
                       </div>
-                      <button type="button" role="switch" aria-checked={categoryForm.isActive} onClick={() => setCategoryForm(f => ({ ...f, isActive: !f.isActive }))} className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors duration-300 focus:outline-none ${categoryForm.isActive ? 'bg-gold-500' : 'bg-slate-300 dark:bg-slate-600'}`}>
+                      <button type="button" role="switch" aria-checked={categoryForm.isActive} onClick={() => updateCategoryForm(f => ({ ...f, isActive: !f.isActive }))} className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors duration-300 focus:outline-none ${categoryForm.isActive ? 'bg-gold-500' : 'bg-slate-300 dark:bg-slate-600'}`}>
                         <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-300 ${categoryForm.isActive ? 'translate-x-6' : 'translate-x-1'}`} />
                       </button>
                     </div>
@@ -680,7 +791,7 @@ const AdminDashboard = () => {
                       <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">القسم الأب (اختياري)</label>
                       <select
                         value={categoryForm.parentId || ""}
-                        onChange={(e) => setCategoryForm(f => ({ ...f, parentId: e.target.value }))}
+                        onChange={(e) => updateCategoryForm(f => ({ ...f, parentId: e.target.value }))}
                         className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-600 rounded-xl text-sm bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-gold-500/50"
                       >
                         <option value="">-- بدون قسم أب (قسم رئيسي) --</option>
@@ -695,7 +806,7 @@ const AdminDashboard = () => {
                     </div>
                     <div>
                       <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">الترتيب</label>
-                      <input type="number" min="0" value={categoryForm.sortOrder} onChange={(e) => setCategoryForm(f => ({ ...f, sortOrder: e.target.value }))} className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-600 rounded-xl text-sm bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-gold-500/50" />
+                      <input type="number" min="0" value={categoryForm.sortOrder} onChange={(e) => updateCategoryForm(f => ({ ...f, sortOrder: e.target.value }))} className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-600 rounded-xl text-sm bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-gold-500/50" />
                     </div>
                   </div>
 
@@ -706,7 +817,7 @@ const AdminDashboard = () => {
                       {categoryForm.iconUrl && (
                         <div className="mb-2 flex items-center gap-2">
                           <img src={categoryForm.iconUrl} alt="" className="w-10 h-10 rounded-lg object-cover border border-slate-200" />
-                          <button type="button" onClick={() => setCategoryForm(f => ({ ...f, iconUrl: "" }))} className="text-xs text-red-500 hover:text-red-700 font-semibold">إزالة</button>
+                          <button type="button" onClick={() => updateCategoryForm(f => ({ ...f, iconUrl: "" }))} className="text-xs text-red-500 hover:text-red-700 font-semibold">إزالة</button>
                         </div>
                       )}
                       <input type="file" accept="image/*" onChange={async (e) => {
@@ -714,7 +825,7 @@ const AdminDashboard = () => {
                         if (!file) return;
                         try {
                           const url = await api.uploadCategoryIcon(file);
-                          setCategoryForm(f => ({ ...f, iconUrl: url }));
+                          updateCategoryForm(f => ({ ...f, iconUrl: url }));
                         } catch (err) {
                           setError("فشل رفع الأيقونة: " + (err.message || ""));
                         }
@@ -725,7 +836,7 @@ const AdminDashboard = () => {
                       {categoryForm.imageUrl && (
                         <div className="mb-2 flex items-center gap-2">
                           <img src={categoryForm.imageUrl} alt="" className="w-16 h-10 rounded-lg object-cover border border-slate-200" />
-                          <button type="button" onClick={() => setCategoryForm(f => ({ ...f, imageUrl: "" }))} className="text-xs text-red-500 hover:text-red-700 font-semibold">إزالة</button>
+                          <button type="button" onClick={() => updateCategoryForm(f => ({ ...f, imageUrl: "" }))} className="text-xs text-red-500 hover:text-red-700 font-semibold">إزالة</button>
                         </div>
                       )}
                       <input type="file" accept="image/*" onChange={async (e) => {
@@ -733,7 +844,7 @@ const AdminDashboard = () => {
                         if (!file) return;
                         try {
                           const url = await api.uploadCategoryIcon(file); // Reusing upload for now
-                          setCategoryForm(f => ({ ...f, imageUrl: url }));
+                          updateCategoryForm(f => ({ ...f, imageUrl: url }));
                         } catch (err) {
                           setError("فشل رفع الصورة: " + (err.message || ""));
                         }
@@ -751,21 +862,21 @@ const AdminDashboard = () => {
                       <div className="mt-4 space-y-3">
                         <div>
                           <label className="block text-xs font-semibold text-slate-500 mb-1">عنوان الميتا (Meta Title)</label>
-                          <input type="text" value={categoryForm.metaTitle} onChange={(e) => setCategoryForm(f => ({ ...f, metaTitle: e.target.value }))} className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-gold-500" />
+                          <input type="text" value={categoryForm.metaTitle} onChange={(e) => updateCategoryForm(f => ({ ...f, metaTitle: e.target.value }))} className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-gold-500" />
                         </div>
                         <div>
                           <label className="block text-xs font-semibold text-slate-500 mb-1">وصف الميتا (Meta Description)</label>
-                          <textarea rows="2" value={categoryForm.metaDescription} onChange={(e) => setCategoryForm(f => ({ ...f, metaDescription: e.target.value }))} className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-gold-500 resize-none" />
+                          <textarea rows="2" value={categoryForm.metaDescription} onChange={(e) => updateCategoryForm(f => ({ ...f, metaDescription: e.target.value }))} className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-gold-500 resize-none" />
                         </div>
                       </div>
                     </details>
                   </div>
 
                   <div className="flex gap-3 pt-4 border-t border-slate-100 dark:border-slate-700">
-                    <button onClick={handleSaveCategory} className="flex-1 flex items-center justify-center gap-2 px-5 py-2.5 bg-gold-600 text-white text-sm font-bold rounded-xl hover:bg-gold-500 transition-all">
+                    <button type="button" onClick={handleSaveCategory} className="flex-1 flex items-center justify-center gap-2 px-5 py-2.5 bg-gold-600 text-white text-sm font-bold rounded-xl hover:bg-gold-500 transition-all">
                       <Save className="w-4 h-4" /> {editingCategory ? "تحديث" : "إضافة"}
                     </button>
-                    <button onClick={() => setShowCategoryForm(false)} className="px-5 py-2.5 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 text-sm font-bold rounded-xl hover:bg-slate-200 dark:hover:bg-slate-600 transition-all">إلغاء</button>
+                    <button type="button" onClick={() => hardClearCategoryModal()} className="px-5 py-2.5 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 text-sm font-bold rounded-xl hover:bg-slate-200 dark:hover:bg-slate-600 transition-all">إلغاء</button>
                   </div>
                 </div>
               </motion.div>

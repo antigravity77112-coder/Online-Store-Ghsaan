@@ -40,7 +40,7 @@ function useDebounce(value, delay) {
 
 const DESKTOP_GRID = 'hidden lg:grid lg:grid-cols-[40px_minmax(200px,1fr)_100px_80px_120px_100px_140px] lg:gap-3 lg:items-center';
 
-const AdminProductsTab = ({ openEditProductModal }) => {
+const AdminProductsTab = ({ openEditProductModal, hasProductDraft, onResumeProductDraft }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const debouncedSearch = useDebounce(searchQuery, 500);
   const [filter, setFilter] = useState('all');
@@ -205,10 +205,21 @@ const AdminProductsTab = ({ openEditProductModal }) => {
         subtitle={`${products.length} منتج محمّل`}
         icon={Package}
         actions={
-          <AdminPrimaryButton onClick={() => openEditProductModal(null)}>
-            <Plus className="w-4 h-4" />
-            إضافة منتج
-          </AdminPrimaryButton>
+          <div className="flex items-center gap-2 flex-wrap">
+            {hasProductDraft ? (
+              <button
+                type="button"
+                onClick={onResumeProductDraft}
+                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-bold bg-amber-50 dark:bg-amber-900/30 text-amber-800 dark:text-amber-200 border border-amber-200/80 dark:border-amber-700/50 hover:bg-amber-100 dark:hover:bg-amber-900/50 transition-colors"
+              >
+                استكمال مسودة المنتج
+              </button>
+            ) : null}
+            <AdminPrimaryButton onClick={() => openEditProductModal(null)}>
+              <Plus className="w-4 h-4" />
+              إضافة منتج
+            </AdminPrimaryButton>
+          </div>
         }
       >
         <div className="flex flex-col lg:flex-row gap-3 lg:items-center justify-between">

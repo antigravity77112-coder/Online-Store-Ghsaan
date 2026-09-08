@@ -19,7 +19,7 @@
 
 const prisma = require('../prismaClient');
 
-const BASE_URL = 'https://www.gisaah.com';
+const BASE_URL = process.env.PUBLIC_SITE_URL || process.env.PUBLIC_URL || 'https://online-store-ghsaan.vercel.app';
 const CACHE_TTL_MS = 15 * 60 * 1000; // 15 minutes
 
 // Simple in-memory cache

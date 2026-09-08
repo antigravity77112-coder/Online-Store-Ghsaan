@@ -9,7 +9,9 @@
  *     كل دالة ترجع كائن جاهز للتسلسل كـ JSON وحقنه عبر <script>.
  */
 
-const BASE_URL = 'https://www.gisaah.com';
+import { STOREFRONT_ORIGIN, isLegacyStorefrontHost } from '../config/storefrontOrigin';
+
+const BASE_URL = STOREFRONT_ORIGIN;
 
 /**
  * Currency code mapping from internal enum to ISO 4217
@@ -121,7 +123,8 @@ export function buildOrganizationSchema(siteConfig = {}) {
   const social = siteConfig.social || {};
 
   const logoUrl = media.logoUrl || '/Logo_192.png';
-  const ogImage = media.ogImageUrl || seo.ogImageUrl || '/og-share.png';
+  const ogImageRaw = media.ogImageUrl || seo.ogImageUrl || '/og-share.png';
+  const ogImage = isLegacyStorefrontHost(ogImageRaw) ? '/og-share.png' : ogImageRaw;
   const abs = (url) => (url?.startsWith('http') ? url : `${BASE_URL}${url.startsWith('/') ? url : `/${url}`}`);
 
   const schema = {

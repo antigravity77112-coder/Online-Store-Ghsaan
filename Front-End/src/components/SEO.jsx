@@ -8,9 +8,8 @@ import { useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useSiteConfig } from '../context/SiteConfigContext';
 import { DEFAULT_SITE_CONFIG } from '../config/siteConfigDefaults';
+import { isLegacyStorefrontHost, storefrontUrl } from '../config/storefrontOrigin';
 import { normalizeLocale } from '../i18n/localeUtils';
-
-const BASE_URL = 'https://www.gisaah.com';
 
 const SEO = ({
   title,
@@ -28,13 +27,19 @@ const SEO = ({
   const dir = lang === 'ar' ? 'rtl' : 'ltr';
 
   const canonical = canonicalPath
-    ? `${BASE_URL}${canonicalPath}`
-    : `${BASE_URL}${location.pathname}`;
+    ? storefrontUrl(canonicalPath)
+    : storefrontUrl(location.pathname || '/');
 
   const siteName = config.seo?.title || DEFAULT_SITE_CONFIG.seo.title;
   const finalTitle = title ? `${title} | ${siteName}` : siteName;
   const finalDescription = description || config.seo?.description || DEFAULT_SITE_CONFIG.seo.description;
-  const finalImage = image || config.seo?.ogImageUrl || config.media?.ogImageUrl || DEFAULT_SITE_CONFIG.media.ogImageUrl;
+  const rawImage = image || config.seo?.ogImageUrl || config.media?.ogImageUrl || DEFAULT_SITE_CONFIG.media.ogImageUrl;
+  const finalImage = isLegacyStorefrontHost(rawImage)
+    ? DEFAULT_SITE_CONFIG.media.ogImageUrl
+    : rawImage;
+  const absoluteImage = finalImage.startsWith('http')
+    ? finalImage
+    : storefrontUrl(finalImage);
   const ogTitle = config.seo?.ogTitle || finalTitle;
   const ogDescription = config.seo?.ogDescription || finalDescription;
 
@@ -57,7 +62,7 @@ const SEO = ({
       <meta property="og:url" content={canonical} />
       <meta property="og:title" content={ogTitle} />
       <meta property="og:description" content={ogDescription} />
-      <meta property="og:image" content={finalImage.startsWith('http') ? finalImage : `${BASE_URL}${finalImage}`} />
+      <meta property="og:image" content={absoluteImage} />
       <meta property="og:image:width" content="1200" />
       <meta property="og:image:height" content="630" />
       <meta property="og:image:alt" content={ogTitle} />
@@ -67,7 +72,7 @@ const SEO = ({
       <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:title" content={ogTitle} />
       <meta name="twitter:description" content={ogDescription} />
-      <meta name="twitter:image" content={finalImage.startsWith('http') ? finalImage : `${BASE_URL}${finalImage}`} />
+      <meta name="twitter:image" content={absoluteImage} />
 
       {schemas.map((schema, i) => (
         <script key={i} type="application/ld+json">{JSON.stringify(schema)}</script>

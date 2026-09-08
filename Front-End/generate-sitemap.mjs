@@ -5,10 +5,10 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const BASE_URL = 'https://www.gisaah.com';
-// Use SITEMAP_API_URL if provided, otherwise fallback to the production API.
+const BASE_URL = process.env.PUBLIC_SITE_URL || 'https://online-store-ghsaan.vercel.app';
+// Use SITEMAP_API_URL if provided, otherwise fallback to the Ghsaan production API.
 // This prevents Vercel builds from failing to connect to localhost.
-const API_URL = process.env.SITEMAP_API_URL || 'https://gisaah-store.vercel.app/api';
+const API_URL = process.env.SITEMAP_API_URL || 'https://online-store-ghsaan-66wk.vercel.app/api';
 
 const PUBLIC_DIR = path.join(__dirname, 'public');
 

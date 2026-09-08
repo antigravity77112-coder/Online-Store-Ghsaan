@@ -57,7 +57,7 @@ function deriveGroupValuesFromVariants(variants = [], variantAttributes = []) {
   return map;
 }
 
-const AddProductForm = ({ onSuccess, onCancel, editProduct }) => {
+const AddProductForm = ({ onSuccess, onCancel, editProduct, onDirtyChange }) => {
   const [categories, setCategories] = useState([]);
   const [brands, setBrands] = useState([]);
   const [scents, setScents] = useState([]);
@@ -67,6 +67,13 @@ const AddProductForm = ({ onSuccess, onCancel, editProduct }) => {
   const fileInputRef = useRef(null);
   const [dragActive, setDragActive] = useState(false);
   const [uploadingIndex, setUploadingIndex] = useState(null);
+  const dirtyNotifiedRef = useRef(false);
+
+  const markDirty = () => {
+    if (dirtyNotifiedRef.current) return;
+    dirtyNotifiedRef.current = true;
+    onDirtyChange?.(true);
+  };
 
   // Duplicate opens the form with cloned fields but no id — must create, not update.
   const isEdit = Boolean(editProduct?.id);
@@ -139,6 +146,26 @@ const AddProductForm = ({ onSuccess, onCancel, editProduct }) => {
   const [creatingSpecAttr, setCreatingSpecAttr] = useState(false);
   const [newSpecAttrName, setNewSpecAttrName] = useState('');
   const [newSpecAttrOptions, setNewSpecAttrOptions] = useState('');
+
+  const formRootRef = useRef(null);
+  useEffect(() => {
+    dirtyNotifiedRef.current = false;
+    onDirtyChange?.(false);
+  }, [editProduct?.id]); // eslint-disable-line react-hooks/exhaustive-deps -- reset dirty when edit target changes
+
+  useEffect(() => {
+    const root = formRootRef.current;
+    if (!root) return undefined;
+    const onInteract = () => markDirty();
+    root.addEventListener('input', onInteract, true);
+    root.addEventListener('change', onInteract, true);
+    root.addEventListener('click', onInteract, true);
+    return () => {
+      root.removeEventListener('input', onInteract, true);
+      root.removeEventListener('change', onInteract, true);
+      root.removeEventListener('click', onInteract, true);
+    };
+  }, []);
 
   // Fetch category attributes when category changes
   useEffect(() => {
@@ -562,7 +589,7 @@ const AddProductForm = ({ onSuccess, onCancel, editProduct }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} noValidate className="p-5 sm:p-6 space-y-4">
+    <form ref={formRootRef} onSubmit={handleSubmit} noValidate className="p-5 sm:p-6 space-y-4">
 
       {error && (
         <div className="flex items-center gap-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 text-sm px-4 py-3 rounded-xl">

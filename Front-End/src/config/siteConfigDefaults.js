@@ -1,5 +1,7 @@
 /** Client-side fallbacks — must match backend siteConfigDefaults */
 
+import { isLegacyStorefrontHost } from './storefrontOrigin';
+
 export const DEFAULT_SITE_CONFIG = {
   brand: {
     siteName: 'Smart Shopper | المتسوق الذكي',
@@ -113,6 +115,19 @@ function sanitizeSeo(seo = {}) {
     description: looksLegacy(base.description) ? DEFAULT_SITE_CONFIG.seo.description : base.description,
     ogTitle: looksLegacy(base.ogTitle) ? DEFAULT_SITE_CONFIG.seo.ogTitle : base.ogTitle,
     ogDescription: looksLegacy(base.ogDescription) ? DEFAULT_SITE_CONFIG.seo.ogDescription : base.ogDescription,
+    ogImageUrl: isLegacyStorefrontHost(base.ogImageUrl)
+      ? DEFAULT_SITE_CONFIG.seo.ogImageUrl
+      : (base.ogImageUrl || DEFAULT_SITE_CONFIG.seo.ogImageUrl),
+  };
+}
+
+function sanitizeMedia(media = {}) {
+  const base = { ...DEFAULT_SITE_CONFIG.media, ...media };
+  return {
+    ...base,
+    ogImageUrl: isLegacyStorefrontHost(base.ogImageUrl)
+      ? DEFAULT_SITE_CONFIG.media.ogImageUrl
+      : (base.ogImageUrl || DEFAULT_SITE_CONFIG.media.ogImageUrl),
   };
 }
 
@@ -120,7 +135,7 @@ export function mergeSiteConfig(apiConfig) {
   if (!apiConfig) return DEFAULT_SITE_CONFIG;
   return {
     brand: sanitizeBrand(apiConfig.brand),
-    media: { ...DEFAULT_SITE_CONFIG.media, ...apiConfig.media },
+    media: sanitizeMedia(apiConfig.media),
     theme: { ...DEFAULT_SITE_CONFIG.theme, ...apiConfig.theme },
     contact: { ...DEFAULT_SITE_CONFIG.contact, ...apiConfig.contact },
     social: { ...DEFAULT_SITE_CONFIG.social, ...apiConfig.social },

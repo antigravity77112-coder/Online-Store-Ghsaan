@@ -121,7 +121,13 @@ function mergeHomepage(stored) {
 }
 
 function pickUrl(value, fallback) {
-  if (value && typeof value === 'string' && value.trim()) return value.trim();
+  if (value && typeof value === 'string' && value.trim()) {
+    const trimmed = value.trim();
+    if (/6eeb\.com|gisaah\.com|gisaah-store\.vercel\.app/i.test(trimmed)) {
+      return fallback;
+    }
+    return trimmed;
+  }
   return fallback;
 }
 
@@ -214,16 +220,21 @@ function toPublicConfig(merged, { client = 'web' } = {}) {
   };
 }
 
-function toAbsoluteAssetUrl(url, baseUrl = 'https://www.gisaah.com') {
+function toAbsoluteAssetUrl(url, baseUrl = process.env.PUBLIC_SITE_URL || process.env.PUBLIC_URL || 'https://online-store-ghsaan.vercel.app') {
   if (!url || typeof url !== 'string') return null;
   const trimmed = url.trim();
   if (!trimmed) return null;
+  if (/6eeb\.com|gisaah\.com|gisaah-store\.vercel\.app/i.test(trimmed)) {
+    const path = trimmed.replace(/^https?:\/\/[^/]+/i, '') || '/og-share.png';
+    const base = String(baseUrl).replace(/\/$/, '');
+    return `${base}${path.startsWith('/') ? path : `/${path}`}`;
+  }
   if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) return trimmed;
   const base = String(baseUrl).replace(/\/$/, '');
   return `${base}${trimmed.startsWith('/') ? trimmed : `/${trimmed}`}`;
 }
 
-function buildWebManifest(publicConfig, baseUrl = 'https://www.gisaah.com') {
+function buildWebManifest(publicConfig, baseUrl = process.env.PUBLIC_SITE_URL || process.env.PUBLIC_URL || 'https://online-store-ghsaan.vercel.app') {
   const brand = publicConfig?.brand || DEFAULT_BRAND;
   const media = publicConfig?.media || DEFAULT_MEDIA;
   const theme = publicConfig?.theme || DEFAULT_THEME;

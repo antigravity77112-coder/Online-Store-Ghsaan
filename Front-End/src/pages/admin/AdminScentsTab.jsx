@@ -11,9 +11,10 @@ import {
 import {
   Plus, Edit, Trash2, AlertCircle, Loader2,
   Image as ImageIcon, CheckCircle, Package, Sparkles, Eye, EyeOff,
-  GripVertical,
+  GripVertical, X,
 } from 'lucide-react';
 import * as api from '../../services/api';
+import { confirmDiscardDraft } from '../../utils/adminDraftConfirm';
 
 /** Scent icon specs — matches mobile home tile (56px) @2x retina */
 export const SCENT_IMAGE_SPEC = {
@@ -120,6 +121,8 @@ function ScentRow({ scent, index, onEdit, onToggle, onDelete }) {
   );
 }
 
+const EMPTY_SCENT_FORM = { name: '', slug: '', description: '', imageUrl: '', isActive: true, sortOrder: 0 };
+
 const AdminScentsTab = ({ onSuccessMsg }) => {
   const { data: scents, mutate, error: fetchError } = useSWR('adminScents', () => api.getScents({ includeInactive: true }));
   const [searchQuery, setSearchQuery] = useState('');
@@ -129,11 +132,12 @@ const AdminScentsTab = ({ onSuccessMsg }) => {
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [formError, setFormError] = useState('');
+  const [formDirty, setFormDirty] = useState(false);
+  const [draftActive, setDraftActive] = useState(false);
   const fileInputRef = useRef(null);
+  const baselineRef = useRef(JSON.stringify(EMPTY_SCENT_FORM));
 
-  const [form, setForm] = useState({
-    name: '', slug: '', description: '', imageUrl: '', isActive: true, sortOrder: 0,
-  });
+  const [form, setForm] = useState(EMPTY_SCENT_FORM);
 
   const isLoading = !scents && !fetchError;
 
@@ -159,34 +163,68 @@ const AdminScentsTab = ({ onSuccessMsg }) => {
     return [...list].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0) || a.name.localeCompare(b.name, 'ar'));
   }, [scents, searchQuery, statusFilter]);
 
+  const applyForm = (next) => {
+    setForm(next);
+    setFormDirty(JSON.stringify(next) !== baselineRef.current);
+    setDraftActive(true);
+  };
+
+  const softDismissModal = () => {
+    setIsModalOpen(false);
+  };
+
+  const hardClearModal = ({ skipConfirm = false } = {}) => {
+    if (!skipConfirm && !confirmDiscardDraft(formDirty)) return;
+    setIsModalOpen(false);
+    setEditingScent(null);
+    setForm(EMPTY_SCENT_FORM);
+    baselineRef.current = JSON.stringify(EMPTY_SCENT_FORM);
+    setFormDirty(false);
+    setDraftActive(false);
+    setFormError('');
+  };
+
   const handleOpenModal = (scent = null) => {
     setFormError('');
     if (scent) {
+      if (draftActive && editingScent?.id === scent.id) {
+        setIsModalOpen(true);
+        return;
+      }
+      if (draftActive && formDirty && !confirmDiscardDraft(true)) return;
       setEditingScent(scent);
-      setForm({
+      const next = {
         name: scent.name,
         slug: scent.slug || '',
         description: scent.description || '',
         imageUrl: scent.imageUrl || '',
         isActive: scent.isActive !== false,
         sortOrder: scent.sortOrder ?? 0,
-      });
+      };
+      setForm(next);
+      baselineRef.current = JSON.stringify(next);
+      setFormDirty(false);
+      setDraftActive(true);
     } else {
+      if (draftActive && !editingScent) {
+        setIsModalOpen(true);
+        return;
+      }
+      if (draftActive && formDirty && !confirmDiscardDraft(true)) return;
       setEditingScent(null);
       const nextOrder = scents?.length ? Math.max(...scents.map((s) => s.sortOrder ?? 0)) + 1 : 0;
-      setForm({ name: '', slug: '', description: '', imageUrl: '', isActive: true, sortOrder: nextOrder });
+      const next = { ...EMPTY_SCENT_FORM, sortOrder: nextOrder };
+      setForm(next);
+      baselineRef.current = JSON.stringify(next);
+      setFormDirty(false);
+      setDraftActive(true);
     }
     setIsModalOpen(true);
   };
 
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setEditingScent(null);
-  };
-
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setForm((prev) => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
+    applyForm({ ...form, [name]: type === 'checkbox' ? checked : value });
     setFormError('');
   };
 
@@ -201,7 +239,7 @@ const AdminScentsTab = ({ onSuccessMsg }) => {
     setFormError('');
     try {
       const url = await api.uploadScentImage(file);
-      setForm((prev) => ({ ...prev, imageUrl: url }));
+      applyForm({ ...form, imageUrl: url });
     } catch (err) {
       setFormError(err.message || 'فشل رفع الصورة');
     } finally {
@@ -228,7 +266,7 @@ const AdminScentsTab = ({ onSuccessMsg }) => {
         onSuccessMsg('تمت إضافة الرائحة بنجاح');
       }
       mutate();
-      handleCloseModal();
+      hardClearModal({ skipConfirm: true });
     } catch (err) {
       setFormError(err.message || 'حدث خطأ أثناء الحفظ');
     } finally {
@@ -368,12 +406,15 @@ const AdminScentsTab = ({ onSuccessMsg }) => {
       <AnimatePresence>
         {isModalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={handleCloseModal} className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" />
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={softDismissModal} className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" />
             <motion.div initial={{ scale: 0.95, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.95, opacity: 0, y: 20 }} className="relative bg-white dark:bg-slate-800 w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-700 z-10 flex flex-col max-h-[90vh]">
-              <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 shrink-0">
+              <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 shrink-0 flex items-center justify-between gap-3">
                 <h3 className="text-lg font-bold text-slate-800 dark:text-white">
                   {editingScent ? 'تعديل الرائحة' : 'إضافة رائحة جديدة'}
                 </h3>
+                <button type="button" onClick={softDismissModal} className="p-1 hover:bg-slate-200/80 dark:hover:bg-slate-700 rounded-lg" aria-label="إخفاء النافذة">
+                  <X className="w-5 h-5 text-slate-400" />
+                </button>
               </div>
               <div className="p-6 overflow-y-auto">
                 {formError && (
@@ -443,7 +484,7 @@ const AdminScentsTab = ({ onSuccessMsg }) => {
                   {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <CheckCircle className="w-5 h-5" />}
                   <span>{editingScent ? 'حفظ' : 'إضافة'}</span>
                 </button>
-                <button type="button" onClick={handleCloseModal} className="px-6 py-3 bg-slate-200 dark:bg-slate-700 font-bold rounded-xl">إلغاء</button>
+                <button type="button" onClick={() => hardClearModal()} className="px-6 py-3 bg-slate-200 dark:bg-slate-700 font-bold rounded-xl">إلغاء</button>
               </div>
             </motion.div>
           </div>

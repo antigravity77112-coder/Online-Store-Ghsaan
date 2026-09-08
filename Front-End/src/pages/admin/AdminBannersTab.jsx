@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Megaphone, Plus, Edit3, Trash2, Copy, Archive, Eye, EyeOff,
@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import useSWR from 'swr';
 import * as api from '../../services/api';
+import { confirmDiscardDraft } from '../../utils/adminDraftConfirm';
 import BannerPreview from './banners/BannerPreview';
 import HeroPeekProductPicker from './banners/HeroPeekProductPicker';
 import { AdminToolbar, AdminPrimaryButton, AdminGhostButton, adminSelectClass } from './AdminUI';
@@ -136,7 +137,7 @@ const inputCls = 'w-full px-4 py-2.5 bg-white dark:bg-slate-800 border border-sl
 const selectCls = inputCls + ' cursor-pointer appearance-none';
 
 // ─── Editor Panel ─────────────────────────────────────────────────────────────
-function EditorPanel({ banner, allBanners = [], onClose, onSaved, showSuccess, setError }) {
+function EditorPanel({ banner, allBanners = [], visible, onSoftClose, onHardClose, onSaved, onDirtyChange, showSuccess, setError }) {
   const isEdit = !!banner?.id;
   const [form, setForm] = useState(isEdit ? {
     ...banner,
@@ -146,8 +147,47 @@ function EditorPanel({ banner, allBanners = [], onClose, onSaved, showSuccess, s
   } : { ...EMPTY_FORM });
   const [saving, setSaving]       = useState(false);
   const [uploadingField, setUploadingField] = useState(null);
+  const dirtyNotifiedRef = useRef(false);
+  const panelRootRef = useRef(null);
 
-  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+  const markDirty = () => {
+    if (dirtyNotifiedRef.current) return;
+    dirtyNotifiedRef.current = true;
+    onDirtyChange?.(true);
+  };
+
+  useEffect(() => {
+    dirtyNotifiedRef.current = false;
+    onDirtyChange?.(false);
+  }, [banner?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    const root = panelRootRef.current;
+    if (!root) return undefined;
+    const onInteract = () => markDirty();
+    root.addEventListener('input', onInteract, true);
+    root.addEventListener('change', onInteract, true);
+    root.addEventListener('click', onInteract, true);
+    return () => {
+      root.removeEventListener('input', onInteract, true);
+      root.removeEventListener('change', onInteract, true);
+      root.removeEventListener('click', onInteract, true);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!visible) return undefined;
+    const onKey = (e) => {
+      if (e.key === 'Escape') onSoftClose?.();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [visible, onSoftClose]);
+
+  const set = (k, v) => {
+    markDirty();
+    setForm(f => ({ ...f, [k]: v }));
+  };
 
   const handleImageUpload = async (e, field) => {
     const file = e.target.files?.[0]; if (!file) return;
@@ -183,17 +223,19 @@ function EditorPanel({ banner, allBanners = [], onClose, onSaved, showSuccess, s
   };
 
   return (
-    <motion.div className="fixed inset-0 z-50 flex" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-      <div className="flex-1 bg-black/50 backdrop-blur-sm" onClick={onClose} />
-      <motion.div
+    <div
+      ref={panelRootRef}
+      className={`fixed inset-0 z-50 flex ${visible ? '' : 'invisible pointer-events-none'}`}
+      aria-hidden={!visible}
+    >
+      <div className="flex-1 bg-black/50 backdrop-blur-sm" onClick={onSoftClose} />
+      <div
         className="w-full max-w-2xl bg-white dark:bg-slate-900 h-full overflow-y-auto shadow-2xl flex flex-col"
-        initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }}
-        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
       >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-800 sticky top-0 bg-white dark:bg-slate-900 z-10">
           <h3 className="text-lg font-bold text-slate-900 dark:text-white">{isEdit ? 'تعديل البانر' : 'بانر جديد'}</h3>
-          <button onClick={onClose} className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"><X className="w-5 h-5 text-slate-400" /></button>
+          <button type="button" onClick={onSoftClose} className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" aria-label="إخفاء النافذة"><X className="w-5 h-5 text-slate-400" /></button>
         </div>
 
         <div className="flex-1 p-6 space-y-5">
@@ -332,22 +374,57 @@ function EditorPanel({ banner, allBanners = [], onClose, onSaved, showSuccess, s
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
             {isEdit ? 'حفظ التغييرات' : 'إنشاء البانر'}
           </button>
-          <button onClick={onClose} className="px-5 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">إلغاء</button>
+          <button type="button" onClick={onHardClose} className="px-5 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">إلغاء</button>
         </div>
-      </motion.div>
-    </motion.div>
+      </div>
+    </div>
   );
 }
 
 // ─── Main Tab ─────────────────────────────────────────────────────────────────
 function AdminBannersTab({ showSuccess, setError }) {
   const [view, setView]         = useState('list'); // 'list' | 'analytics'
-  const [editorBanner, setEditorBanner] = useState(null); // null=closed, {}=new, banner=edit
+  const [editorBanner, setEditorBanner] = useState(null); // null | {} new | banner edit
+  const [bannerEditorMounted, setBannerEditorMounted] = useState(false);
+  const [bannerModalOpen, setBannerModalOpen] = useState(false);
+  const [bannerFormKey, setBannerFormKey] = useState(0);
+  const [bannerDirty, setBannerDirty] = useState(false);
   const [filterPlacement, setFilterPlacement] = useState('');
   const [filterStatus, setFilterStatus]       = useState('');
   const [actionLoading, setActionLoading]     = useState(null);
 
   const { data: banners = [], mutate } = useSWR('adminBanners', api.getAdminBanners, { revalidateOnFocus: false });
+
+  const softDismissBannerEditor = () => setBannerModalOpen(false);
+
+  const hardClearBannerEditor = ({ skipConfirm = false } = {}) => {
+    if (!skipConfirm && !confirmDiscardDraft(bannerDirty)) return;
+    setBannerModalOpen(false);
+    setBannerEditorMounted(false);
+    setEditorBanner(null);
+    setBannerDirty(false);
+    setBannerFormKey((k) => k + 1);
+  };
+
+  const openBannerEditor = (banner = {}) => {
+    const isNew = !banner?.id;
+    if (bannerEditorMounted) {
+      if (isNew && !editorBanner?.id) {
+        setBannerModalOpen(true);
+        return;
+      }
+      if (!isNew && editorBanner?.id === banner.id) {
+        setBannerModalOpen(true);
+        return;
+      }
+      if (bannerDirty && !confirmDiscardDraft(true)) return;
+    }
+    setEditorBanner(isNew ? {} : banner);
+    setBannerDirty(false);
+    setBannerFormKey((k) => k + 1);
+    setBannerEditorMounted(true);
+    setBannerModalOpen(true);
+  };
 
   const filtered = useMemo(() => banners.filter(b =>
     (!filterPlacement || b.placement === filterPlacement) &&
@@ -393,7 +470,7 @@ function AdminBannersTab({ showSuccess, setError }) {
             <AdminGhostButton onClick={() => setView(v => v === 'analytics' ? 'list' : 'analytics')}>
               <BarChart2 className="w-4 h-4" /> التحليلات
             </AdminGhostButton>
-            <AdminPrimaryButton onClick={() => setEditorBanner({})}>
+            <AdminPrimaryButton onClick={() => openBannerEditor({})}>
               <Plus className="w-4 h-4" /> بانر جديد
             </AdminPrimaryButton>
           </>
@@ -434,7 +511,7 @@ function AdminBannersTab({ showSuccess, setError }) {
               <Megaphone className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-4" />
               <p className="text-slate-500 dark:text-slate-400 font-semibold">لا توجد بانرات بعد</p>
               <p className="text-slate-400 dark:text-slate-500 text-sm mt-1">ابدأ بإنشاء بانر جديد لتعزيز مبيعاتك</p>
-              <button onClick={() => setEditorBanner({})} className="mt-4 px-5 py-2 bg-gold-600 text-white rounded-xl text-sm font-bold hover:bg-gold-500 transition-all">
+              <button onClick={() => openBannerEditor({})} className="mt-4 px-5 py-2 bg-gold-600 text-white rounded-xl text-sm font-bold hover:bg-gold-500 transition-all">
                 إنشاء أول بانر
               </button>
             </div>
@@ -485,7 +562,7 @@ function AdminBannersTab({ showSuccess, setError }) {
                           <button onClick={() => handleReorder(b.id, 'down')} disabled={isLoading || idx === filtered.length - 1} className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-30 transition-colors" title="خفض الأولوية"><ChevronDown className="w-4 h-4 text-slate-500" /></button>
                         </div>
                         <button onClick={() => doAction(b.id, () => api.updateAdminBanner(b.id, { status: b.status === 'active' ? 'draft' : 'active' }), b.status === 'active' ? 'تم إيقاف البانر' : 'تم تفعيل البانر')} disabled={isLoading} className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" title={b.status === 'active' ? 'إيقاف' : 'تفعيل'}>{b.status === 'active' ? <EyeOff className="w-4 h-4 text-slate-500" /> : <Eye className="w-4 h-4 text-slate-500" />}</button>
-                        <button onClick={() => setEditorBanner(b)} className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-gold-600" title="تعديل"><Edit3 className="w-4 h-4" /></button>
+                        <button onClick={() => openBannerEditor(b)} className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-gold-600" title="تعديل"><Edit3 className="w-4 h-4" /></button>
                         <button onClick={() => doAction(b.id, () => api.duplicateAdminBanner(b.id), 'تم نسخ البانر')} disabled={isLoading} className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-blue-500" title="نسخ"><Copy className="w-4 h-4" /></button>
                         <button onClick={() => doAction(b.id, () => api.archiveAdminBanner(b.id), 'تم أرشفة البانر')} disabled={isLoading} className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-amber-500" title="أرشفة"><Archive className="w-4 h-4" /></button>
                         <button onClick={() => handleDelete(b.id)} disabled={isLoading} className="p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors text-red-500" title="حذف نهائي">
@@ -501,20 +578,21 @@ function AdminBannersTab({ showSuccess, setError }) {
         </>
       )}
 
-      {/* Editor Panel */}
-      <AnimatePresence>
-        {editorBanner !== null && (
-          <EditorPanel
-            key={editorBanner?.id || 'new'}
-            banner={editorBanner?.id ? editorBanner : null}
-            allBanners={banners}
-            onClose={() => setEditorBanner(null)}
-            onSaved={() => { setEditorBanner(null); mutate(); }}
-            showSuccess={showSuccess}
-            setError={setError}
-          />
-        )}
-      </AnimatePresence>
+      {/* Editor Panel — stays mounted while soft-dismissed */}
+      {bannerEditorMounted && (
+        <EditorPanel
+          key={bannerFormKey}
+          banner={editorBanner?.id ? editorBanner : null}
+          allBanners={banners}
+          visible={bannerModalOpen}
+          onSoftClose={softDismissBannerEditor}
+          onHardClose={() => hardClearBannerEditor()}
+          onSaved={() => { hardClearBannerEditor({ skipConfirm: true }); mutate(); }}
+          onDirtyChange={setBannerDirty}
+          showSuccess={showSuccess}
+          setError={setError}
+        />
+      )}
     </div>
   );
 }

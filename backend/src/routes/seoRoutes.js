@@ -16,7 +16,7 @@ router.get('/sitemap.xml', asyncHandler(seoController.getSitemap));
 // Sitemap index (references sub-sitemaps)
 router.get('/sitemap-index.xml', asyncHandler(seoController.getSitemapIndex));
 
-// Individual sitemaps (proxied at www.gisaah.com/sitemap-*.xml)
+// Individual sitemaps (proxied at online-store-ghsaan.vercel.app/sitemap-*.xml)
 router.get('/sitemap-products.xml', asyncHandler(seoController.getSitemapProducts));
 router.get('/sitemap-categories.xml', asyncHandler(seoController.getSitemapCategories));
 router.get('/sitemap-brands.xml', asyncHandler(seoController.getSitemapBrands));

@@ -31,7 +31,7 @@ Disallow: /cart
 Disallow: /auth
 
 # Sitemaps — public proxied URL only (not under /api/)
-Sitemap: https://www.gisaah.com/sitemap.xml
+Sitemap: https://online-store-ghsaan.vercel.app/sitemap.xml
 
 # Host directive (Yandex)
-Host: https://www.gisaah.com
+Host: https://online-store-ghsaan.vercel.app

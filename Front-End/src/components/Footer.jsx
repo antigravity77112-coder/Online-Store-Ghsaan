@@ -20,8 +20,8 @@ import {
   Truck,
 } from "lucide-react";
 import { useSiteConfig } from "../context/SiteConfigContext";
-import { useTheme } from "../context/ThemeContext";
-import { DEFAULT_SITE_CONFIG, resolveSiteLogo, resolveMediaUrl } from "../config/siteConfigDefaults";
+import { DEFAULT_SITE_CONFIG } from "../config/siteConfigDefaults";
+import BrandTrio from "./BrandTrio";
 
 const SHOP_LINKS = [
   { to: "/", label: "الرئيسية" },
@@ -143,13 +143,11 @@ function SocialLinks({ social, className = "" }) {
 
 const Footer = () => {
   const { config } = useSiteConfig();
-  const { isDark } = useTheme();
   const phone = (config.contact?.phone || "").trim();
   const phoneDigits = phone.replace(/[^\d]/g, "");
   const email = (config.contact?.email || "").trim();
   const shippingOffer = (config.content?.shippingOfferText || "").trim();
   const tagline = (config.content?.footerText || config.seo?.description || DEFAULT_SITE_CONFIG.content.footerText).trim();
-  const logo = resolveMediaUrl(resolveSiteLogo(config.media, { dark: isDark })) || '/Logo_light_192.png';
   const siteName = config.brand?.siteShortName || DEFAULT_SITE_CONFIG.brand.siteShortName;
   const siteNameAr = config.brand?.siteNameAr || (config.brand?.siteName || '').split('|').pop()?.trim() || DEFAULT_SITE_CONFIG.brand.siteNameAr;
   const copyright = (config.brand?.copyrightText || `© ${new Date().getFullYear()} ${siteName} ${siteNameAr}. جميع الحقوق محفوظة.`).replace('{year}', String(new Date().getFullYear()));
@@ -167,29 +165,15 @@ const Footer = () => {
         </div>
       )}
 
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 pt-8 pb-20 md:pb-8 md:pt-10">
-        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6 mb-8">
-          <div className="max-w-sm">
-            <Link to="/" className="inline-flex items-center gap-2.5 mb-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/50 rounded-lg">
-              <img
-                src={logo}
-                alt={`شعار ${siteName}`}
-                width="36"
-                height="36"
-                className="w-9 h-9 rounded-lg bg-white object-cover object-center scale-[1.12] border border-gold-200/80 dark:border-gold-800/60 shadow-sm"
-                loading="lazy"
-              />
-              <span className="font-extrabold text-white text-base tracking-tight">
-                {siteName} <span className="text-gold-400 font-bold">{siteNameAr}</span>
-              </span>
-            </Link>
-            <p className="text-xs leading-relaxed text-slate-400 line-clamp-3">
-              {tagline}
-            </p>
-            <SocialLinks social={config.social} className="mt-4 md:hidden" />
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 pt-10 pb-20 md:pb-10 md:pt-14">
+        <div className="mb-10 flex flex-col items-center text-center md:mb-12">
+          <div className="mb-6 flex w-full justify-center pt-2 sm:mb-8 sm:pt-4">
+            <BrandTrio size="header" wordClassName="text-white" />
           </div>
-
-          <SocialLinks social={config.social} className="hidden md:flex" />
+          <p className="mx-auto max-w-md text-xs leading-relaxed text-slate-400 line-clamp-3">
+            {tagline}
+          </p>
+          <SocialLinks social={config.social} className="mt-5 justify-center" />
         </div>
 
         <div className="hidden md:grid md:grid-cols-3 gap-8 lg:gap-12 mb-8">

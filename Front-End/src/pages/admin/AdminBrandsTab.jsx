@@ -10,9 +10,12 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Plus, Edit, Trash2, Search, AlertCircle, Loader2, 
-  Image as ImageIcon, CheckCircle, Package, Crown 
+  Image as ImageIcon, CheckCircle, Package, Crown, X
 } from 'lucide-react';
 import * as api from '../../services/api';
+import { confirmDiscardDraft } from '../../utils/adminDraftConfirm';
+
+const EMPTY_BRAND_FORM = { name: '', slug: '', description: '', logoUrl: '' };
 
 const AdminBrandsTab = ({ onSuccessMsg }) => {
   const { data: brands, mutate, error: fetchError } = useSWR('adminBrands', api.getBrands);
@@ -24,14 +27,12 @@ const AdminBrandsTab = ({ onSuccessMsg }) => {
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [formError, setFormError] = useState('');
+  const [formDirty, setFormDirty] = useState(false);
+  const [draftActive, setDraftActive] = useState(false);
   const fileInputRef = useRef(null);
+  const baselineRef = useRef(JSON.stringify(EMPTY_BRAND_FORM));
 
-  const [form, setForm] = useState({
-    name: '',
-    slug: '',
-    description: '',
-    logoUrl: ''
-  });
+  const [form, setForm] = useState(EMPTY_BRAND_FORM);
 
   const isLoading = !brands && !fetchError;
   const filteredBrands = brands?.filter(b => 
@@ -39,30 +40,63 @@ const AdminBrandsTab = ({ onSuccessMsg }) => {
     (b.slug && b.slug.toLowerCase().includes(searchQuery.toLowerCase()))
   ) || [];
 
+  const applyForm = (next) => {
+    setForm(next);
+    setFormDirty(JSON.stringify(next) !== baselineRef.current);
+    setDraftActive(true);
+  };
+
+  const softDismissModal = () => {
+    setIsModalOpen(false);
+  };
+
+  const hardClearModal = ({ skipConfirm = false } = {}) => {
+    if (!skipConfirm && !confirmDiscardDraft(formDirty)) return;
+    setIsModalOpen(false);
+    setEditingBrand(null);
+    setForm(EMPTY_BRAND_FORM);
+    baselineRef.current = JSON.stringify(EMPTY_BRAND_FORM);
+    setFormDirty(false);
+    setDraftActive(false);
+    setFormError('');
+  };
+
   const handleOpenModal = (brand = null) => {
     setFormError('');
     if (brand) {
+      if (draftActive && editingBrand?.id === brand.id) {
+        setIsModalOpen(true);
+        return;
+      }
+      if (draftActive && formDirty && !confirmDiscardDraft(true)) return;
       setEditingBrand(brand);
-      setForm({
+      const next = {
         name: brand.name,
         slug: brand.slug || '',
         description: brand.description || '',
         logoUrl: brand.logoUrl || ''
-      });
+      };
+      setForm(next);
+      baselineRef.current = JSON.stringify(next);
+      setFormDirty(false);
+      setDraftActive(true);
     } else {
+      if (draftActive && !editingBrand) {
+        setIsModalOpen(true);
+        return;
+      }
+      if (draftActive && formDirty && !confirmDiscardDraft(true)) return;
       setEditingBrand(null);
-      setForm({ name: '', slug: '', description: '', logoUrl: '' });
+      setForm(EMPTY_BRAND_FORM);
+      baselineRef.current = JSON.stringify(EMPTY_BRAND_FORM);
+      setFormDirty(false);
+      setDraftActive(true);
     }
     setIsModalOpen(true);
   };
 
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setEditingBrand(null);
-  };
-
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    applyForm({ ...form, [e.target.name]: e.target.value });
     setFormError('');
   };
 
@@ -79,7 +113,7 @@ const AdminBrandsTab = ({ onSuccessMsg }) => {
     setFormError('');
     try {
       const url = await api.uploadBrandLogo(file);
-      setForm({ ...form, logoUrl: url });
+      applyForm({ ...form, logoUrl: url });
     } catch (err) {
       setFormError(err.message || 'فشل رفع الشعار');
     } finally {
@@ -107,7 +141,7 @@ const AdminBrandsTab = ({ onSuccessMsg }) => {
         onSuccessMsg('تمت إضافة العلامة التجارية بنجاح');
       }
       mutate();
-      handleCloseModal();
+      hardClearModal({ skipConfirm: true });
     } catch (err) {
       setFormError(err.message || 'حدث خطأ أثناء الحفظ');
     } finally {
@@ -217,13 +251,16 @@ const AdminBrandsTab = ({ onSuccessMsg }) => {
       <AnimatePresence>
         {isModalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={handleCloseModal} className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" />
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={softDismissModal} className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" />
             <motion.div initial={{ scale: 0.95, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.95, opacity: 0, y: 20 }} className="relative bg-white dark:bg-slate-800 w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-700 z-10 flex flex-col max-h-[90vh]">
               
-              <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 shrink-0">
+              <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 shrink-0 flex items-center justify-between gap-3">
                 <h3 className="text-lg font-bold text-slate-800 dark:text-white">
                   {editingBrand ? 'تعديل العلامة التجارية' : 'إضافة علامة تجارية جديدة'}
                 </h3>
+                <button type="button" onClick={softDismissModal} className="p-1 hover:bg-slate-200/80 dark:hover:bg-slate-700 rounded-lg" aria-label="إخفاء النافذة">
+                  <X className="w-5 h-5 text-slate-400" />
+                </button>
               </div>
 
               <div className="p-6 overflow-y-auto custom-scrollbar">
@@ -280,7 +317,7 @@ const AdminBrandsTab = ({ onSuccessMsg }) => {
                   {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <CheckCircle className="w-5 h-5" />}
                   <span>{editingBrand ? 'حفظ التعديلات' : 'إضافة العلامة'}</span>
                 </button>
-                <button type="button" onClick={handleCloseModal} className="px-6 py-3 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-xl hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors">
+                <button type="button" onClick={() => hardClearModal()} className="px-6 py-3 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-xl hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors">
                   إلغاء
                 </button>
               </div>
