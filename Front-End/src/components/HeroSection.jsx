@@ -115,7 +115,7 @@ const HeroSection = React.memo(() => {
   if (isLoading) {
     return (
       <section
-        className="relative w-full overflow-hidden min-h-[240px] sm:min-h-[300px] lg:min-h-[360px] bg-stone-200/50 dark:bg-stone-800 animate-pulse"
+        className="relative min-h-[180px] w-full overflow-hidden bg-stone-200/50 animate-pulse dark:bg-stone-800 sm:min-h-[300px] lg:min-h-[360px]"
         aria-hidden="true"
       />
     );
@@ -140,7 +140,7 @@ const HeroSection = React.memo(() => {
 
   return (
     <section
-      className="relative z-0 w-full overflow-hidden min-h-[240px] sm:min-h-[300px] lg:min-h-[360px] touch-pan-y select-none"
+      className="relative z-0 min-h-[180px] w-full touch-pan-y select-none overflow-hidden sm:min-h-[300px] lg:min-h-[360px]"
       style={{ backgroundColor: bgColor }}
       aria-roledescription="carousel"
       aria-label="بانرات العروض الرئيسية"
@@ -161,7 +161,7 @@ const HeroSection = React.memo(() => {
               srcSet={bgImageSources.srcSet}
               sizes={bgImageSources.sizes}
               alt=""
-              className="w-full h-full min-h-[240px] sm:min-h-[300px] lg:min-h-[360px] object-cover object-[center_10%] md:object-center"
+              className="h-full min-h-[180px] w-full object-cover object-[center_10%] sm:min-h-[300px] lg:min-h-[360px] md:object-center"
               fetchPriority={currentIndex === 0 ? 'high' : 'auto'}
               loading={currentIndex === 0 ? 'eager' : 'lazy'}
               draggable={false}
@@ -184,7 +184,7 @@ const HeroSection = React.memo(() => {
               </p>
             )}
             {headline && (
-              <h1 className="text-lg sm:text-2xl md:text-3xl font-black text-white uppercase leading-[1.1] drop-shadow-lg line-clamp-3">
+              <h1 className="line-clamp-2 text-lg font-black uppercase leading-[1.1] text-white drop-shadow-lg sm:text-2xl md:text-3xl">
                 {headline}
               </h1>
             )}
@@ -207,7 +207,7 @@ const HeroSection = React.memo(() => {
 
         {peek.length > 0 && (
           <div
-            className="absolute bottom-5 sm:bottom-7 left-0 flex flex-row flex-nowrap items-end gap-1.5 sm:gap-2 pointer-events-auto"
+            className="pointer-events-auto absolute bottom-7 left-0 hidden flex-row flex-nowrap items-end gap-2 sm:flex"
             dir="ltr"
           >
             {peek.map((p) => (

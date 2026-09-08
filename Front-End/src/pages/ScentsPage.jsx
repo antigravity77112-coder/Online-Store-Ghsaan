@@ -28,7 +28,7 @@ const ScentsPage = () => {
     <Layout>
       <SEO title="عائلات الروائح" description="اختر مجموعتك المفضلة واكتشف المنتجات المناسبة في المتسوق الذكي" />
 
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-5 pb-24 md:pb-10">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-5 pb-6 md:pb-10">
         <header className="mb-4 sm:mb-5">
           <div className="flex items-center gap-2 mb-1">
             <Sparkles className="w-5 h-5 text-gold-500" />

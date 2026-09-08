@@ -160,7 +160,7 @@ const CategoryPage = () => {
     <Layout>
       <SEO title={seoTitle} description={seoDescription} canonicalPath={canonicalPath} />
 
-      <main className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 pt-3 pb-24 md:pb-10 lg:pb-12">
+      <main className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 pt-3 pb-6 md:pb-10 lg:pb-12">
         <Breadcrumbs
           compact
           items={[

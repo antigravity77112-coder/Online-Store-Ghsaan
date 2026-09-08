@@ -17,6 +17,21 @@
     --color-warning: #f59e0b;
     --color-error: #EA0001;
 
+    /* Stable mobile chrome dimensions — shared by Layout, tabs, bottom nav, and PDP CTAs */
+    --mobile-header-height: 3.5rem;
+    --mobile-shop-tabs-height: 2.5rem;
+    --mobile-shop-chrome-height: calc(
+      var(--mobile-header-height) + var(--mobile-shop-tabs-height)
+    );
+    --mobile-bottom-nav-content-height: 3.75rem;
+    --mobile-bottom-nav-offset: calc(
+      var(--mobile-bottom-nav-content-height) + max(0.25rem, env(safe-area-inset-bottom))
+    );
+    --mobile-product-action-height: 3.75rem;
+    --mobile-product-toast-offset: calc(
+      var(--mobile-bottom-nav-offset) + var(--mobile-product-action-height)
+    );
+
     /* Runtime gold palette — derived from primary/secondary for Tailwind gold-* classes */
     --gold-500: var(--color-primary);
     --gold-600: var(--color-primary);

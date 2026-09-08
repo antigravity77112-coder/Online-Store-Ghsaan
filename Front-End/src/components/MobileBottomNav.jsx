@@ -5,9 +5,6 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 
-/** Content height of the bar (excluding safe-area inset). Keep sticky CTAs flush on top. */
-export const MOBILE_BOTTOM_NAV_CONTENT_HEIGHT = '4.5rem';
-
 const MOBILE_TABS = (t) => ([
   { to: '/', icon: Home, label: t('nav.shop'), id: 'nav-home' },
   { to: '/categories', icon: LayoutGrid, label: t('nav.categories'), id: 'nav-categories' },
@@ -49,14 +46,11 @@ const MobileBottomNav = React.memo(() => {
 
   return (
     <nav
-      className="md:hidden fixed bottom-0 inset-x-0 z-50 bg-white/95 dark:bg-stone-950/95 backdrop-blur-md border-t border-stone-200/80 dark:border-stone-800"
-      style={{ paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom))' }}
+      className="fixed inset-x-0 bottom-0 z-50 border-t border-stone-200 bg-white dark:border-stone-800 dark:bg-stone-950 md:hidden"
+      style={{ paddingBottom: 'max(0.25rem, env(safe-area-inset-bottom))' }}
       aria-label={t('nav.mainNavigation')}
     >
-      <div
-        className="grid grid-cols-5 max-w-lg mx-auto px-1.5"
-        style={{ height: MOBILE_BOTTOM_NAV_CONTENT_HEIGHT }}
-      >
+      <div className="mx-auto grid h-[var(--mobile-bottom-nav-content-height)] max-w-lg grid-cols-5 px-1">
         {tabs.map(({ to, icon: Icon, label, id, badge, authRequired, featured }) => {
           const count = getBadge(badge);
           const isActive = isTabActive(to);
@@ -66,7 +60,7 @@ const MobileBottomNav = React.memo(() => {
             <Link
               key={id}
               to={destination}
-              className={`relative flex flex-col items-center justify-center gap-1.5 min-w-0 h-full px-1 pt-1.5 pb-1 transition-colors duration-200 ${
+              className={`relative flex h-full min-w-[44px] flex-col items-center justify-center gap-1 px-0.5 py-1 transition-colors duration-200 ${
                 isActive
                   ? 'text-gold-600 dark:text-gold-400'
                   : 'text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-300'
@@ -81,9 +75,9 @@ const MobileBottomNav = React.memo(() => {
                 />
               )}
 
-              <div className="relative flex items-center justify-center h-7 shrink-0">
+              <div className="relative flex h-6 shrink-0 items-center justify-center">
                 <Icon
-                  className={`w-[22px] h-[22px] transition-transform ${
+                  className={`h-[21px] w-[21px] transition-transform ${
                     featured && isActive ? 'fill-current scale-110' : isActive ? 'scale-105' : ''
                   }`}
                   strokeWidth={featured ? 2.25 : 2}

@@ -920,7 +920,7 @@ const ProductDetailsPage = () => {
 
       <div
         className="lg:hidden fixed inset-x-0 z-40 bg-white dark:bg-stone-950 border-t border-stone-200 dark:border-stone-800 px-3 py-2.5"
-        style={{ bottom: "calc(4.5rem + env(safe-area-inset-bottom))" }}
+        style={{ bottom: 'var(--mobile-bottom-nav-offset)' }}
       >
         <div className="flex items-center gap-2.5 max-w-6xl mx-auto">
           <button
@@ -987,7 +987,7 @@ const ProductDetailsPage = () => {
         <div
           role="status"
           aria-live="polite"
-          className="fixed bottom-[calc(8.25rem+env(safe-area-inset-bottom))] lg:bottom-8 left-1/2 -translate-x-1/2 z-50 max-w-[min(90vw,20rem)] px-4 py-2.5 rounded-sm bg-stone-900/95 text-white text-sm font-medium text-center shadow-lg motion-reduce:transition-none transition-opacity"
+          className="fixed bottom-[var(--mobile-product-toast-offset)] left-1/2 z-50 max-w-[min(90vw,20rem)] -translate-x-1/2 rounded-sm bg-stone-900/95 px-4 py-2.5 text-center text-sm font-medium text-white shadow-lg transition-opacity motion-reduce:transition-none lg:bottom-8"
         >
           {feedbackMessage}
         </div>

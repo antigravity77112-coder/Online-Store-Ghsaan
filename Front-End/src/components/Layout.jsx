@@ -52,9 +52,10 @@ const Layout = React.memo(({ children, homeMarketplace = false, hideMobileHeader
   const isProductsPage = pathname === '/products';
   const showShopChrome = isShopChromeRoute(pathname) && !hideMobileHeader;
   const isHomePage = pathname === '/' || pathname === '';
+  const showMobileBottomNav = !pathname.startsWith('/admin') && !pathname.startsWith('/checkout');
   // Shop chrome hides footer on mobile elsewhere; home always shows it.
   const showFooterOnMobile = isHomePage || !showShopChrome;
-  const mobileSearchTopClass = showShopChrome ? 'top-24 sm:top-[6.5rem]' : 'top-14 sm:top-16';
+  const mobileSearchTopClass = 'top-[var(--mobile-current-chrome-height)]';
   const searchFromUrl = isProductsPage ? (searchParams.get('search') || '') : '';
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -144,35 +145,39 @@ const Layout = React.memo(({ children, homeMarketplace = false, hideMobileHeader
 
   return (
     <div
-      className={`min-h-screen ${themePage} flex flex-col font-sans transition-colors duration-300`}
+      className={`min-h-screen min-w-0 overflow-x-clip ${themePage} flex flex-col font-sans transition-colors duration-300`}
       dir={dir}
+      style={{
+        '--mobile-current-chrome-height': hideMobileHeader
+          ? '0px'
+          : showShopChrome
+            ? 'var(--mobile-shop-chrome-height)'
+            : 'var(--mobile-header-height)',
+        '--mobile-current-bottom-offset': showMobileBottomNav
+          ? 'var(--mobile-bottom-nav-offset)'
+          : '0px',
+      }}
     >
       {/* شريط التنقل / Navigation Bar */}
-      <div className={`sticky top-0 z-50 ${hideMobileHeader ? 'max-md:hidden' : ''}`}>
+      <div className={`sticky top-0 z-50 isolate ${hideMobileHeader ? 'max-md:hidden' : ''}`}>
       <header
-        className={`transition-all duration-300 ${
+        className={`border-b md:transition-[background-color,box-shadow,backdrop-filter] md:duration-300 ${
           showShopChrome
-            ? 'max-md:bg-[#565656] max-md:border-b max-md:border-white/15 max-md:shadow-md max-md:shadow-black/10'
-            : scrolled
-              ? 'bg-site-surface/80 dark:bg-site-surface-dark/80 backdrop-blur-xl shadow-md border-b border-site-border/60 dark:border-site-border-dark/60'
-              : 'bg-site-surface/70 dark:bg-site-surface-dark/70 backdrop-blur-lg border-b border-site-border dark:border-site-border-dark shadow-sm'
+            ? 'max-md:bg-[#565656] max-md:border-white/15 md:border-site-border md:dark:border-site-border-dark'
+            : 'max-md:bg-site-surface max-md:dark:bg-site-surface-dark max-md:border-site-border max-md:dark:border-site-border-dark md:border-site-border/60 md:dark:border-site-border-dark/60'
         } ${
-          showShopChrome
-            ? 'md:bg-site-surface/70 md:dark:bg-site-surface-dark/70 md:backdrop-blur-lg md:border-b md:border-site-border md:dark:border-site-border-dark md:shadow-sm'
-            : ''
-        } ${
-          showShopChrome && scrolled
+          scrolled
             ? 'md:bg-site-surface/80 md:dark:bg-site-surface-dark/80 md:backdrop-blur-xl md:shadow-md'
-            : ''
+            : 'md:bg-site-surface/70 md:dark:bg-site-surface-dark/70 md:backdrop-blur-lg md:shadow-sm'
         }`}
       >
         <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
-          {/* Side columns keep a min width so Search / Fav never clip behind the brand */}
-          <div className="grid grid-cols-[minmax(5.25rem,1fr)_auto_minmax(5.25rem,1fr)] items-center gap-x-1 sm:gap-x-3 min-h-[3.25rem] sm:min-h-16 py-1">
+          {/* Side columns stay flexible so the longer brand mark can use the center */}
+          <div className="grid h-[var(--mobile-header-height)] grid-cols-[minmax(0,1fr)_minmax(0,auto)_minmax(0,1fr)] items-center gap-x-0.5 overflow-x-clip sm:gap-x-3 md:h-auto md:min-h-16 md:py-1">
             {/* START / RIGHT SIDE (Menu + Search) */}
             <div className="flex items-center justify-start gap-0 sm:gap-1 min-w-0">
               <button
-                className={`md:hidden p-2 min-w-[40px] min-h-[40px] flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 rounded-xl transition-colors ${
+                className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 md:hidden ${
                   showShopChrome
                     ? 'text-stone-200 hover:text-white hover:bg-white/10'
                     : 'text-gray-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white focus-visible:bg-gray-100 dark:focus-visible:bg-slate-800'
@@ -191,7 +196,7 @@ const Layout = React.memo(({ children, homeMarketplace = false, hideMobileHeader
                     setMobileSearchOpen((open) => !open);
                     setIsMobileMenuOpen(false);
                   }}
-                  className={`md:hidden p-2 min-w-[40px] min-h-[40px] flex items-center justify-center rounded-xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 ${
+                  className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 md:hidden ${
                     mobileSearchOpen
                       ? showShopChrome
                         ? 'text-gold-400 bg-white/15'
@@ -208,8 +213,10 @@ const Layout = React.memo(({ children, homeMarketplace = false, hideMobileHeader
               )}
             </div>
 
-            {/* CENTER / BRAND — own grid cell, never overlapped */}
-            <BrandTrio size="header" wordClassName={brandWordClass} />
+            {/* CENTER / BRAND — can shrink; own grid cell */}
+            <div className="min-w-0 flex justify-center overflow-hidden">
+              <BrandTrio size="header" wordClassName={brandWordClass} />
+            </div>
 
             {/* END / LEFT SIDE (compact actions — icon-first so brand never gets blocked) */}
             <div className="flex items-center justify-end gap-0 sm:gap-1 min-w-0">
@@ -233,9 +240,9 @@ const Layout = React.memo(({ children, homeMarketplace = false, hideMobileHeader
               <button
                 type="button"
                 onClick={toggleTheme}
-                className={`flex items-center justify-center min-w-[40px] min-h-[40px] p-2 rounded-xl transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 flex-shrink-0 ${
+                className={`hidden md:flex items-center justify-center min-w-[40px] min-h-[40px] p-2 rounded-xl transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 flex-shrink-0 ${
                   showShopChrome
-                    ? 'max-md:text-stone-200 max-md:hover:text-white max-md:hover:bg-white/10 md:text-gray-500 md:dark:text-slate-400 md:hover:text-gold-500 md:dark:hover:text-gold-400 md:hover:bg-gold-50 md:dark:hover:bg-gold-500/10'
+                    ? 'md:text-gray-500 md:dark:text-slate-400 md:hover:text-gold-500 md:dark:hover:text-gold-400 md:hover:bg-gold-50 md:dark:hover:bg-gold-500/10'
                     : 'text-gray-500 dark:text-slate-400 hover:text-gold-500 dark:hover:text-gold-400 hover:bg-gold-50 dark:hover:bg-gold-500/10'
                 }`}
                 aria-label={
@@ -278,7 +285,7 @@ const Layout = React.memo(({ children, homeMarketplace = false, hideMobileHeader
               {/* Favorites */}
               <Link
                 to="/favorites"
-                className={`flex items-center justify-center min-w-[40px] min-h-[40px] p-2 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 rounded-xl relative flex-shrink-0 ${
+                className={`relative flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 ${
                   showShopChrome
                     ? 'max-md:text-stone-200 max-md:hover:text-white max-md:hover:bg-white/10'
                     : 'text-gray-400 dark:text-gold-700 hover:text-rose-500 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10'
@@ -368,7 +375,7 @@ const Layout = React.memo(({ children, homeMarketplace = false, hideMobileHeader
 
           {/* قائمة الجوال / Mobile Menu */}
           {isMobileMenuOpen && (
-            <div className={`md:hidden py-4 border-t space-y-3 max-h-[calc(100vh-4rem)] overflow-y-auto pb-24 ${
+            <div className={`md:hidden py-4 border-t space-y-3 max-h-[calc(100vh-4rem)] overflow-y-auto pb-[var(--mobile-current-bottom-offset)] ${
               showShopChrome
                 ? 'border-gold-500/20 bg-white dark:bg-stone-900'
                 : 'border-gray-100 dark:border-slate-800'
@@ -578,7 +585,7 @@ const Layout = React.memo(({ children, homeMarketplace = false, hideMobileHeader
       )}
 
       {/* المحتوى الرئيسي / Main Content */}
-      <main className={`w-full pb-24 md:pb-0 ${homeMarketplace ? '' : 'flex-grow'}`}>{children}</main>
+      <main className={`w-full min-w-0 pb-[var(--mobile-current-bottom-offset)] md:pb-0 ${homeMarketplace ? '' : 'flex-grow'}`}>{children}</main>
 
       <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full ${showFooterOnMobile ? '' : 'hidden md:block'} ${homeMarketplace ? 'mt-2' : ''}`}>
         <BannerRenderer placement="footer" />

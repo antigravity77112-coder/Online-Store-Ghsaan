@@ -47,7 +47,7 @@ const CategoriesPage = () => {
           </div>
         </div>
 
-        <div className="px-2 py-3 sm:px-4 pb-24 md:pb-10">
+        <div className="px-2 py-3 sm:px-4 pb-6 md:pb-10">
           {!isLoading && categories.length > 0 && (
             <p className="text-[10px] text-stone-400 dark:text-stone-500 mb-2.5 px-0.5">
               {filteredCategories.length} فئة

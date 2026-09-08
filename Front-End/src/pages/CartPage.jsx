@@ -488,7 +488,7 @@ const CartPage = () => {
 
       <div
         className="lg:hidden fixed inset-x-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200 dark:border-slate-700 px-3 py-2.5"
-        style={{ bottom: 'calc(4.5rem + env(safe-area-inset-bottom))' }}
+        style={{ bottom: 'var(--mobile-bottom-nav-offset)' }}
       >
         <div className="flex items-center gap-2 max-w-4xl mx-auto">
           <div className="flex-1 min-w-0">

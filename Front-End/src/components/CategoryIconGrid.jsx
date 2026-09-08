@@ -21,7 +21,7 @@ export default function CategoryIconGrid({
   return (
     <section
       id="categories-section"
-      className="bg-white dark:bg-stone-950 px-2 py-3 sm:px-3 border-b border-stone-100 dark:border-stone-800/80"
+      className="border-b border-stone-100 bg-white py-3 dark:border-stone-800/80 dark:bg-stone-950"
       aria-label="تصفح الفئات"
     >
       {showHeader && (

@@ -9,7 +9,6 @@ import { useTranslation } from 'react-i18next';
 const TABS = (t) => [
   { id: 'home', label: t('nav.all'), href: '/' },
   { id: 'offers', label: t('nav.offers'), href: '/products?promoted=true' },
-  { id: 'trending', label: t('nav.trending'), href: '/products?trending=true' },
   { id: 'new', label: t('nav.newArrivals'), href: '/products?sort=newest' },
   { id: 'products', label: t('nav.products'), href: '/products' },
 ];
@@ -23,33 +22,36 @@ export default function HomeCategoryTabs() {
   const isActive = (tab) => {
     if (tab.id === 'home') return pathname === '/' && !search;
     if (tab.id === 'offers') return pathname === '/products' && search.includes('promoted=true');
-    if (tab.id === 'trending') return pathname === '/products' && search.includes('trending=true');
     if (tab.id === 'new') return pathname === '/products' && search.includes('sort=newest');
-    if (tab.id === 'products') return pathname === '/products' && !search;
+    if (tab.id === 'products') {
+      return pathname === '/products'
+        && !search.includes('promoted=true')
+        && !search.includes('sort=newest');
+    }
     return pathname === tab.href || current === tab.href;
   };
 
   return (
     <nav
-      className="md:hidden bg-[#565656] border-b border-white/15"
+      className="h-[var(--mobile-shop-tabs-height)] border-b border-white/15 bg-[#565656] md:hidden"
       aria-label={t('nav.browseStore', 'تصفح المتجر')}
     >
-      <div className="flex overflow-x-auto scrollbar-hide snap-x snap-mandatory px-1">
+      <div className="grid h-full grid-cols-4 px-1">
         {tabs.map((tab) => {
           const active = isActive(tab);
           return (
             <Link
               key={tab.id}
               to={tab.href}
-              className={`relative flex-shrink-0 snap-start px-3.5 pt-2.5 pb-3.5 text-xs font-bold whitespace-nowrap min-h-[44px] flex items-center leading-normal transition-colors ${
+              className={`relative flex min-w-0 items-center justify-center px-1 text-center text-[11px] font-bold leading-tight transition-colors ${
                 active
                   ? 'text-white'
                   : 'text-white/70 hover:text-white'
               }`}
             >
-              {tab.label}
+              <span className="truncate">{tab.label}</span>
               {active && (
-                <span className="absolute inset-x-3 bottom-1.5 h-0.5 rounded-full bg-[#EA0001]" aria-hidden="true" />
+                <span className="absolute inset-x-3 bottom-0 h-0.5 rounded-t-full bg-[#EA0001]" aria-hidden="true" />
               )}
             </Link>
           );

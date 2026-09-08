@@ -117,18 +117,21 @@ const HomePage = () => {
 
       <div className="bg-white dark:bg-stone-950">
         <HeroSection />
-        <HomeServiceBar
-          shippingSubtitle={shippingOfferText.trim() || 'على الطلبات المؤهلة'}
-        />
 
-        {homeSections.categories?.visible !== false && (
-          <CategoryIconGrid
-            categories={categories}
-            isLoading={categoriesLoading}
+        <div className="mx-auto max-w-7xl space-y-3 px-3 pt-3 sm:px-4 lg:px-8">
+          <HomeServiceBar
+            shippingSubtitle={shippingOfferText.trim() || 'على الطلبات المؤهلة'}
           />
-        )}
 
-        <div className="px-2 sm:px-4 lg:px-8 max-w-7xl mx-auto pt-2 pb-4 md:pb-10 space-y-2 sm:space-y-3">
+          {homeSections.categories?.visible !== false && (
+            <CategoryIconGrid
+              categories={categories}
+              isLoading={categoriesLoading}
+            />
+          )}
+        </div>
+
+        <div className="mx-auto max-w-7xl space-y-3 px-3 pb-4 pt-3 sm:px-4 lg:px-8 md:pb-10">
           <PromoBannerMosaic placement="promo_home" maxTiles={3} />
 
           {productsError && (

@@ -96,7 +96,7 @@ const ScentPage = () => {
   if (loading) {
     return (
       <Layout>
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24 md:pb-12">
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:pb-12">
           <div className="h-8 w-48 bg-slate-200 dark:bg-slate-700 rounded animate-pulse mb-6" />
           <ProductGrid isLoading loadingCount={8} variant="listing" />
         </main>
@@ -177,7 +177,7 @@ const ScentPage = () => {
         </div>
       </div>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24 md:pb-12">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:pb-12">
         <h2 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white mb-4">
           عطور {scent.name}
         </h2>
