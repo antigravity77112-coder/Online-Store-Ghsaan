@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Upload, X, Loader2, ImagePlus, AlertCircle, Cloud, CheckCircle, Sparkles, Star } from 'lucide-react';
+import { Upload, X, Loader2, ImagePlus, AlertCircle, Cloud, CheckCircle, Sparkles, Star, Search, ChevronDown } from 'lucide-react';
 import * as api from '../services/api';
 import { OptionPicker, BooleanPicker, parseAttrOptions, adminInputClass, adminSelectClass } from '../pages/admin/AdminUI';
 import { ScentPicker } from './ScentPicker';
@@ -9,6 +9,118 @@ import {
   selectionKey,
   buildOptionGroups,
 } from '../utils/variantOptions';
+
+/** Searchable single-select for product categories */
+function CategoryCombobox({ categories = [], value = '', onChange, required = false }) {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState('');
+  const containerRef = useRef(null);
+  const inputRef = useRef(null);
+
+  const selected = useMemo(
+    () => categories.find((c) => c.id === value) || null,
+    [categories, value],
+  );
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return categories;
+    return categories.filter(
+      (c) =>
+        (c.name || '').toLowerCase().includes(q) ||
+        (c.slug || '').toLowerCase().includes(q),
+    );
+  }, [categories, query]);
+
+  useEffect(() => {
+    const onOutside = (e) => {
+      if (containerRef.current && !containerRef.current.contains(e.target)) {
+        setOpen(false);
+        setQuery('');
+      }
+    };
+    document.addEventListener('mousedown', onOutside);
+    return () => document.removeEventListener('mousedown', onOutside);
+  }, []);
+
+  useEffect(() => {
+    if (open) {
+      const t = setTimeout(() => inputRef.current?.focus(), 0);
+      return () => clearTimeout(t);
+    }
+    return undefined;
+  }, [open]);
+
+  const pick = (id) => {
+    onChange?.(id);
+    setOpen(false);
+    setQuery('');
+  };
+
+  return (
+    <div ref={containerRef} className="relative">
+      <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5">
+        التصنيف {required ? <span className="text-red-500">*</span> : null}
+      </label>
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="w-full flex items-center justify-between gap-2 px-4 py-3 border border-slate-200 dark:border-slate-600 rounded-xl text-sm bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-gold-500/40 focus:border-gold-400 text-right"
+        aria-haspopup="listbox"
+        aria-expanded={open}
+      >
+        <span className={selected ? 'font-semibold' : 'text-slate-400'}>
+          {selected?.name || 'اختر التصنيف'}
+        </span>
+        <ChevronDown className={`w-4 h-4 text-slate-400 flex-shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+
+      {open && (
+        <div className="absolute z-30 mt-1.5 w-full rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 shadow-xl overflow-hidden">
+          <div className="p-2 border-b border-slate-100 dark:border-slate-700">
+            <div className="relative">
+              <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
+              <input
+                ref={inputRef}
+                type="text"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="ابحث عن تصنيف..."
+                className="w-full pr-9 pl-3 py-2 rounded-lg text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-gold-500/40"
+              />
+            </div>
+          </div>
+          <ul role="listbox" className="max-h-52 overflow-y-auto py-1">
+            {filtered.length === 0 ? (
+              <li className="px-4 py-3 text-xs text-slate-400 text-center">لا توجد نتائج</li>
+            ) : (
+              filtered.map((cat) => {
+                const active = cat.id === value;
+                return (
+                  <li key={cat.id}>
+                    <button
+                      type="button"
+                      role="option"
+                      aria-selected={active}
+                      onClick={() => pick(cat.id)}
+                      className={`w-full text-right px-4 py-2.5 text-sm transition-colors ${
+                        active
+                          ? 'bg-gold-50 dark:bg-gold-900/30 text-gold-800 dark:text-gold-200 font-bold'
+                          : 'text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/60'
+                      }`}
+                    >
+                      {cat.name}
+                    </button>
+                  </li>
+                );
+              })
+            )}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
 
 function emptyVariantRow(defaults = {}) {
   return {
@@ -292,6 +404,34 @@ const AddProductForm = ({ onSuccess, onCancel, editProduct, onDirtyChange }) => 
     }
   };
 
+  const handleDeleteVariantAttribute = async (attr) => {
+    if (!form.categoryId || !attr?.id) return;
+    if (!window.confirm(`حذف الخاصية "${attr.name}"؟\nسيتم حذفها من التصنيف ومن كل المنتجات المرتبطة.`)) return;
+    setCreatingAttr(true);
+    try {
+      await api.deleteCategoryAttribute(form.categoryId, attr.id);
+      const varAttrs = await api.getCategoryAttributes(form.categoryId, 'VARIANT,BOTH');
+      setVariantAttributes(varAttrs || []);
+      setOptionGroupValues((prev) => {
+        const next = { ...prev };
+        delete next[attr.id];
+        return next;
+      });
+      setForm((prev) => ({
+        ...prev,
+        variants: (prev.variants || []).map((v) => {
+          const attributes = { ...(v.attributes || {}) };
+          delete attributes[attr.id];
+          return { ...v, attributes };
+        }),
+      }));
+    } catch (err) {
+      setError(err.message || 'فشل حذف الخاصية');
+    } finally {
+      setCreatingAttr(false);
+    }
+  };
+
   const handleCreateProductAttribute = async () => {
     if (!form.categoryId || !newSpecAttrName.trim()) return;
     setCreatingSpecAttr(true);
@@ -314,6 +454,26 @@ const AddProductForm = ({ onSuccess, onCancel, editProduct, onDirtyChange }) => 
       setNewSpecAttrOptions('');
     } catch (err) {
       setError(err.message || 'فشل إنشاء مواصفة الوصف');
+    } finally {
+      setCreatingSpecAttr(false);
+    }
+  };
+
+  const handleDeleteProductAttribute = async (attr) => {
+    if (!form.categoryId || !attr?.id) return;
+    if (!window.confirm(`حذف المواصفة "${attr.name}"؟\nسيتم حذفها من التصنيف ومن كل المنتجات المرتبطة.`)) return;
+    setCreatingSpecAttr(true);
+    try {
+      await api.deleteCategoryAttribute(form.categoryId, attr.id);
+      const prodAttrs = await api.getCategoryAttributes(form.categoryId, 'PRODUCT,BOTH');
+      setCategoryAttributes(prodAttrs || []);
+      setForm((prev) => {
+        const attributes = { ...(prev.attributes || {}) };
+        delete attributes[attr.id];
+        return { ...prev, attributes };
+      });
+    } catch (err) {
+      setError(err.message || 'فشل حذف المواصفة');
     } finally {
       setCreatingSpecAttr(false);
     }
@@ -656,6 +816,14 @@ const AddProductForm = ({ onSuccess, onCancel, editProduct, onDirtyChange }) => 
         </div>
       </div>
 
+      {/* التصنيف — قبل المتغيرات لأن خصائص اللون/المقاس تعتمد عليه */}
+      <CategoryCombobox
+        categories={categories}
+        value={form.categoryId}
+        required
+        onChange={(categoryId) => setForm((prev) => ({ ...prev, categoryId }))}
+      />
+
       {/* ── إعدادات الظهور ── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="p-4 bg-bone dark:bg-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-700">
@@ -675,14 +843,17 @@ const AddProductForm = ({ onSuccess, onCancel, editProduct, onDirtyChange }) => 
         <div className="flex items-center justify-between p-4 bg-bone dark:bg-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-700">
           <div>
             <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300">يحتوي على متغيرات (أحجام/ألوان)</label>
-            <span className="text-xs text-slate-500 dark:text-slate-400">تفعيل خيارات متعددة للمنتج</span>
+            <span className="text-xs text-slate-500 dark:text-slate-400">
+              {form.categoryId ? 'تفعيل خيارات متعددة للمنتج' : 'اختر التصنيف أولاً'}
+            </span>
           </div>
           <button
             type="button"
             role="switch"
             aria-checked={form.hasVariants}
+            disabled={!form.categoryId}
             onClick={() => setForm(prev => ({ ...prev, hasVariants: !prev.hasVariants }))}
-            className={`relative inline-flex h-7 w-12 flex-shrink-0 items-center rounded-full transition-colors duration-300 focus:outline-none ${form.hasVariants ? 'bg-gold-500' : 'bg-slate-300 dark:bg-slate-600'}`}
+            className={`relative inline-flex h-7 w-12 flex-shrink-0 items-center rounded-full transition-colors duration-300 focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed ${form.hasVariants ? 'bg-gold-500' : 'bg-slate-300 dark:bg-slate-600'}`}
           >
             <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform duration-300 ${form.hasVariants ? 'translate-x-6' : 'translate-x-1'}`} />
           </button>
@@ -770,7 +941,19 @@ const AddProductForm = ({ onSuccess, onCancel, editProduct, onDirtyChange }) => 
                   const allValues = Array.from(new Set([...catalogOpts, ...selected]));
                   return (
                     <div key={attr.id}>
-                      <p className="text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1.5">{attr.name}</p>
+                      <div className="flex items-center justify-between gap-2 mb-1.5">
+                        <p className="text-[11px] font-bold text-slate-600 dark:text-slate-300">{attr.name}</p>
+                        <button
+                          type="button"
+                          disabled={creatingAttr}
+                          onClick={() => handleDeleteVariantAttribute(attr)}
+                          className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors disabled:opacity-50"
+                          title={`حذف خاصية ${attr.name}`}
+                        >
+                          <X className="w-3 h-3" />
+                          حذف
+                        </button>
+                      </div>
                       <div className="flex flex-wrap gap-1.5 mb-2">
                         {allValues.map((value) => {
                           const on = selected.includes(value);
@@ -1153,25 +1336,6 @@ const AddProductForm = ({ onSuccess, onCancel, editProduct, onDirtyChange }) => 
         </div>
       </div>
 
-      {/* القسم */}
-      {!isEdit && (
-        <div>
-          <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5">القسم</label>
-          <select
-            name="categoryId"
-            value={form.categoryId}
-            onChange={handleChange}
-            required
-            className="w-full px-4 py-3 border border-slate-200 dark:border-slate-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gold-500/40 focus:border-gold-400 appearance-none cursor-pointer bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
-          >
-            <option value="" disabled>اختر القسم</option>
-            {categories.map(cat => (
-              <option key={cat.id} value={cat.id}>{cat.name}</option>
-            ))}
-          </select>
-        </div>
-      )}
-
       {/* العلامة التجارية */}
       <div>
         <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5">العلامة التجارية (اختياري)</label>
@@ -1309,9 +1473,21 @@ const AddProductForm = ({ onSuccess, onCancel, editProduct, onDirtyChange }) => 
 
                 return (
                   <div key={attr.id} className={attr.type === 'MULTI_SELECT' ? 'md:col-span-2' : ''}>
-                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5">
-                      {attr.name} {attr.isRequired && <span className="text-red-500">*</span>}
-                    </label>
+                    <div className="flex items-center justify-between gap-2 mb-1.5">
+                      <label className="block text-xs font-bold text-slate-500 dark:text-slate-400">
+                        {attr.name} {attr.isRequired && <span className="text-red-500">*</span>}
+                      </label>
+                      <button
+                        type="button"
+                        disabled={creatingSpecAttr}
+                        onClick={() => handleDeleteProductAttribute(attr)}
+                        className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors disabled:opacity-50"
+                        title={`حذف مواصفة ${attr.name}`}
+                      >
+                        <X className="w-3 h-3" />
+                        حذف
+                      </button>
+                    </div>
                     {inputElement}
                   </div>
                 );
