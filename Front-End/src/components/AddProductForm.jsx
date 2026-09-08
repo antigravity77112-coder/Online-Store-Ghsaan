@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Upload, X, Loader2, ImagePlus, AlertCircle, Cloud, CheckCircle, Sparkles, Star, Search, ChevronDown } from 'lucide-react';
 import * as api from '../services/api';
-import { OptionPicker, BooleanPicker, parseAttrOptions, adminInputClass, adminSelectClass, AdminSwitch } from '../pages/admin/AdminUI';
+import { OptionPicker, BooleanPicker, parseAttrOptions, adminInputClass, adminSelectClass, AdminSwitch, AdminUploadProgress } from '../pages/admin/AdminUI';
 import { formatNativePrice } from '../utils/currency';
 import { ScentPicker } from './ScentPicker';
 import {
@@ -1616,8 +1616,9 @@ const AddProductForm = ({ onSuccess, onCancel, editProduct, onDirtyChange }) => 
             ))}
             {/* Loading placeholder */}
             {uploading && (
-              <div className="aspect-square rounded-xl border-2 border-dashed border-gold-300 bg-gold-50 dark:bg-gold-900/20 flex items-center justify-center">
-                <Loader2 className="w-6 h-6 text-gold-500 animate-spin" />
+              <div className="aspect-square rounded-xl border-2 border-dashed border-gold-300 bg-gold-50 dark:bg-gold-900/20 flex flex-col items-end justify-end overflow-hidden relative">
+                <AdminUploadProgress active className="!static w-full" />
+                <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-gold-600">رفع...</span>
               </div>
             )}
           </div>
@@ -1638,7 +1639,9 @@ const AddProductForm = ({ onSuccess, onCancel, editProduct, onDirtyChange }) => 
           >
             {uploading && form.imageUrls.length === 0 ? (
               <>
-                <Loader2 className="w-8 h-8 text-gold-500 animate-spin" />
+                <div className="w-full max-w-[12rem] mb-2">
+                  <AdminUploadProgress active className="!static rounded-full" />
+                </div>
                 <span className="text-sm font-medium text-gold-600">جاري رفع الصور...</span>
               </>
             ) : (

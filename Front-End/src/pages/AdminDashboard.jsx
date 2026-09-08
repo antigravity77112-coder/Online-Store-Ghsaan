@@ -1,5 +1,5 @@
-import React, { useState, useEffect, Suspense } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import React, { useState, useEffect, useCallback, Suspense, useMemo } from "react";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard,
@@ -44,16 +44,36 @@ import {
   Bell,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
-import useSWR, { preload, mutate } from "swr";
+import useSWR, { mutate } from "swr";
 import * as api from "../services/api";
 import { useSiteConfig } from "../context/SiteConfigContext";
 import { DEFAULT_SITE_CONFIG, resolveSiteLogo } from "../config/siteConfigDefaults";
 import { confirmDiscardDraft } from "../utils/adminDraftConfirm";
-import { AdminSwitch } from "./admin/AdminUI";
+import { AdminSwitch, AdminProgressBar, AdminUploadProgress, AdminLoading } from "./admin/AdminUI";
 import { useTheme } from "../context/ThemeContext";
 import { themeStatusError, themeStatusSuccess } from "../config/themeTokens";
 /** Eager import — avoids Vite "Failed to fetch dynamically imported module" flakes on Arabic paths. */
 import AdminUsersTab from "./admin/AdminUsersTab";
+
+const ADMIN_TAB_IDS = new Set([
+  "dashboard",
+  "orders",
+  "notifications",
+  "users",
+  "products",
+  "categories",
+  "brands",
+  "scents",
+  "banners",
+  "branches",
+  "storeInfo",
+  "rates",
+  "storeBackup",
+]);
+
+function parseAdminTab(value) {
+  return ADMIN_TAB_IDS.has(value) ? value : "dashboard";
+}
 
 /** Retry lazy imports once (Vite HMR / network flake common on non-ASCII project paths). */
 function lazyWithRetry(factory) {
@@ -87,9 +107,7 @@ const AdminScentsTab = lazyWithRetry(() => import("./admin/AdminScentsTab"));
 const AdminNotificationsTab = lazyWithRetry(() => import("./admin/AdminNotificationsTab"));
 
 const AdminTabFallback = () => (
-  <div className="flex items-center justify-center py-20">
-    <Loader2 className="w-8 h-8 animate-spin text-gold-600" />
-  </div>
+  <AdminLoading label="جاري تحميل القسم..." />
 );
 
 class ErrorBoundary extends React.Component {
@@ -139,19 +157,40 @@ class ErrorBoundary extends React.Component {
 }
 
 const AdminDashboard = () => {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, loading: authLoading } = useAuth();
   const { config } = useSiteConfig();
   const { isDark } = useTheme();
   const logo = resolveSiteLogo(config.media, { dark: isDark });
   const brandShort = config.brand?.siteShortName || DEFAULT_SITE_CONFIG.brand.siteShortName;
   const brandAr = config.brand?.siteNameAr || DEFAULT_SITE_CONFIG.brand.siteNameAr;
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const isAdmin = user?.role === "Admin";
 
-  const [activeTab, setActiveTab] = useState("dashboard");
+  const activeTab = useMemo(
+    () => parseAdminTab(searchParams.get("tab")),
+    [searchParams],
+  );
+
+  const setActiveTab = useCallback((tabId) => {
+    const next = parseAdminTab(tabId);
+    setSearchParams(
+      (prev) => {
+        const params = new URLSearchParams(prev);
+        if (next === "dashboard") params.delete("tab");
+        else params.set("tab", next);
+        return params;
+      },
+      { replace: true },
+    );
+  }, [setSearchParams]);
+
   const [highlightOrderId, setHighlightOrderId] = useState(null);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [categorySaving, setCategorySaving] = useState(false);
+  const [openingProductId, setOpeningProductId] = useState(null);
+  const [categoryUploadingField, setCategoryUploadingField] = useState(null);
 
   // SWR Conditional Fetching
   const isAuth = isAuthenticated && isAdmin;
@@ -168,21 +207,12 @@ const AdminDashboard = () => {
   } = useSWR(isAuth && activeTab === "users" ? "adminUsers" : null, api.getAdminUsers);
   const users = usersData || [];
 
-  // Dashboard Warm-Up (Predictive Prefetching)
-  useEffect(() => {
-    if (isAuth) {
-      preload("adminDashboard", api.getAdminDashboard);
-      preload(["adminOrders", "All"], () => api.getAdminOrders("All"));
-      preload("adminConfig", api.getAdminConfig);
-    }
-  }, [isAuth]);
-
-  // Orders
+  // Orders — only when viewing orders tab (dashboard uses embedded stats payload)
   const {
     data: ordersData,
     isLoading: ordersLoading,
     mutate: mutateOrders,
-  } = useSWR(isAuth && (activeTab === "orders" || activeTab === "dashboard") ? ["adminOrders", "All"] : null, () => api.getAdminOrders("All"));
+  } = useSWR(isAuth && activeTab === "orders" ? ["adminOrders", "All"] : null, () => api.getAdminOrders("All"));
   const orders = ordersData || [];
 
   // Site customization config
@@ -217,10 +247,11 @@ const AdminDashboard = () => {
   const { data: allCategories } = useSWR(isAuth && (showCategoryForm || categoryDraftActive) ? "allCategories" : null, () => api.getCategories());
 
   useEffect(() => {
+    if (authLoading) return;
     if (!isAuthenticated || !isAdmin) {
       navigate("/auth", { replace: true });
     }
-  }, [isAuthenticated, isAdmin, navigate]);
+  }, [authLoading, isAuthenticated, isAdmin, navigate]);
 
   useEffect(() => {
     if (!productModalOpen) return undefined;
@@ -329,20 +360,23 @@ const AdminDashboard = () => {
       return;
     }
 
+    if (openingProductId) return;
     if (productFormMounted && productFormDirty && !confirmDiscardDraft(true)) return;
 
+    setOpeningProductId(product.id);
     try {
       const fullProduct = await api.getProductById(product.id);
       if (!fullProduct) throw new Error('Product not found');
       setEditingProduct(fullProduct);
+      setProductFormDirty(false);
+      setProductFormKey((k) => k + 1);
+      setProductFormMounted(true);
+      setProductModalOpen(true);
     } catch (err) {
       alert('تعذر تحميل بيانات المنتج الكاملة. يرجى المحاولة مرة أخرى قبل التعديل حتى لا تُفقد صور المنتج.');
-      return;
+    } finally {
+      setOpeningProductId(null);
     }
-    setProductFormDirty(false);
-    setProductFormKey((k) => k + 1);
-    setProductFormMounted(true);
-    setProductModalOpen(true);
   };
 
   const updateCategoryForm = (updater) => {
@@ -412,6 +446,7 @@ const AdminDashboard = () => {
   };
 
   const handleSaveCategory = async () => {
+    if (categorySaving) return;
     if (!categoryForm.name.trim()) {
       setError("اسم التصنيف مطلوب");
       return;
@@ -429,6 +464,7 @@ const AdminDashboard = () => {
       metaDescription: categoryForm.metaDescription || null,
     };
 
+    setCategorySaving(true);
     try {
       if (editingCategory) {
         await api.updateCategory(editingCategory.id, payload);
@@ -444,6 +480,8 @@ const AdminDashboard = () => {
       hardClearCategoryModal({ skipConfirm: true });
     } catch (err) {
       setError("فشل حفظ التصنيف: " + (err.message || ""));
+    } finally {
+      setCategorySaving(false);
     }
   };
 
@@ -505,11 +543,23 @@ const AdminDashboard = () => {
   ];
 
   const activeTabMeta = tabGroups.flatMap((g) => g.items).find((t) => t.id === activeTab);
+  const addProductBusy = productModalOpen || Boolean(openingProductId);
+  const addCategoryBusy = showCategoryForm || categorySaving;
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#f8f6f1] dark:bg-slate-950 gap-4">
+        <AdminProgressBar fixed />
+        <p className="text-sm text-slate-500">جاري التحقق من الجلسة...</p>
+      </div>
+    );
+  }
 
   if (!isAuthenticated || !isAdmin) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#f8f6f1] dark:bg-slate-950">
-        <Loader2 className="w-8 h-8 text-gold-500 animate-spin" />
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#f8f6f1] dark:bg-slate-950 gap-4">
+        <AdminProgressBar fixed />
+        <p className="text-sm text-slate-500">جاري التوجيه...</p>
       </div>
     );
   }
@@ -650,7 +700,6 @@ const AdminDashboard = () => {
             <AdminDashboardTab
               stats={stats}
               statsLoading={statsLoading}
-              orders={orders}
               onNavigateTab={setActiveTab}
               userName={user?.fullName}
             />
@@ -690,9 +739,15 @@ const AdminDashboard = () => {
               openEditProductModal={openEditProductModal}
               hasProductDraft={productFormMounted && !productModalOpen && productFormDirty}
               onResumeProductDraft={() => setProductModalOpen(true)}
+              addDisabled={addProductBusy}
             />
           )}
-          {activeTab === "categories" && <AdminCategoriesTab openCategoryForm={openCategoryForm} />}
+          {activeTab === "categories" && (
+            <AdminCategoriesTab
+              openCategoryForm={openCategoryForm}
+              addDisabled={addCategoryBusy}
+            />
+          )}
           {activeTab === "brands" && <AdminBrandsTab onSuccessMsg={showSuccessMsg} />}
           {activeTab === "scents" && <AdminScentsTab onSuccessMsg={showSuccessMsg} />}
           {activeTab === "banners" && <AdminBannersTab showSuccess={showSuccessMsg} setError={setError} />}
@@ -818,21 +873,30 @@ const AdminDashboard = () => {
                     <div>
                       <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">أيقونة التصنيف (صغيرة)</label>
                       {categoryForm.iconUrl && (
-                        <div className="mb-2 flex items-center gap-2">
-                          <img src={categoryForm.iconUrl} alt="" className="w-10 h-10 rounded-lg object-cover border border-slate-200" />
-                          <button type="button" onClick={() => updateCategoryForm(f => ({ ...f, iconUrl: "" }))} className="text-xs text-red-500 hover:text-red-700 font-semibold">إزالة</button>
+                        <div className="mb-2 relative inline-block">
+                          <div className="flex items-center gap-2">
+                            <img src={categoryForm.iconUrl} alt="" className="w-10 h-10 rounded-lg object-cover border border-slate-200" />
+                            <button type="button" onClick={() => updateCategoryForm(f => ({ ...f, iconUrl: "" }))} className="text-xs text-red-500 hover:text-red-700 font-semibold">إزالة</button>
+                          </div>
                         </div>
                       )}
-                      <input type="file" accept="image/*" onChange={async (e) => {
-                        const file = e.target.files[0];
-                        if (!file) return;
-                        try {
-                          const url = await api.uploadCategoryIcon(file);
-                          updateCategoryForm(f => ({ ...f, iconUrl: url }));
-                        } catch (err) {
-                          setError("فشل رفع الأيقونة: " + (err.message || ""));
-                        }
-                      }} className="w-full text-xs text-slate-500 file:mr-2 file:rounded-md file:border-0 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:bg-gold-50 dark:file:bg-gold-900/40 file:text-gold-700 dark:file:text-gold-300" />
+                      <div className="relative">
+                        <input type="file" accept="image/*" disabled={!!categoryUploadingField} onChange={async (e) => {
+                          const file = e.target.files[0];
+                          if (!file) return;
+                          setCategoryUploadingField('iconUrl');
+                          try {
+                            const url = await api.uploadCategoryIcon(file);
+                            updateCategoryForm(f => ({ ...f, iconUrl: url }));
+                          } catch (err) {
+                            setError("فشل رفع الأيقونة: " + (err.message || ""));
+                          } finally {
+                            setCategoryUploadingField(null);
+                            e.target.value = '';
+                          }
+                        }} className="w-full text-xs text-slate-500 file:mr-2 file:rounded-md file:border-0 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:bg-gold-50 dark:file:bg-gold-900/40 file:text-gold-700 dark:file:text-gold-300 disabled:opacity-50" />
+                        <AdminUploadProgress active={categoryUploadingField === 'iconUrl'} />
+                      </div>
                     </div>
                     <div>
                       <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">صورة التصنيف (كبيرة)</label>
@@ -842,16 +906,23 @@ const AdminDashboard = () => {
                           <button type="button" onClick={() => updateCategoryForm(f => ({ ...f, imageUrl: "" }))} className="text-xs text-red-500 hover:text-red-700 font-semibold">إزالة</button>
                         </div>
                       )}
-                      <input type="file" accept="image/*" onChange={async (e) => {
-                        const file = e.target.files[0];
-                        if (!file) return;
-                        try {
-                          const url = await api.uploadCategoryIcon(file); // Reusing upload for now
-                          updateCategoryForm(f => ({ ...f, imageUrl: url }));
-                        } catch (err) {
-                          setError("فشل رفع الصورة: " + (err.message || ""));
-                        }
-                      }} className="w-full text-xs text-slate-500 file:mr-2 file:rounded-md file:border-0 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:bg-gold-50 dark:file:bg-gold-900/40 file:text-gold-700 dark:file:text-gold-300" />
+                      <div className="relative">
+                        <input type="file" accept="image/*" disabled={!!categoryUploadingField} onChange={async (e) => {
+                          const file = e.target.files[0];
+                          if (!file) return;
+                          setCategoryUploadingField('imageUrl');
+                          try {
+                            const url = await api.uploadCategoryIcon(file);
+                            updateCategoryForm(f => ({ ...f, imageUrl: url }));
+                          } catch (err) {
+                            setError("فشل رفع الصورة: " + (err.message || ""));
+                          } finally {
+                            setCategoryUploadingField(null);
+                            e.target.value = '';
+                          }
+                        }} className="w-full text-xs text-slate-500 file:mr-2 file:rounded-md file:border-0 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:bg-gold-50 dark:file:bg-gold-900/40 file:text-gold-700 dark:file:text-gold-300 disabled:opacity-50" />
+                        <AdminUploadProgress active={categoryUploadingField === 'imageUrl'} />
+                      </div>
                     </div>
                   </div>
 
@@ -876,10 +947,11 @@ const AdminDashboard = () => {
                   </div>
 
                   <div className="flex gap-3 pt-4 border-t border-slate-100 dark:border-slate-700">
-                    <button type="button" onClick={handleSaveCategory} className="flex-1 flex items-center justify-center gap-2 px-5 py-2.5 bg-gold-600 text-white text-sm font-bold rounded-xl hover:bg-gold-500 transition-all">
-                      <Save className="w-4 h-4" /> {editingCategory ? "تحديث" : "إضافة"}
+                    <button type="button" onClick={handleSaveCategory} disabled={categorySaving || !!categoryUploadingField} className="flex-1 flex items-center justify-center gap-2 px-5 py-2.5 bg-gold-600 text-white text-sm font-bold rounded-xl hover:bg-gold-500 transition-all disabled:opacity-50">
+                      {categorySaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                      {categorySaving ? 'جاري الحفظ...' : (editingCategory ? "تحديث" : "إضافة")}
                     </button>
-                    <button type="button" onClick={() => hardClearCategoryModal()} className="px-5 py-2.5 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 text-sm font-bold rounded-xl hover:bg-slate-200 dark:hover:bg-slate-600 transition-all">إلغاء</button>
+                    <button type="button" onClick={() => hardClearCategoryModal()} disabled={categorySaving} className="px-5 py-2.5 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 text-sm font-bold rounded-xl hover:bg-slate-200 dark:hover:bg-slate-600 transition-all disabled:opacity-50">إلغاء</button>
                   </div>
                 </div>
               </motion.div>

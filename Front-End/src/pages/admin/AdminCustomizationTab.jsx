@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import {
   AdminToolbar, AdminCard, adminInputClass, AdminPrimaryButton,
+  AdminUploadProgress,
 } from './AdminUI';
 import {
   Save, Loader2, Palette, Image, Globe, Phone, Share2, Search,
@@ -104,9 +105,10 @@ function AssetUpload({ field, label, sizeHint, url, onUploaded, uploading, setUp
     }
   };
   return (
-    <div className="flex items-center gap-3 p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/30">
-      <div className="w-14 h-14 rounded-lg overflow-hidden bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center flex-shrink-0">
+    <div className="flex items-center gap-3 p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/30 relative overflow-hidden">
+      <div className="w-14 h-14 rounded-lg overflow-hidden bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center flex-shrink-0 relative">
         {url ? <img src={url} alt="" className="w-full h-full object-contain" /> : <Image className="w-6 h-6 text-slate-300" />}
+        <AdminUploadProgress active={uploading === field} />
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
@@ -117,7 +119,7 @@ function AssetUpload({ field, label, sizeHint, url, onUploaded, uploading, setUp
         </div>
         <p className="text-[10px] text-slate-400 truncate" dir="ltr">{url || 'لم يُرفع بعد'}</p>
       </div>
-      <button type="button" onClick={() => inputRef.current?.click()} disabled={uploading === field} className="px-3 py-1.5 text-xs font-bold rounded-lg bg-gold-100 dark:bg-gold-900/30 text-gold-700 dark:text-gold-300 flex items-center gap-1">
+      <button type="button" onClick={() => inputRef.current?.click()} disabled={!!uploading} className="px-3 py-1.5 text-xs font-bold rounded-lg bg-gold-100 dark:bg-gold-900/30 text-gold-700 dark:text-gold-300 flex items-center gap-1 disabled:opacity-50">
         {uploading === field ? <Loader2 className="w-3 h-3 animate-spin" /> : <Upload className="w-3 h-3" />}
         رفع
       </button>

@@ -41,7 +41,7 @@ function useDebounce(value, delay) {
 
 const DESKTOP_GRID = 'hidden lg:grid lg:grid-cols-[40px_minmax(200px,1fr)_100px_80px_120px_100px_140px] lg:gap-3 lg:items-center';
 
-const AdminProductsTab = ({ openEditProductModal, hasProductDraft, onResumeProductDraft }) => {
+const AdminProductsTab = ({ openEditProductModal, hasProductDraft, onResumeProductDraft, addDisabled = false }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const debouncedSearch = useDebounce(searchQuery, 500);
   const [filter, setFilter] = useState('all');
@@ -216,7 +216,7 @@ const AdminProductsTab = ({ openEditProductModal, hasProductDraft, onResumeProdu
                 استكمال مسودة المنتج
               </button>
             ) : null}
-            <AdminPrimaryButton onClick={() => openEditProductModal(null)}>
+            <AdminPrimaryButton onClick={() => openEditProductModal(null)} disabled={addDisabled}>
               <Plus className="w-4 h-4" />
               إضافة منتج
             </AdminPrimaryButton>
@@ -284,7 +284,7 @@ const AdminProductsTab = ({ openEditProductModal, hasProductDraft, onResumeProdu
           title="لا توجد منتجات"
           description="لم يتم العثور على منتجات تطابق بحثك."
           action={
-            <AdminPrimaryButton onClick={() => openEditProductModal(null)}>
+            <AdminPrimaryButton onClick={() => openEditProductModal(null)} disabled={addDisabled}>
               <Plus className="w-4 h-4" /> أضف أول منتج
             </AdminPrimaryButton>
           }

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Loader2, Search } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 import {
@@ -215,11 +215,43 @@ export function AdminEmptyState({ icon: Icon, title, description, action }) {
   );
 }
 
+/** Thin gold indeterminate progress bar — fixed top or inline. */
+export function AdminProgressBar({ fixed = false, className = '' }) {
+  return (
+    <div
+      className={`overflow-hidden bg-gold-500/15 dark:bg-gold-500/10 ${
+        fixed ? 'fixed top-0 inset-x-0 z-[100] h-1' : 'h-1 w-full rounded-full'
+      } ${className}`}
+      role="progressbar"
+      aria-valuetext="جاري التحميل"
+      aria-busy="true"
+    >
+      <div className="h-full w-1/3 rounded-full bg-gradient-to-l from-gold-600 via-amber-400 to-gold-500 animate-[adminProgress_1.1s_ease-in-out_infinite]" />
+      <style>{`
+        @keyframes adminProgress {
+          0% { transform: translateX(200%); }
+          100% { transform: translateX(-400%); }
+        }
+      `}</style>
+    </div>
+  );
+}
+
+/** Overlay progress bar for image upload preview boxes. */
+export function AdminUploadProgress({ active, className = '' }) {
+  if (!active) return null;
+  return (
+    <div className={`absolute inset-x-0 bottom-0 z-10 ${className}`}>
+      <AdminProgressBar />
+    </div>
+  );
+}
+
 export function AdminLoading({ label = 'جاري التحميل...' }) {
   return (
-    <div className="flex flex-col items-center justify-center py-20 gap-3">
-      <Loader2 className="w-8 h-8 text-gold-500 animate-spin" />
-      <p className="text-sm text-slate-500">{label}</p>
+    <div className="flex flex-col items-center justify-center py-20 gap-4 w-full max-w-sm mx-auto px-4">
+      <AdminProgressBar />
+      <p className="text-sm text-slate-500 font-medium">{label}</p>
     </div>
   );
 }

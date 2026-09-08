@@ -94,7 +94,7 @@ const QuickAction = ({ action, onClick }) => (
   </button>
 );
 
-const AdminDashboardTab = ({ stats, statsLoading, orders, onNavigateTab, userName }) => {
+const AdminDashboardTab = ({ stats, statsLoading, onNavigateTab, userName }) => {
   const [chartsReady, setChartsReady] = useState(false);
 
   useEffect(() => {
@@ -103,51 +103,39 @@ const AdminDashboardTab = ({ stats, statsLoading, orders, onNavigateTab, userNam
   }, []);
 
   const chartData = useMemo(() => {
-    const last7Days = [...Array(7)].map((_, i) => {
+    if (Array.isArray(stats?.chartLast7Days) && stats.chartLast7Days.length) {
+      return stats.chartLast7Days;
+    }
+    return [...Array(7)].map((_, i) => {
       const d = new Date();
       d.setDate(d.getDate() - (6 - i));
       return {
-        date: d,
         name: d.toLocaleDateString('ar-EG', { month: 'short', day: 'numeric' }),
         revenue: 0,
         orders: 0,
       };
     });
+  }, [stats?.chartLast7Days]);
 
-    (orders || []).forEach((order) => {
-      if (order.status === 'Cancelled') return;
-      const orderDate = new Date(order.orderDate);
-      const bucket = last7Days.find((d) => d.date.toDateString() === orderDate.toDateString());
-      if (!bucket) return;
-      bucket.orders += 1;
-      bucket.revenue += Number(order.totalAmount) || 0;
-    });
-
-    return last7Days.map(({ name, revenue, orders: orderCount }) => ({
-      name,
-      revenue,
-      orders: orderCount,
-    }));
-  }, [orders]);
-
-  const recentOrders = useMemo(() => {
-    return [...(orders || [])]
-      .sort((a, b) => new Date(b.orderDate) - new Date(a.orderDate))
-      .slice(0, 5);
-  }, [orders]);
-
-  const totalRevenue = useMemo(
-    () => (orders || []).reduce((sum, o) => (o.status === 'Cancelled' ? sum : sum + (Number(o.totalAmount) || 0)), 0),
-    [orders]
+  const recentOrders = useMemo(
+    () => (Array.isArray(stats?.recentOrders) ? stats.recentOrders : []),
+    [stats?.recentOrders],
   );
+
+  const totalRevenue = Number(stats?.totalRevenue) || 0;
 
   if (statsLoading) {
     return (
-      <div className="flex flex-col items-center justify-center py-24 gap-4">
-        <div className="relative">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-gold-400 to-gold-600 animate-pulse" />
-          <Loader2 className="w-8 h-8 text-white absolute inset-0 m-auto animate-spin" />
+      <div className="flex flex-col items-center justify-center py-24 gap-4 w-full max-w-sm mx-auto px-4">
+        <div className="h-1 w-full overflow-hidden rounded-full bg-gold-500/15">
+          <div className="h-full w-1/3 rounded-full bg-gradient-to-l from-gold-600 via-amber-400 to-gold-500 animate-[adminDashProgress_1.1s_ease-in-out_infinite]" />
         </div>
+        <style>{`
+          @keyframes adminDashProgress {
+            0% { transform: translateX(200%); }
+            100% { transform: translateX(-400%); }
+          }
+        `}</style>
         <p className="text-sm font-medium text-slate-500">جاري تحميل لوحة التحكم...</p>
       </div>
     );

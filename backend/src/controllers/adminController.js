@@ -10,24 +10,85 @@ class AdminController {
    */
   async getDashboardStats(req, res) {
     try {
+      const startOfToday = new Date();
+      startOfToday.setHours(0, 0, 0, 0);
+
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setHours(0, 0, 0, 0);
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
+
       const [
         totalUsers,
         totalProducts,
         totalOrders,
-        pendingOrders
+        pendingOrders,
+        todayOrders,
+        todayNewUsers,
+        recentOrders,
+        weekOrders,
+        revenueAgg,
       ] = await Promise.all([
         prisma.user.count(),
         prisma.product.count({ where: { status: 'Active' } }),
         prisma.order.count(),
-        prisma.order.count({ where: { status: 'Pending' } })
+        prisma.order.count({ where: { status: 'Pending' } }),
+        prisma.order.count({ where: { orderDate: { gte: startOfToday } } }),
+        prisma.user.count({ where: { createdAt: { gte: startOfToday } } }),
+        prisma.order.findMany({
+          orderBy: { orderDate: 'desc' },
+          take: 5,
+          select: {
+            id: true,
+            status: true,
+            totalAmount: true,
+            orderDate: true,
+            buyer: { select: { fullName: true, phoneNumber: true } },
+          },
+        }),
+        prisma.order.findMany({
+          where: {
+            orderDate: { gte: sevenDaysAgo },
+            status: { not: 'Cancelled' },
+          },
+          select: { orderDate: true, totalAmount: true, status: true },
+        }),
+        prisma.order.aggregate({
+          where: { status: { not: 'Cancelled' } },
+          _sum: { totalAmount: true },
+        }),
       ]);
+
+      const last7Days = [...Array(7)].map((_, i) => {
+        const d = new Date(sevenDaysAgo);
+        d.setDate(sevenDaysAgo.getDate() + i);
+        return {
+          dateKey: d.toDateString(),
+          name: d.toLocaleDateString('ar-EG', { month: 'short', day: 'numeric' }),
+          revenue: 0,
+          orders: 0,
+        };
+      });
+
+      for (const order of weekOrders) {
+        const amount = Number(order.totalAmount) || 0;
+        const bucket = last7Days.find((d) => d.dateKey === new Date(order.orderDate).toDateString());
+        if (bucket) {
+          bucket.orders += 1;
+          bucket.revenue += amount;
+        }
+      }
 
       res.json({
         totalUsers,
         totalSellers: 0,
         totalProducts,
         totalOrders,
-        pendingOrders
+        pendingOrders,
+        todayOrders,
+        todayNewUsers,
+        totalRevenue: Number(revenueAgg._sum.totalAmount) || 0,
+        chartLast7Days: last7Days.map(({ name, revenue, orders }) => ({ name, revenue, orders })),
+        recentOrders,
       });
     } catch (error) {
       throw error;

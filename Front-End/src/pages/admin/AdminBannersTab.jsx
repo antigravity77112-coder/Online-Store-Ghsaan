@@ -11,7 +11,7 @@ import * as api from '../../services/api';
 import { confirmDiscardDraft } from '../../utils/adminDraftConfirm';
 import BannerPreview from './banners/BannerPreview';
 import HeroPeekProductPicker from './banners/HeroPeekProductPicker';
-import { AdminToolbar, AdminPrimaryButton, AdminGhostButton, adminSelectClass } from './AdminUI';
+import { AdminToolbar, AdminPrimaryButton, AdminGhostButton, adminSelectClass, AdminLoading, AdminUploadProgress } from './AdminUI';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const PLACEMENTS = [
@@ -198,6 +198,7 @@ function EditorPanel({ banner, allBanners = [], visible, onSoftClose, onHardClos
   };
 
   const handleSave = async () => {
+    if (saving || uploadingField) return;
     setSaving(true);
     try {
       const payload = { ...form,
@@ -277,7 +278,7 @@ function EditorPanel({ banner, allBanners = [], visible, onSoftClose, onHardClos
               {form.imageUrl && <img src={form.imageUrl} className="h-20 rounded-lg object-cover mb-2 border border-slate-200 dark:border-slate-700" alt="" />}
               <div className="relative">
                 <input type="file" accept="image/*" onChange={e => handleImageUpload(e, 'imageUrl')} disabled={uploadingField === 'imageUrl'} className={inputCls + ' file:mr-3 file:rounded-lg file:border-0 file:bg-gold-50 dark:file:bg-gold-900/40 file:text-gold-700 dark:file:text-gold-300 file:font-semibold file:text-sm cursor-pointer disabled:opacity-50'} />
-                {uploadingField === 'imageUrl' && <div className="absolute inset-y-0 left-4 flex items-center"><Loader2 className="w-5 h-5 text-gold-600 animate-spin" /></div>}
+                <AdminUploadProgress active={uploadingField === 'imageUrl'} />
               </div>
             </Field>
             <Field label={
@@ -289,7 +290,7 @@ function EditorPanel({ banner, allBanners = [], visible, onSoftClose, onHardClos
               {form.mobileImageUrl && <img src={form.mobileImageUrl} className="h-16 rounded-lg object-cover mb-2 border border-slate-200 dark:border-slate-700" alt="" />}
               <div className="relative">
                 <input type="file" accept="image/*" onChange={e => handleImageUpload(e, 'mobileImageUrl')} disabled={uploadingField === 'mobileImageUrl'} className={inputCls + ' file:mr-3 file:rounded-lg file:border-0 file:bg-gold-50 dark:file:bg-gold-900/40 file:text-gold-700 dark:file:text-gold-300 file:font-semibold file:text-sm cursor-pointer disabled:opacity-50'} />
-                {uploadingField === 'mobileImageUrl' && <div className="absolute inset-y-0 left-4 flex items-center"><Loader2 className="w-5 h-5 text-gold-600 animate-spin" /></div>}
+                <AdminUploadProgress active={uploadingField === 'mobileImageUrl'} />
               </div>
             </Field>
           </div>
@@ -393,7 +394,8 @@ function AdminBannersTab({ showSuccess, setError }) {
   const [filterStatus, setFilterStatus]       = useState('');
   const [actionLoading, setActionLoading]     = useState(null);
 
-  const { data: banners = [], mutate } = useSWR('adminBanners', api.getAdminBanners, { revalidateOnFocus: false });
+  const { data: banners, mutate, isLoading: bannersLoading } = useSWR('adminBanners', api.getAdminBanners, { revalidateOnFocus: false });
+  const bannerList = banners || [];
 
   const softDismissBannerEditor = () => setBannerModalOpen(false);
 
@@ -426,17 +428,17 @@ function AdminBannersTab({ showSuccess, setError }) {
     setBannerModalOpen(true);
   };
 
-  const filtered = useMemo(() => banners.filter(b =>
+  const filtered = useMemo(() => bannerList.filter(b =>
     (!filterPlacement || b.placement === filterPlacement) &&
     (!filterStatus    || b.status    === filterStatus)
-  ), [banners, filterPlacement, filterStatus]);
+  ), [bannerList, filterPlacement, filterStatus]);
 
   // Conflict detector: >1 active banner per placement
   const conflicts = useMemo(() => {
     const counts = {};
-    banners.filter(b => b.status === 'active').forEach(b => { counts[b.placement] = (counts[b.placement] || 0) + 1; });
+    bannerList.filter(b => b.status === 'active').forEach(b => { counts[b.placement] = (counts[b.placement] || 0) + 1; });
     return new Set(Object.entries(counts).filter(([, c]) => c > 1).map(([p]) => p));
-  }, [banners]);
+  }, [bannerList]);
 
   const doAction = useCallback(async (id, fn, msg) => {
     setActionLoading(id);
@@ -451,7 +453,7 @@ function AdminBannersTab({ showSuccess, setError }) {
   };
 
   const handleReorder = async (id, dir) => {
-    const sorted = [...banners].sort((a, b) => a.priority - b.priority);
+    const sorted = [...bannerList].sort((a, b) => a.priority - b.priority);
     const idx = sorted.findIndex(b => b.id === id);
     const swapIdx = dir === 'up' ? idx - 1 : idx + 1;
     if (swapIdx < 0 || swapIdx >= sorted.length) return;
@@ -463,25 +465,29 @@ function AdminBannersTab({ showSuccess, setError }) {
     <div className="space-y-6">
       <AdminToolbar
         title="إدارة البانرات والإعلانات"
-        subtitle={`${banners.length} بانر — ${banners.filter(b => b.status === 'active').length} نشط`}
+        subtitle={`${bannerList.length} بانر — ${bannerList.filter(b => b.status === 'active').length} نشط`}
         icon={Megaphone}
         actions={
           <>
             <AdminGhostButton onClick={() => setView(v => v === 'analytics' ? 'list' : 'analytics')}>
               <BarChart2 className="w-4 h-4" /> التحليلات
             </AdminGhostButton>
-            <AdminPrimaryButton onClick={() => openBannerEditor({})}>
+            <AdminPrimaryButton onClick={() => openBannerEditor({})} disabled={bannerModalOpen}>
               <Plus className="w-4 h-4" /> بانر جديد
             </AdminPrimaryButton>
           </>
         }
       />
 
+      {bannersLoading && !banners ? (
+        <AdminLoading label="جاري تحميل البانرات..." />
+      ) : null}
+
       {/* Analytics View */}
-      {view === 'analytics' && <BannerAnalytics banners={banners} />}
+      {!(bannersLoading && !banners) && view === 'analytics' && <BannerAnalytics banners={bannerList} />}
 
       {/* List View */}
-      {view === 'list' && (
+      {!(bannersLoading && !banners) && view === 'list' && (
         <>
           {/* Filters */}
           <div className="flex flex-wrap gap-3">
@@ -511,7 +517,7 @@ function AdminBannersTab({ showSuccess, setError }) {
               <Megaphone className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-4" />
               <p className="text-slate-500 dark:text-slate-400 font-semibold">لا توجد بانرات بعد</p>
               <p className="text-slate-400 dark:text-slate-500 text-sm mt-1">ابدأ بإنشاء بانر جديد لتعزيز مبيعاتك</p>
-              <button onClick={() => openBannerEditor({})} className="mt-4 px-5 py-2 bg-gold-600 text-white rounded-xl text-sm font-bold hover:bg-gold-500 transition-all">
+              <button onClick={() => openBannerEditor({})} disabled={bannerModalOpen} className="mt-4 px-5 py-2 bg-gold-600 text-white rounded-xl text-sm font-bold hover:bg-gold-500 transition-all disabled:opacity-50">
                 إنشاء أول بانر
               </button>
             </div>
@@ -583,7 +589,7 @@ function AdminBannersTab({ showSuccess, setError }) {
         <EditorPanel
           key={bannerFormKey}
           banner={editorBanner?.id ? editorBanner : null}
-          allBanners={banners}
+          allBanners={bannerList}
           visible={bannerModalOpen}
           onSoftClose={softDismissBannerEditor}
           onHardClose={() => hardClearBannerEditor()}

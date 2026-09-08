@@ -5,7 +5,6 @@ import {
   Plus,
   Edit3,
   Trash2,
-  Loader2,
   ChevronDown,
   ChevronRight,
   FolderOpen,
@@ -166,7 +165,7 @@ const CategoryRow = ({ node, depth = 0, openCategoryForm, openAttributesPanel, o
   );
 };
 
-const AdminCategoriesTab = ({ openCategoryForm }) => {
+const AdminCategoriesTab = ({ openCategoryForm, addDisabled = false }) => {
   const { data: categoriesRaw, isLoading, mutate } = useSWR(
     'allCategoriesAdmin',
     () => api.getCategories()
@@ -224,7 +223,7 @@ const AdminCategoriesTab = ({ openCategoryForm }) => {
                 <AdminGhostButton onClick={collapseAll}>طي الكل</AdminGhostButton>
               </>
             )}
-            <AdminPrimaryButton onClick={() => openCategoryForm(null)}>
+            <AdminPrimaryButton onClick={() => openCategoryForm(null)} disabled={addDisabled}>
               <Plus className="w-4 h-4" /> إضافة تصنيف
             </AdminPrimaryButton>
           </>
@@ -233,17 +232,17 @@ const AdminCategoriesTab = ({ openCategoryForm }) => {
 
       {/* Tree */}
       {isLoading ? (
-        <div className="flex items-center justify-center py-20">
-          <Loader2 className="w-8 h-8 text-gold-500 animate-spin" />
-        </div>
+        <AdminLoading label="جاري تحميل التصنيفات..." />
       ) : tree.length === 0 ? (
         <div className="text-center py-20 bg-white dark:bg-slate-900 rounded-2xl border border-dashed border-slate-300 dark:border-slate-700">
           <Tag className="w-16 h-16 text-slate-300 dark:text-slate-600 mx-auto mb-4" />
           <h3 className="text-xl font-bold text-slate-800 dark:text-slate-200 mb-2">لا توجد تصنيفات</h3>
           <p className="text-slate-500 dark:text-slate-400 mb-6">قم بإضافة أول تصنيف لترتيب منتجاتك</p>
           <button
+            type="button"
             onClick={() => openCategoryForm(null)}
-            className="flex items-center gap-2 mx-auto px-6 py-3 bg-gold-600 text-white font-bold rounded-xl hover:bg-gold-500 transition-colors shadow-lg shadow-gold-600/20"
+            disabled={addDisabled}
+            className="flex items-center gap-2 mx-auto px-6 py-3 bg-gold-600 text-white font-bold rounded-xl hover:bg-gold-500 transition-colors shadow-lg shadow-gold-600/20 disabled:opacity-50"
           >
             <Plus className="w-5 h-5" /> إضافة تصنيف
           </button>

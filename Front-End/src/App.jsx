@@ -63,7 +63,16 @@ const BackToTop = React.lazy(() => import("./components/BackToTop"));
  *     يستخدم CSS نقي لتجنب استيراد أي مكتبة مكونات.
  */
 const PageLoadingFallback = () => (
-  <div className="flex items-center justify-center min-h-screen bg-bone dark:bg-slate-950">
+  <div className="flex flex-col items-center justify-center min-h-screen bg-bone dark:bg-slate-950 gap-4">
+    <div className="fixed top-0 inset-x-0 z-[100] h-1 overflow-hidden bg-gold-500/15">
+      <div className="h-full w-1/3 bg-gradient-to-l from-gold-600 via-amber-400 to-gold-500 animate-[pageProgress_1.1s_ease-in-out_infinite]" />
+    </div>
+    <style>{`
+      @keyframes pageProgress {
+        0% { transform: translateX(200%); }
+        100% { transform: translateX(-400%); }
+      }
+    `}</style>
     <div className="w-10 h-10 border-2 border-gold-200 dark:border-slate-700 border-t-gold-600 dark:border-t-gold-400 rounded-full animate-spin" />
   </div>
 );

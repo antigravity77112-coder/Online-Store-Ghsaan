@@ -22,6 +22,7 @@ const BranchFormModal = ({ branch, onClose, onSaved }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (saving) return;
     if (!form.name.trim() || !form.address.trim() || !form.city.trim()) {
       setError('الاسم والعنوان والمدينة مطلوبة');
       return;
@@ -220,7 +221,7 @@ const AdminBranchesTab = () => {
         subtitle={`${branches.length} فرع`}
         icon={MapPin}
         actions={
-          <AdminPrimaryButton onClick={() => setModalBranch(null)}>
+          <AdminPrimaryButton onClick={() => setModalBranch(null)} disabled={modalBranch !== undefined}>
             <Plus className="w-4 h-4" /> إضافة فرع
           </AdminPrimaryButton>
         }
@@ -234,7 +235,7 @@ const AdminBranchesTab = () => {
           title="لا توجد فروع"
           description="أضف أول فرع لمتجرك"
           action={
-            <AdminPrimaryButton onClick={() => setModalBranch(null)}>
+            <AdminPrimaryButton onClick={() => setModalBranch(null)} disabled={modalBranch !== undefined}>
               <Plus className="w-5 h-5" /> إضافة فرع
             </AdminPrimaryButton>
           }

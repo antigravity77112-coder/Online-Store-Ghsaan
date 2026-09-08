@@ -127,7 +127,7 @@ export const ProductCard: React.FC<ProductCardProps> = React.memo(({
     `${getOptimizedImageUrl(rawImage, IMAGE_WIDTHS.GRID_CARD)} 480w`,
     `${getOptimizedImageUrl(rawImage, IMAGE_WIDTHS.GRID_CARD_RETINA)} 640w`,
   ].join(', ');
-  const imageSizes = '(max-width: 640px) 46vw, (max-width: 1024px) 30vw, 20vw';
+  const imageSizes = '(max-width: 640px) 46vw, (max-width: 1024px) 30vw, 16vw';
 
   return (
     <article className="group flex flex-col h-full bg-white dark:bg-stone-900 rounded-md border border-stone-200/90 dark:border-stone-700/80 overflow-hidden shadow-[0_1px_2px_rgba(0,0,0,0.04)]">

@@ -6,6 +6,7 @@ import {
   AdminPrimaryButton,
   AdminLoading,
   AdminCard,
+  AdminUploadProgress,
 } from './AdminUI';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -124,6 +125,7 @@ const AdminBrandsTab = ({ onSuccessMsg }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (loading || uploading) return;
     if (!form.name.trim()) {
       setFormError('اسم العلامة التجارية مطلوب');
       return;
@@ -170,7 +172,7 @@ const AdminBrandsTab = ({ onSuccessMsg }) => {
         subtitle="إدارة العلامات المعروضة في المتجر"
         icon={Crown}
         actions={
-          <AdminPrimaryButton onClick={() => handleOpenModal()}>
+          <AdminPrimaryButton onClick={() => handleOpenModal()} disabled={isModalOpen || loading}>
             <Plus className="w-5 h-5" /> إضافة علامة
           </AdminPrimaryButton>
         }
@@ -285,20 +287,19 @@ const AdminBrandsTab = ({ onSuccessMsg }) => {
 
                   <div>
                     <label className="block text-xs font-bold text-slate-500 mb-1.5">الشعار (Logo)</label>
-                    <div className="flex items-center gap-4 p-3 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-900/50">
-                      <div className="w-16 h-16 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg flex items-center justify-center overflow-hidden shrink-0">
-                        {uploading ? (
-                          <Loader2 className="w-5 h-5 text-gold-500 animate-spin" />
-                        ) : form.logoUrl ? (
+                    <div className="flex items-center gap-4 p-3 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-900/50 relative overflow-hidden">
+                      <div className="w-16 h-16 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg flex items-center justify-center overflow-hidden shrink-0 relative">
+                        {form.logoUrl ? (
                           <img src={form.logoUrl} alt="Logo preview" className="w-full h-full object-contain p-1" />
                         ) : (
                           <ImageIcon className="w-6 h-6 text-slate-300 dark:text-slate-600" />
                         )}
+                        <AdminUploadProgress active={uploading} />
                       </div>
                       <div className="flex-1">
                         <input type="file" ref={fileInputRef} accept="image/*" onChange={handleLogoUpload} className="hidden" />
-                        <button type="button" onClick={() => fileInputRef.current?.click()} disabled={uploading} className="px-4 py-2 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-300 text-xs font-bold rounded-lg hover:bg-slate-50 dark:hover:bg-slate-600 transition-colors">
-                          اختيار صورة الشعار
+                        <button type="button" onClick={() => fileInputRef.current?.click()} disabled={uploading || loading} className="px-4 py-2 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-300 text-xs font-bold rounded-lg hover:bg-slate-50 dark:hover:bg-slate-600 transition-colors disabled:opacity-50">
+                          {uploading ? 'جاري الرفع...' : 'اختيار صورة الشعار'}
                         </button>
                         <p className="text-[10px] text-slate-400 mt-1">يفضل أن يكون الشعار بخلفية شفافة (PNG).</p>
                       </div>
@@ -313,7 +314,7 @@ const AdminBrandsTab = ({ onSuccessMsg }) => {
               </div>
 
               <div className="p-6 border-t border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 shrink-0 flex gap-3">
-                <button type="submit" form="brandForm" disabled={loading} className="flex-1 py-3 bg-gold-600 text-white font-bold rounded-xl hover:bg-gold-500 transition-all flex items-center justify-center gap-2">
+                <button type="submit" form="brandForm" disabled={loading || uploading} className="flex-1 py-3 bg-gold-600 text-white font-bold rounded-xl hover:bg-gold-500 transition-all flex items-center justify-center gap-2 disabled:opacity-50">
                   {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <CheckCircle className="w-5 h-5" />}
                   <span>{editingBrand ? 'حفظ التعديلات' : 'إضافة العلامة'}</span>
                 </button>

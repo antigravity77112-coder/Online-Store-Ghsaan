@@ -7,6 +7,7 @@ import {
   AdminPrimaryButton,
   AdminFilterChips,
   AdminEmptyState,
+  AdminUploadProgress,
 } from './AdminUI';
 import {
   Plus, Edit, Trash2, AlertCircle, Loader2,
@@ -250,6 +251,7 @@ const AdminScentsTab = ({ onSuccessMsg }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (loading || uploading) return;
     if (!form.name.trim()) {
       setFormError('اسم الرائحة مطلوب');
       return;
@@ -302,7 +304,7 @@ const AdminScentsTab = ({ onSuccessMsg }) => {
         subtitle={`${stats.total} رائحة · ${stats.active} نشطة · ${stats.withProducts} مرتبطة بمنتجات`}
         icon={Sparkles}
         actions={(
-          <AdminPrimaryButton onClick={() => handleOpenModal()}>
+          <AdminPrimaryButton onClick={() => handleOpenModal()} disabled={isModalOpen || loading}>
             <Plus className="w-5 h-5" /> إضافة رائحة
           </AdminPrimaryButton>
         )}
@@ -374,7 +376,7 @@ const AdminScentsTab = ({ onSuccessMsg }) => {
           title={searchQuery || statusFilter !== 'all' ? 'لا توجد نتائج' : 'لا توجد روائح'}
           description={searchQuery || statusFilter !== 'all' ? 'جرّب تغيير البحث أو الفلتر' : 'أضف أول عائلة رائحة لتسهيل اكتشاف المنتجات'}
           action={!searchQuery && statusFilter === 'all' && (
-            <AdminPrimaryButton onClick={() => handleOpenModal()}>
+            <AdminPrimaryButton onClick={() => handleOpenModal()} disabled={isModalOpen || loading}>
               <Plus className="w-4 h-4" /> إضافة رائحة
             </AdminPrimaryButton>
           )}
@@ -452,13 +454,14 @@ const AdminScentsTab = ({ onSuccessMsg }) => {
                       </span>
                     </label>
                     <div className="flex items-start gap-4 p-3 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-900/50">
-                      <div className="w-16 h-16 bg-white dark:bg-slate-800 border rounded-xl flex items-center justify-center overflow-hidden shrink-0">
-                        {uploading ? <Loader2 className="w-5 h-5 text-gold-500 animate-spin" /> : form.imageUrl ? <img src={form.imageUrl} alt="" className="w-full h-full object-cover" /> : <ImageIcon className="w-6 h-6 text-slate-300" />}
+                      <div className="w-16 h-16 bg-white dark:bg-slate-800 border rounded-xl flex items-center justify-center overflow-hidden shrink-0 relative">
+                        {form.imageUrl ? <img src={form.imageUrl} alt="" className="w-full h-full object-cover" /> : <ImageIcon className="w-6 h-6 text-slate-300" />}
+                        <AdminUploadProgress active={uploading} />
                       </div>
                       <div className="flex-1 min-w-0 space-y-2">
                         <input type="file" ref={fileInputRef} accept="image/png,image/webp,image/jpeg,image/jpg,.png,.webp,.jpg,.jpeg" onChange={handleImageUpload} className="hidden" />
-                        <button type="button" onClick={() => fileInputRef.current?.click()} disabled={uploading} className="px-4 py-2 bg-white dark:bg-slate-700 border text-xs font-bold rounded-lg hover:border-gold-300 transition-colors">
-                          اختيار صورة
+                        <button type="button" onClick={() => fileInputRef.current?.click()} disabled={uploading || loading} className="px-4 py-2 bg-white dark:bg-slate-700 border text-xs font-bold rounded-lg hover:border-gold-300 transition-colors disabled:opacity-50">
+                          {uploading ? 'جاري الرفع...' : 'اختيار صورة'}
                         </button>
                         <div className="rounded-lg bg-white/80 dark:bg-slate-800/80 border border-slate-100 dark:border-slate-700 px-3 py-2 space-y-1">
                           <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400">مقاسات الصورة الموصى بها</p>
@@ -480,7 +483,7 @@ const AdminScentsTab = ({ onSuccessMsg }) => {
                 </form>
               </div>
               <div className="p-6 border-t border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 shrink-0 flex gap-3">
-                <button type="submit" form="scentForm" disabled={loading} className="flex-1 py-3 bg-gold-600 text-white font-bold rounded-xl hover:bg-gold-500 flex items-center justify-center gap-2">
+                <button type="submit" form="scentForm" disabled={loading || uploading} className="flex-1 py-3 bg-gold-600 text-white font-bold rounded-xl hover:bg-gold-500 flex items-center justify-center gap-2 disabled:opacity-50">
                   {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <CheckCircle className="w-5 h-5" />}
                   <span>{editingScent ? 'حفظ' : 'إضافة'}</span>
                 </button>

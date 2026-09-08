@@ -70,7 +70,7 @@ function AuthInput({ icon: Icon, className = "", ...props }) {
 }
 
 const AuthPage = () => {
-  const { login, register, isAuthenticated } = useAuth();
+  const { login, register, isAuthenticated, loading: authLoading } = useAuth();
   const { isDark } = useTheme();
   const navigate = useNavigate();
   const { config } = useSiteConfig();
@@ -125,8 +125,27 @@ const AuthPage = () => {
   }, [lockoutTimeLeft]);
 
   React.useEffect(() => {
-    if (isAuthenticated) navigate("/", { replace: true });
-  }, [isAuthenticated, navigate]);
+    if (!authLoading && isAuthenticated) navigate("/", { replace: true });
+  }, [authLoading, isAuthenticated, navigate]);
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-bone dark:bg-slate-950 gap-4">
+        <div className="w-48 max-w-[70vw]">
+          <div className="h-1 w-full overflow-hidden rounded-full bg-gold-500/15">
+            <div className="h-full w-1/3 rounded-full bg-gradient-to-l from-gold-600 via-amber-400 to-gold-500 animate-[authProgress_1.1s_ease-in-out_infinite]" />
+          </div>
+          <style>{`
+            @keyframes authProgress {
+              0% { transform: translateX(200%); }
+              100% { transform: translateX(-400%); }
+            }
+          `}</style>
+        </div>
+        <p className="text-sm text-slate-500">جاري التحقق من الجلسة...</p>
+      </div>
+    );
+  }
 
   const switchView = (toLogin) => {
     setDirection(toLogin ? -1 : 1);
