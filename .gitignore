@@ -69,6 +69,15 @@ Mobile/*.p12
 Mobile/*.mobileprovision
 
 # =========================
+# Agent / Cursor skill packs (local tooling — not app source)
+# =========================
+.agents/
+.cursor/
+react-frontend-skills-main/
+skills-lock.json
+skills-lock.json.*
+
+# =========================
 # IDE / editor / OS
 # =========================
 .vscode/
@@ -80,6 +89,8 @@ Thumbs.db
 Desktop.ini
 __MACOSX/
 **/__MACOSX/
+.git.bak/
+**/.git.bak/
 
 # =========================
 # Test / tooling caches

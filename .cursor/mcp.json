@@ -1,8 +1,0 @@
-{
-  "mcpServers": {
-    "react-frontend-skills": {
-      "command": "npx",
-      "args": ["-y", "@pymodel/react-frontend-skills-mcp"]
-    }
-  }
-}
