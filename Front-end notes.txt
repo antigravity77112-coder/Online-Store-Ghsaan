@@ -1,0 +1,454 @@
+GISAAH STORE — FRONT-END (WEB) UX AUDIT NOTES
+=================================================
+Generated from senior UX audit (Web codebase review)
+Stack: React/Vite, React Router, SWR, Tailwind, Framer Motion, SiteConfigContext
+
+================================================================================
+WHAT IS ALREADY SOLID (KEEP)
+================================================================================
+
+- Conversion-oriented homepage: category belt, carousels, config-driven sections
+- Lazy routes + SWR prefetch + skeletons on main paths
+- RTL Arabic-first layout
+- Product detail: gallery, variants, sticky mobile buy bar, SEO/JSON-LD
+- Site customization wired for branding, theme CSS vars, homepage, WhatsApp FAB
+- WhatsApp checkout fits local market behavior
+
+================================================================================
+1. APP ROUTING (App.jsx)
+================================================================================
+
+Routes
+------
+/               HomePage (eager load)
+/products       ProductsPage
+/categories     CategoriesPage
+/category/:slug CategoryPage
+/brand/:slug    BrandPage
+/product/:slug  ProductDetailsPage
+/about, /contact, /branches, /privacy-policy
+/auth           AuthPage
+/cart           CartPage
+/favorites      FavoritesPage
+/profile        ProtectedRoute
+/my-orders      ProtectedRoute (Buyer, Admin)
+/admin          ProtectedRoute (Admin)
+/product-grid-demo  ProductGridDemo (public — likely unintended in prod)
+*               Redirect to / (no 404 page)
+
+Strengths
+---------
+- Code splitting: only HomePage eager; others lazy-loaded with Suspense
+- RouteErrorBoundary + AdminDashboard chunk fallback
+- SEO-friendly product URLs (/product/:slug)
+- SWR preload for categories, site config, first product page
+- ScrollToTop, WhatsAppFAB, BackToTop outside route tree
+
+Problems
+--------
+- Catch-all redirect hides 404s — bad URLs give no guidance
+- /product-grid-demo is publicly accessible — likely unintended in production
+- Protected routes send to /auth with no returnUrl
+- Post-login always navigate("/") — not back to cart/profile/orders
+- ChatWidget commented out — only WhatsApp for support
+
+================================================================================
+2. LAYOUT & NAVIGATION (Layout.jsx, MobileBottomNav.jsx)
+================================================================================
+
+Architecture
+------------
+- RTL (dir="rtl"), sticky header, desktop nav, mobile hamburger
+- Persistent mobile search bar, Footer, MobileBottomNav, BannerRenderer
+- Brand intro: ~1.3s logo animation on first session (sessionStorage: gisaah_intro_seen)
+
+Strengths
+---------
+- Dense conversion header: search, favorites badge, cart badge, auth/profile, admin
+- Responsive search: full bar (xl+), toggle drawer (md–xl), sticky mobile search
+- Mobile bottom nav: 4 tabs — Home, Categories, Cart, Account
+- Desktop nav has aria-label and active-state styling
+- Rich mobile menu: categories, offers, orders, favorites, about, contact, branches
+- Safe-area padding on bottom nav
+
+Problems
+--------
+P1 — First-visit logo intro blocks interaction (~1.3s)
+  - Full-screen overlay z-[9998], header hidden until intro finishes
+  - No prefers-reduced-motion bypass
+  - Hurts LCP and time-to-interaction on first visit
+
+P2 — headerOverHero computed but never used — transparent header-over-hero unfinished
+
+P2 — Dark mode toggle fully hidden (className="hidden" on theme button)
+  - Users cannot switch theme from UI despite dark mode support existing
+
+P2 — Mobile menu accessibility gaps
+  - No backdrop, focus trap, Escape-to-close
+  - Hamburger missing aria-expanded
+  - Accidental-tap and keyboard/screen reader risk
+
+P1 — Duplicate search UX
+  - Layout search navigates to /products?search=…
+  - ProductsPage has its own search — not bidirectionally synced
+  - Layout search not initialized from URL when landing on /products?search=…
+
+P2 — Nested <main> landmarks
+  - Layout wraps children in <main>
+  - HomePage and ProductsPage add another <main> inside — invalid HTML
+
+P1 — Favorites not in bottom nav (header + hamburger only)
+
+P3 — Cart link in header lacks aria-label on small screens (icon-only)
+
+P1 — Three fixed layers on mobile PDP/cart
+  - MobileBottomNav (z-50, h-14)
+  - ProductDetailsPage sticky bar (z-40)
+  - WhatsAppFAB (z-40, bottom-24)
+  - Crowded lower third on small viewports
+
+================================================================================
+3. CHECKOUT & CART (CartPage.jsx) — P0 TRUST ISSUE
+================================================================================
+
+Current flow
+------------
+Cart → "إتمام الطلب" expands inline form (address + COD)
+     → WhatsApp handoff (backend createOrder is COMMENTED OUT)
+     → Success screen + cart cleared
+
+Strengths
+---------
+- Empty cart state with CTA
+- Line-item qty controls, stock cap warning, clear-cart confirm
+- Trust copy before confirm, loading state on submit
+
+Critical problems (P0)
+----------------------
+1. Success screen says "تم إنشاء الطلب بنجاح!" but NO order is created in DB
+2. CTA "متابعة طلباتي" → /my-orders will likely be EMPTY for WhatsApp-only orders
+3. UI suggests formal order creation; implementation is WhatsApp redirect only
+
+High problems (P1)
+------------------
+- Only address field — no name/phone; merchant infers customer from WhatsApp
+- "التوصيل: مجاناً" hardcoded — not from site config
+- Auth not required (commented out) — fine for WhatsApp, inconsistent with MyOrdersPage
+- Cart total assumes single currency (items[0].currency)
+- No "continue as guest" messaging aligned with auth flow
+
+================================================================================
+4. SEARCH (ProductsPage.jsx, Layout.jsx, CategoryPage.jsx)
+================================================================================
+
+Behavior by location
+--------------------
+Layout.jsx      → Submits to /products?search=query
+ProductsPage    → Local searchText + 500ms debounce; reads URL on mount only
+CategoryPage    → Local search within category
+CategoriesPage  → Filters category names client-side
+
+Critical problems (P0)
+----------------------
+- ProductsPage typing does NOT update URL — breaks share/bookmark/back button
+- Sort (sortOrder) reads URL once but changes don't write back to searchParams
+- Layout search state not initialized from URL on /products?search=…
+
+================================================================================
+5. PRODUCT LISTINGS & HOME
+================================================================================
+
+HomePage.jsx
+------------
+Strengths: Config-driven sections, CategoryBelt, carousels, skeletons, quick-add
+Problems:
+  - No global empty home state if all sections empty
+  - Synthetic ratings in mapToProduct (lines ~136–137)
+  - Nested <main> inside Layout's <main>
+
+ProductsPage.jsx / CategoryPage.jsx / BrandPage.jsx
+---------------------------------------------------
+Strengths: Search, filters, infinite scroll, error banners, empty states
+Problems:
+  - mapToProduct duplicated with fake rating/reviewCount fallbacks
+  - Sort "التقييم الأعلى" uses fake data; cards don't display ratings (P0)
+  - No add-to-cart feedback on quick-add (P1)
+
+mapToProduct duplication (P3)
+-----------------------------
+Same helper duplicated in:
+  - HomePage.jsx
+  - ProductsPage.jsx
+  - CategoryPage.jsx
+  - BrandPage.jsx
+  - RelatedProducts.jsx
+Slightly different fallbacks per file — drift risk
+
+================================================================================
+6. PRODUCT DETAIL (ProductDetailsPage.jsx)
+================================================================================
+
+Strengths
+---------
+- Gallery, variants, quantity, stock badges, discount math, breadcrumbs
+- SEO + JSON-LD, loading skeleton, 404 vs server error
+- Mobile sticky CTA; desktop/mobile add-to-cart with "تمت الإضافة" feedback
+- WhatsApp "اطلب الآن" alternate conversion path
+- RelatedProducts carousel
+
+Problems
+--------
+P1 — Triple add-to-cart on mobile (in-flow + sticky bar) — redundant but conversion-oriented
+P1 — No toast/mini-cart after add from listing cards
+P2 — Share fallback uses alert() — jarring on mobile
+P2 — Reviews section when reviewCount > 0 but reviews.length === 0 — confusing
+P2 — Variant favorites use base product.id; cart uses productId::variantId — can disagree
+P1 — Bottom chrome stacking with nav + WhatsApp FAB
+
+================================================================================
+7. PRODUCT CARDS & CAROUSELS
+================================================================================
+
+HighConversionGrid/ProductCard.tsx (primary — active path)
+----------------------------------------------------------
+Strengths: Quick-add, favorite, discount ribbons, skeleton, aria-label on actions
+Problems:
+  P2 — role="button" + onClick instead of <Link> — SEO, middle-click, a11y
+  P2 — dir="ltr" on card in RTL site
+  P2 — Space key onKeyDown doesn't preventDefault — page scrolls
+  P1 — No add-to-cart feedback from grid/carousel quick-add
+
+Legacy ProductCard.jsx (P3)
+-------------------------
+Still in repo; uses Link, motion, city/condition labels
+NOT imported by active listing flow — duplicate maintenance risk
+
+ProductCarousel.jsx
+-------------------
+Strengths: Section header, horizontal snap, skeleton, empty message
+Problems:
+  P3 — No scroll arrows on desktop — drag-only discoverability
+  P3 — Fixed card widths — titles truncate aggressively
+
+HeroSection.jsx
+---------------
+Strengths: CMS banners, mobile image variant, carousel dots, coordinates with logo intro
+Problems:
+  P3 — Silent empty state (returns null on failure/no banners)
+  P3 — CTA opens new tab — may pull users from checkout funnel
+  P3 — Auto-play with no pause or reduced-motion respect
+
+CategoryBelt.jsx
+----------------
+Strengths: Config-driven, emoji fallback, skeleton belt
+Minor: Generic marketplace emoji map (phones, laptops) — not perfume-specific
+
+================================================================================
+8. FAVORITES & AUTH
+================================================================================
+
+Favorites (FavoritesContext.jsx, FavoritesPage.jsx)
+---------------------------------------------------
+Strengths: LocalStorage, header badge, toggle on grid, solid empty state
+Problems:
+  P1 — Not in mobile bottom nav — extra taps
+  P3 — Guest-accessible, device-bound, no sync across devices
+
+Auth (AuthPage.jsx, AuthContext.jsx)
+------------------------------------
+Strengths: Standalone full-screen, login/register toggle, lockout (429), trust panel
+Problems:
+  P1 — No returnUrl after login — always goes home
+  P1 — No "continue as guest" messaging despite guest-friendly WhatsApp cart
+  P2 — Auth page has no Layout; all other storefront pages use Layout
+
+================================================================================
+9. LOADING / EMPTY / ERROR PATTERNS
+================================================================================
+
+Patterns observed
+-----------------
+Full-page CSS spinner     → App.jsx PageLoadingFallback, ProtectedRoute
+Inline skeleton pulse     → HeroSection, CategoryBelt, ProductCard, ProductDetailsPage
+Rose error banner         → HomePage, ProductsPage, CategoryPage
+Dashed-border empty cards → FavoritesPage, ProductsPage, CartPage, CategoriesPage
+RouteErrorBoundary        → Global render errors
+SWR retry (3x)            → main.jsx SWRConfig
+
+Gaps
+----
+P2 — No global toast/snackbar for add-to-cart, favorite toggle, errors
+P3 — HeroSection silent collapse on load failure
+P3 — RelatedProducts returns null when empty
+P3 — Error copy varies — raw error.message exposed to shoppers
+P3 — No prefers-reduced-motion — Framer Motion everywhere
+P3 — Popup banners (BannerRenderer placement popup) can interrupt browsing
+
+================================================================================
+10. SITE CONFIG & THEME
+================================================================================
+
+Integrated
+----------
+SiteConfigContext, theme CSS variables, branding logos, homepage sections,
+WhatsApp FAB, admin customization tab, favicon/manifest sync
+
+Partial / gaps (P3)
+-------------------
+- Theme tokens (themeTokens.js, site-* classes) only in Layout, Footer, some admin
+- Many pages still use hardcoded bg-gold-*, text-slate-* — admin colors may not reach all surfaces
+- logoDarkUrl wired in Layout/Footer/Auth but not everywhere
+
+================================================================================
+11. ACCESSIBILITY SUMMARY
+================================================================================
+
+Area              | Gap
+------------------|--------------------------------------------------
+Motion            | No prefers-reduced-motion handling
+Mobile menu       | Missing aria-expanded, focus trap, Escape, backdrop
+Icon buttons      | Cart and some nav icons lack accessible names
+Semantics         | Duplicate <main>; product cards as buttons not links
+Carousels         | Hero has good ARIA; ProductCarousel has no live region
+Forms             | Checkout textarea has label; auth uses placeholders in places
+Focus             | Dark mode toggle hidden
+Alerts            | alert() for share; no aria-live for cart updates
+
+================================================================================
+12. PRIORITY ISSUES (RANKED)
+================================================================================
+
+P0 — Critical
+-------------
+1. Checkout success mismatch — claims order created + links to empty MyOrdersPage
+2. Search URL not kept in sync on ProductsPage (typing/sort don't write URL)
+3. Synthetic ratings affect sort but aren't shown — misleading "sort by rating"
+
+P1 — High
+---------
+4. First-visit logo intro blocks first interaction (~1.3s)
+5. No add-to-cart feedback on homepage and listing quick-add
+6. Checkout form too thin — no name/phone; hardcoded free shipping
+7. Guest vs auth messaging inconsistent — no returnUrl after login
+8. Three competing bottom actions on mobile PDP (sticky bar, nav, WhatsApp FAB)
+9. Favorites buried on mobile web (not in bottom nav)
+
+P2 — Medium
+-----------
+10. Mobile menu a11y — no backdrop, focus trap, Escape, aria-expanded
+11. Dark mode toggle hidden from UI
+12. Duplicate <main> landmarks
+13. ProductCard role="button" instead of Link; Space scroll issue
+14. Variant favorites vs cart ID mismatch
+15. Share uses alert()
+16. Reviews section empty-state confusion
+17. No global toast system
+18. Catch-all route hides 404s
+19. Public /product-grid-demo route
+
+P3 — Polish / tech debt
+-----------------------
+20. Two ProductCard implementations (legacy vs HighConversionGrid)
+21. mapToProduct duplicated 5× across pages
+22. Search implemented 4 different ways (no shared hook)
+23. Theme tokens not fully adopted — hardcoded gold/slate remain
+24. headerOverHero unused in Layout
+25. Hero silent empty; RelatedProducts silent empty
+26. Popup banner frequency / interruption
+27. No prefers-reduced-motion
+28. CategoryBelt generic emoji map
+29. ProductCarousel no desktop arrows
+30. Cart single-currency assumption
+31. Raw error.message in user-facing banners
+32. ChatWidget disabled (WhatsApp only)
+
+================================================================================
+13. CROSS-CUTTING INCONSISTENCIES
+================================================================================
+
+- Two ProductCard implementations
+- mapToProduct duplicated with different fallbacks
+- Search: Layout vs ProductsPage vs CategoryPage vs CategoriesPage
+- Error UI: banner vs full-page vs silent null depending on page
+- Checkout UI vs WhatsApp-only implementation mismatch
+- Auth page: no Layout; all other storefront pages use Layout
+- Guest cart vs protected MyOrdersPage vs auth redirect without return path
+
+================================================================================
+14. KEY FILE INDEX
+================================================================================
+
+Front-End/src/App.jsx
+Front-End/src/components/Layout.jsx
+Front-End/src/components/MobileBottomNav.jsx
+Front-End/src/components/HeroSection.jsx
+Front-End/src/components/CategoryBelt.jsx
+Front-End/src/components/BannerRenderer.jsx
+Front-End/src/components/WhatsAppFAB.jsx
+Front-End/src/components/HighConversionGrid/ProductCard.tsx
+Front-End/src/components/HighConversionGrid/ProductGrid.tsx
+Front-End/src/components/ProductCarousel.jsx
+Front-End/src/components/ProductCard.jsx (legacy)
+Front-End/src/components/RelatedProducts.jsx
+Front-End/src/pages/HomePage.jsx
+Front-End/src/pages/ProductsPage.jsx
+Front-End/src/pages/CategoryPage.jsx
+Front-End/src/pages/BrandPage.jsx
+Front-End/src/pages/ProductDetailsPage.jsx
+Front-End/src/pages/CartPage.jsx
+Front-End/src/pages/FavoritesPage.jsx
+Front-End/src/pages/AuthPage.jsx
+Front-End/src/pages/MyOrdersPage.jsx
+Front-End/src/context/CartContext.jsx
+Front-End/src/context/FavoritesContext.jsx
+Front-End/src/context/SiteConfigContext.jsx
+Front-End/src/context/AuthContext.jsx
+Front-End/src/config/siteConfigDefaults.js
+Front-End/src/config/themeTokens.js
+Front-End/src/main.jsx
+
+================================================================================
+15. RECOMMENDED IMPLEMENTATION PASSES (WEB ONLY)
+================================================================================
+
+Pass 1 — Trust (P0)
+-------------------
+- Fix CartPage success copy and CTAs for WhatsApp-only flow
+- Clarify that order is sent via WhatsApp, not stored in "my orders" (unless createOrder restored)
+- Optional: restore createOrder OR remove "متابعة طلباتي" as primary CTA
+- Add name/phone fields to checkout message
+
+Pass 2 — Discovery (P0)
+-----------------------
+- Sync ProductsPage searchText and sortOrder ↔ URL searchParams
+- Initialize Layout search from URL when on /products
+
+Pass 3 — Feedback (P1)
+----------------------
+- Global toast for add-to-cart and favorites
+- Quick-add confirmation on HomePage, ProductsPage, CategoryPage
+
+Pass 4 — Speed (P1)
+-------------------
+- Shorten or skip logo intro; respect prefers-reduced-motion
+
+Pass 5 — Auth parity (P1)
+-------------------------
+- returnUrl query param on /auth redirect from ProtectedRoute
+- Post-login navigate to returnUrl or intended page
+
+Pass 6 — Accessibility (P2)
+-----------------------------
+- Mobile menu: backdrop, focus trap, Escape, aria-expanded
+- Fix duplicate <main>; ProductCard as Link where appropriate
+
+Pass 7 — Cleanup (P3)
+---------------------
+- Remove or protect /product-grid-demo
+- Dedupe mapToProduct into shared util
+- Theme token sweep on remaining hardcoded colors
+- 404 page instead of silent redirect
+
+================================================================================
+END OF FRONT-END NOTES
+================================================================================

@@ -167,7 +167,7 @@ const HomePage = () => {
 
           {trendingProducts.length > 0 && homeSections.trending?.visible !== false && (
             <ProductVerticalSection
-              title={homeSections.trending?.title || 'تريندات'}
+              title={homeSections.trending?.title || 'ترندات'}
               viewAllHref="/products?trending=true"
               products={mapWithFavorites(trendingProducts)}
               isLoading={showSkeleton}

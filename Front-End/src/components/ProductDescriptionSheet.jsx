@@ -21,7 +21,7 @@ export function formatAttributeDisplayValue(attr) {
 
 /**
  * Build key/value rows for the product description sheet.
- * Includes core fields, selected options, all option groups, and product attributes.
+ * Specs only — price and quantity stay on the product details page.
  */
 export function buildProductSpecRows(product, { selectedVariant = null, optionGroups = [] } = {}) {
   if (!product) return [];
@@ -70,7 +70,6 @@ export function buildProductSpecRows(product, { selectedVariant = null, optionGr
       : product.optionGroups) || [];
   for (const group of groups) {
     if (!group?.name || !Array.isArray(group.values) || !group.values.length) continue;
-    // Skip if we already pushed the selected single value for this group name
     const alreadySelected = selectedVariant?.attributes?.some(
       (a) => a.categoryAttribute?.name === group.name,
     );
@@ -97,27 +96,12 @@ export function buildProductSpecRows(product, { selectedVariant = null, optionGr
     );
   }
 
-  const price = selectedVariant
-    ? (selectedVariant.discountPrice ?? selectedVariant.price)
-    : (product.discountPrice ?? product.price);
-  if (price != null && price !== '') {
-    push('السعر', String(price));
-  }
-
-  const stock = selectedVariant
-    ? selectedVariant.stockQuantity
-    : product.remainingStock != null
-      ? product.remainingStock
-      : product.stockQuantity;
-  if (stock != null && stock !== '') {
-    push('الكمية المتبقية', String(stock));
-  }
-
   return rows;
 }
 
 /**
- * Bottom-sheet / modal listing all product specs (SHEIN-style الوصف).
+ * Bottom-sheet focused on admin-entered description, then optional specs.
+ * Price and quantity are shown on the product details page only.
  */
 export default function ProductDescriptionSheet({
   open,
@@ -169,37 +153,41 @@ export default function ProductDescriptionSheet({
         </div>
 
         <div className="overflow-y-auto overscroll-contain px-4 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
-          {hasRows ? (
-            <ul className="divide-y divide-stone-100 dark:divide-stone-800">
-              {rows.map((row, idx) => (
-                <li
-                  key={`${row.label}-${idx}`}
-                  className="grid grid-cols-[minmax(0,1fr)_1px_minmax(0,1.15fr)] gap-x-3 py-3.5 text-sm items-start"
-                >
-                  <span className="text-stone-500 dark:text-stone-400 text-right">{row.label}</span>
-                  <span
-                    className="self-stretch w-px bg-stone-900 dark:bg-stone-100"
-                    aria-hidden="true"
-                  />
-                  <span className="font-medium text-stone-900 dark:text-stone-100 text-right break-words">
-                    {row.value}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          ) : null}
-
           {hasDescription ? (
-            <div className={`${hasRows ? 'mt-2 border-t border-stone-100 dark:border-stone-800 pt-4' : 'pt-3'} pb-2`}>
-              <p className="text-xs font-bold text-stone-500 mb-2">الوصف التفصيلي</p>
+            <div className="pt-3 pb-2">
               <p className="text-sm text-stone-700 dark:text-stone-300 leading-relaxed whitespace-pre-line">
-                {description}
+                {description.trim()}
               </p>
             </div>
           ) : null}
 
+          {hasRows ? (
+            <div className={hasDescription ? 'mt-2 border-t border-stone-100 dark:border-stone-800 pt-1' : ''}>
+              {hasDescription ? (
+                <p className="pt-3 pb-1 text-xs font-bold text-stone-500">المواصفات</p>
+              ) : null}
+              <ul className="divide-y divide-stone-100 dark:divide-stone-800">
+                {rows.map((row, idx) => (
+                  <li
+                    key={`${row.label}-${idx}`}
+                    className="grid grid-cols-[minmax(0,1fr)_1px_minmax(0,1.15fr)] gap-x-3 py-3.5 text-sm items-start"
+                  >
+                    <span className="text-stone-500 dark:text-stone-400 text-right">{row.label}</span>
+                    <span
+                      className="self-stretch w-px bg-stone-900 dark:bg-stone-100"
+                      aria-hidden="true"
+                    />
+                    <span className="font-medium text-stone-900 dark:text-stone-100 text-right break-words">
+                      {row.value}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+
           {!hasRows && !hasDescription ? (
-            <p className="py-8 text-center text-sm text-stone-500">لا توجد مواصفات مضافة لهذا المنتج.</p>
+            <p className="py-8 text-center text-sm text-stone-500">لا يوجد وصف مضاف لهذا المنتج.</p>
           ) : null}
         </div>
       </div>

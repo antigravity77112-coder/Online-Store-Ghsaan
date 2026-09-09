@@ -52,7 +52,7 @@ export const DEFAULT_SITE_CONFIG = {
     sections: {
       bestSellers: { title: 'العروض الحصرية', subtitle: 'منتجات مميزة وعروض مختارة', visible: true },
       newArrivals: { title: 'وصل حديثاً', subtitle: '', visible: true },
-      trending: { title: 'تريندات', subtitle: 'المنتجات الأكثر طلباً الآن', visible: true },
+      trending: { title: 'ترندات', subtitle: 'المنتجات الأكثر طلباً الآن', visible: true },
       featured: { title: 'منتجات مميزة', subtitle: 'مختارات من أفضل المنتجات', visible: true },
       categories: { title: 'الفئات', subtitle: '', visible: true },
     },

@@ -127,7 +127,7 @@ const ProductsPage = () => {
   }, [activeProducts, toggleFavorite]);
 
   const pageTitle = trendingOnly
-    ? 'تريندات'
+    ? 'ترندات'
     : offersOnly
     ? 'العروض الحصرية'
     : committedSearch.trim()
@@ -137,7 +137,7 @@ const ProductsPage = () => {
   const sectionTitle = committedSearch.trim()
     ? `نتائج: "${committedSearch.trim()}"`
     : trendingOnly
-      ? 'تريندات'
+      ? 'ترندات'
       : offersOnly
       ? 'العروض الحصرية'
       : activeCategory === 'الكل' ? 'جميع المنتجات' : activeCategory;

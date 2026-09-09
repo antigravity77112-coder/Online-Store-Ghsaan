@@ -1,12 +1,59 @@
+# =========================
+# Dependencies
+# =========================
 node_modules/
+**/node_modules/
+
+# =========================
+# Environment / secrets
+# =========================
 .env
 .env.*
-dist/
-build/
-.vscode/
-.DS_Store
+!.env.example
+!**/.env.example
+.env.local
+.env.development
+.env.production
+.env.test
 
-# Mobile local/build artifacts (app source is included for EAS)
+# =========================
+# Build / output
+# =========================
+dist/
+**/dist/
+build/
+**/build/
+.vite/
+**/.vite/
+out/
+.next/
+.turbo/
+coverage/
+**/coverage/
+*.tsbuildinfo
+
+# =========================
+# Logs
+# =========================
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# =========================
+# Backend local data
+# =========================
+backend/uploads/
+backend/backups/
+backend/scratch/
+backend/data/*.sqlite
+backend/data/*.db
+
+# =========================
+# Mobile local / build
+# =========================
 Mobile/node_modules/
 Mobile/.expo/
 Mobile/.expo-export-*/
@@ -14,3 +61,43 @@ Mobile/.expo-tmp-*/
 Mobile/.idea/
 Mobile/dist/
 Mobile/web-build/
+Mobile/android/
+Mobile/ios/
+Mobile/*.jks
+Mobile/*.p8
+Mobile/*.p12
+Mobile/*.mobileprovision
+
+# =========================
+# IDE / editor / OS
+# =========================
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+Desktop.ini
+__MACOSX/
+**/__MACOSX/
+
+# =========================
+# Test / tooling caches
+# =========================
+.cache/
+**/.cache/
+.parcel-cache/
+.eslintcache
+.stylelintcache
+playwright-report/
+test-results/
+.nyc_output/
+
+# =========================
+# Local backups / junk
+# =========================
+*.bak
+*.agentsbak
+*.tmp
+*.temp
+.easignore.local

@@ -484,11 +484,6 @@ const ProductDetailsPage = () => {
           <h1 className="text-base sm:text-lg font-extrabold text-stone-900 dark:text-white leading-snug">
             {product.title}
           </h1>
-          {product.description?.trim() ? (
-            <p className="mt-1.5 text-sm text-stone-500 dark:text-stone-400 leading-relaxed line-clamp-3">
-              {product.description.trim()}
-            </p>
-          ) : null}
 
           <div className="mt-2.5">
             <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
@@ -665,7 +660,7 @@ const ProductDetailsPage = () => {
             الوصف
           </span>
           <span className="inline-flex items-center gap-1 text-xs font-semibold text-stone-500">
-            المواصفات والتفاصيل
+            التفاصيل والمواصفات
             <ChevronDown className="w-4 h-4 -rotate-90" aria-hidden="true" />
           </span>
         </button>
@@ -981,7 +976,7 @@ const ProductDetailsPage = () => {
       <ProductDescriptionSheet
         open={descSheetOpen}
         onClose={() => setDescSheetOpen(false)}
-        description={product.description || ""}
+        description={product.description || ''}
         rows={specRows}
       />
     </Layout>

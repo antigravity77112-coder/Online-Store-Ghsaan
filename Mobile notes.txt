@@ -1,0 +1,366 @@
+GISAAH STORE — MOBILE UX AUDIT NOTES
+=====================================
+Generated from senior UX audit (Web + Mobile codebase review)
+Stack: Expo/React Native, React Navigation 7, Zustand, TanStack Query, SQLite offline catalog, forced RTL in App.js
+
+================================================================================
+1. NAVIGATION
+================================================================================
+
+Architecture
+----------
+- App.js: Splash → MainStack; loads site config, SQLite, sync worker; I18nManager.forceRTL(true)
+- MainStack.js: Single native stack, headerShown: false; tabs + pushed screens
+- BottomTabNavigator.js: 5 tabs; nested CategoriesStack for category drill-down
+- ProtectedRoute.js: Redirects unauthenticated users via navigation.replace('Login')
+
+Tab structure (mobile)
+--------------------
+الرئيسية → الأقسام → المفضلة → السلة → حسابي
+
+Stack screens beyond tabs
+-------------------------
+ProductDetails, Search, Login, Register, EditProfile, Orders, Settings, Checkout,
+CheckoutSuccess, plus 9 admin screens.
+
+Strengths
+---------
+- Safe-area-aware tab bar — height 60 + insets.bottom (BottomTabNavigator.js)
+- Nested category stack — CategoriesList → CategoryProducts without losing tab context
+- Cart/favorites badges on tab icons
+- Active tab pill (gold highlight) gives clear wayfinding
+- Haptic feedback on profile settings and cart actions
+
+Problems
+--------
+- 5 tabs vs web’s 4 — Web: Home, Categories, Cart, Account (favorites in header). Mobile dedicates a tab to favorites — different mental model
+- Double bottom chrome on Cart tab — CartScreen.js + BottomTabNavigator.js — Sticky checkout footer sits above tab bar; paddingBottom: 160 on list but still ~120px+ of bottom UI
+- Auth redirect uses replace (ProtectedRoute.js) — Checkout/Orders lose back stack; after login user may not return to intended screen
+- Duplicate route registration — CategoryProducts exists in both MainStack and nested stack — risk of inconsistent navigation params
+- No deep-link / universal link config visible in src — Product share URLs point to web; in-app deep links not evident
+
+Thumb reach / one-handed usage
+------------------------------
+GOOD:
+- Primary commerce CTAs at bottom — ProductDetailsScreen sticky bar, CartScreen checkout footer, CheckoutScreen confirm button, tab bar in thumb zone
+
+FAIR:
+- HomeScreen search entry and profile avatar are high on screen — require reach or scroll for one-handed search
+
+WEAK:
+- Back/actions in top bars (AppHeader, ProductDetailsScreen gallery overlay) — standard but not thumb-friendly
+- RTL back inconsistency — AppHeader uses I18nManager for back icon; LoginScreen/RegisterScreen hardcode arrow-back — wrong direction in forced RTL
+
+================================================================================
+2. SCREEN-BY-SCREEN
+================================================================================
+
+HomeScreen (screens/HomeScreen.js)
+----------------------------------
+Strengths:
+- Section-driven home aligned with site config (homepage.sections visibility/titles)
+- OfferBelt, BannerRenderer, CategoryBelt, carousels
+- Pull-to-refresh; skeleton via showSkeleton
+- Branded header from useSiteConfig (logoMobileUrl, siteShortName, tagline)
+
+Problems:
+- BROKEN pull-to-refresh — calls syncCatalog({ force: true }) with NO import (CategoriesScreen imports correctly) — refresh will throw at runtime
+- Profile shortcut touch target ~32×32 (smallAvatar) — below 44px guideline
+- Search is non-editable TouchOpacity → navigates to Search — extra tap vs inline search on web mobile
+
+ProductDetailsScreen (screens/ProductDetailsScreen.js)
+----------------------------------------------------
+Strengths:
+- Local-first load via ProductRepository then API
+- Full skeleton (ProductDetailsSkeleton.js)
+- Image gallery with dots; variant chips minHeight 44; quantity steppers 44×44
+- Haptics on add-to-cart; sticky bottom bar with price + add + buy-now
+- Accordions for description/specs; related products carousel
+
+Problems:
+- Cramped bottom bar on narrow phones — price + wide buttons in one row — truncation risk
+- Share uses web URL only — no native deep link back into app
+
+CartScreen (screens/CartScreen.js)
+----------------------------------
+Strengths:
+- MIN_TOUCH = 44 on qty buttons; animated empty state; haptics
+- Clear empty CTA "ابدأ التسوق"; trash in header for clear cart
+
+Problems:
+- Delete button height 36px — below 44px minimum
+- No undo on delete or clear cart
+- No auth prompt before checkout — navigates to Checkout which then redirects to login (jarring two-step)
+- Cart tab + footer + tab bar = three layers of bottom UI
+
+CheckoutScreen (screens/CheckoutScreen.js)
+------------------------------------------
+Strengths:
+- Order summary card; multiline address; COD badge; loading state on submit
+- Empty-cart guard; KeyboardAvoidingView
+
+Problems:
+- Auth required via ProtectedRoute — web CartPage allows guest/WhatsApp — POLICY MISMATCH
+- COD only — no payment method choice
+- Footer safe area: paddingBottom iOS 34 / Android lg — Android gesture nav may clip confirm button
+- No phone/city fields at checkout — only free-text address
+
+CheckoutSuccessScreen (screens/CheckoutSuccessScreen.js)
+--------------------------------------------------------
+Strengths: Clear success state, order ID snippet, paths to Orders and Home
+Problems: Hardcoded "GISAAH" copy — doesn’t use useSiteConfig brand name
+
+OrdersScreen (screens/OrdersScreen.js)
+--------------------------------------
+Strengths: Loading spinner; error banner; empty state with CTA; expandable OrderCard; status badges
+Problems:
+- Prices shown as raw totalAmount + currency — not formatPrice()
+- No pull-to-refresh
+- Expand/collapse only — no order detail screen or reorder
+
+SearchScreen (screens/SearchScreen.js)
+--------------------------------------
+Strengths: 350ms debounce; autoFocus; clear button; loading/empty/error; 2-column grid
+Problems:
+- LAYOUT BUG: Empty/loading states render ABOVE FlatList always — can show "لا توجد نتائج" while results still visible below
+- No recent searches / suggestions
+- No skeleton cards during load — only ActivityIndicator
+
+Auth (LoginScreen.js, RegisterScreen.js)
+----------------------------------------
+Strengths: Gradient backgrounds; AuthInput validation; password strength; keyboardShouldPersistTaps
+Problems:
+- Hardcoded logo from assets/logo.png — ignores config.media.logoMobileUrl
+- Back button not RTL-aware
+- City picker inline expand in scroll — long list; not a bottom sheet
+- No forgot password flow visible
+
+Other screens
+-------------
+- FavoritesScreen: Strong empty state; prices not formatted; heart button 32×32
+- CategoriesScreen: Skeleton grid, search, pull-to-refresh with proper syncCatalog import
+- CategoryProductsScreen: Filters, sort modal, category pills, banners — most complete listing UX
+- ProfileScreen: Hub for orders, favorites, admin; chevrons use chevron-forward (LTR in RTL)
+- SettingsScreen: Site config for contact/brand; links out to web for legal pages
+
+================================================================================
+3. TOUCH TARGETS, BOTTOM SHEETS, LOADING/EMPTY STATES
+================================================================================
+
+Touch targets
+-------------
+GOOD (44px+):
+- AppHeader icon buttons — 44×44
+- AppButton — height 48
+- ProductCard cart button — 44×44 + hitSlop
+- FavoriteButton — hitSlop 8
+
+UNDERSIZED:
+- CartScreen delete — 44×36
+- ProductListingToolbar — paddingVertical 6 — likely <44px
+- LoginScreen back — 40×40
+- HomeScreen profile avatar — ~32×32
+- FavoritesScreen heart — 32×32
+
+Bottom sheets / modals
+----------------------
+No @gorhom/bottom-sheet in package.json.
+
+- ProductListingToolbar: Bottom-anchored sort Modal — good thumb reach
+- Inline filter panel — pushes content; filters mid-screen, not thumb zone
+- AdminEditProductModal: Full-screen Modal + BlurView — OK for complex forms
+- AdminSettingsScreen: Centered restore backup Modal
+- RegisterScreen city list: Inline expand — not a sheet
+
+Loading / empty states
+----------------------
+GOOD: Home section skeletons, Categories skeleton, CategoryProducts SkeletonCard, ProductDetailsSkeleton, Cart animated empty, Admin dashboard RefreshControl
+
+GAPS:
+- Search: Spinner only; no result skeletons; empty overlaps list (bug)
+- Orders: Full-screen ActivityIndicator; no per-card refresh
+- SplashScreen: Fixed 1.8s — not fully tied to config load completion
+
+================================================================================
+4. SITE CONFIG INTEGRATION & THEME
+================================================================================
+
+What’s integrated
+-----------------
+- Config fetch on boot: App.js → useSiteConfigStore.js
+- Defaults / merge: config/siteConfigDefaults.js
+- Homepage sections visibility/titles: HomeScreen.js
+- Offer belt: features/home/components/OfferBelt.js
+- Banners: BannerRenderer.js
+- Brand logo/name on home: HomeScreen HomeHeader
+- Settings contact: SettingsScreen.js
+- Admin save + refresh: AdminSettingsScreen.js → refreshSiteConfig()
+
+What’s NOT integrated (vs web)
+------------------------------
+- Runtime theme CSS variables on web — Mobile uses static constants/theme.js + useThemeStore dark toggle only — config.theme NEVER applied to UI
+- Dynamic logos in auth/splash — SplashScreen, LoginScreen, RegisterScreen use assets/logo.png
+- WhatsApp FAB — Absent on mobile despite config.contact.whatsapp (web has WhatsAppFAB.jsx)
+- Admin customization tab parity — AdminSettingsScreen has raw themeConfig.primary hex only; no homepage section editor UI like web AdminCustomizationTab
+- footerLinks / SEO content — Not surfaced beyond web links in Settings
+
+Theme system
+------------
+- constants/theme.js — gold/bone/slate aligned with web Tailwind
+- getBrandGold(isDarkMode) — matches web gold pattern
+- Dark mode in AsyncStorage (useThemeStore.js)
+- Admin-edited primary color saves to API but does NOT recolor the app until code reads config.theme at runtime
+
+================================================================================
+5. ADMIN SCREENS
+================================================================================
+
+Entry: ProfileScreen → AdminDashboard (role: Admin, 1, or isAdmin)
+
+Screens:
+- AdminDashboardScreen.js — Stats, pending orders, menu hub
+- AdminOrdersScreen.js, AdminUsersScreen.js, AdminProductsScreen.js
+- AdminCategoriesScreen.js, AdminBrandsScreen.js, AdminBannersScreen.js
+- AdminBranchesScreen.js, AdminSettingsScreen.js — store info, SEO, exchange rates, backup
+
+Guard: features/admin/hooks/useAdminGuard.js
+
+Admin strengths
+---------------
+- Full ops from phone — significant strength
+- Dashboard hero, stat tiles, pending-order CTA
+- AdminEditProductModal — rich modal with image picker
+- Haptics on save; backup/restore with confirmation
+- RefreshControl on dashboard
+
+Admin problems
+--------------
+- Dense long-scroll forms on AdminSettingsScreen — no section bottom sheets
+- No visual customization tab parity with web AdminCustomizationTab
+- Error box on dashboard uses light #fef2f2 — poor contrast in dark mode
+- Consumer filter/sort touch targets smaller than admin tiles
+
+================================================================================
+6. MOBILE-SPECIFIC STRENGTHS (SUMMARY)
+================================================================================
+
+1. Offline-first catalog — SQLite, CatalogSyncBootstrap, sync worker — stronger than web PWA
+2. Native haptics across cart, favorites, profile, checkout
+3. Persistent local cart/favorites/theme — Zustand + AsyncStorage
+4. RTL-first — forced RTL at app root
+5. Product details sticky CTA bar — excellent mobile commerce pattern
+6. Full admin suite on device — rare for store apps
+7. Safe area handling on tab bar and key full-screen flows
+8. Skeleton loading on home, categories, product details, category listings
+
+================================================================================
+7. CROSS-PLATFORM INCONSISTENCIES (MOBILE VS WEB)
+================================================================================
+
+Topic                  | Web                          | Mobile
+-----------------------|------------------------------|----------------------------------
+Bottom nav items       | 4 tabs, favorites in header  | 5 tabs including favorites
+Checkout auth          | Guest/WhatsApp possible      | Login required (ProtectedRoute)
+WhatsApp contact       | WhatsAppFAB.jsx              | Missing
+Site theme from admin  | CSS variables applied        | Static palette in theme.js
+Logo in auth           | From site config             | Hardcoded asset
+Cart checkout UX       | Inline on cart page          | Separate Checkout stack screen
+AI chat                | ChatWidget (if enabled)      | Not present
+About/contact          | Dedicated routes             | External web links from Settings
+Homepage admin         | AdminCustomizationTab        | Partial AdminSettingsScreen fields
+Currency display       | Consistent formatting        | Inconsistent on Favorites/Orders
+
+================================================================================
+8. PRIORITY UX ISSUES (RANKED)
+================================================================================
+
+P0 — Critical
+-------------
+1. Home pull-to-refresh runtime error — missing syncCatalog import (HomeScreen.js)
+2. Search empty state overlaps results (SearchScreen.js)
+3. Checkout auth gate mismatch with web guest WhatsApp flow
+
+P1 — High
+---------
+4. Site config theme not applied — admin color changes invisible to shoppers
+5. Cart tab bottom chrome stacking — footer + tab bar reduces usable space
+6. Checkout auth redirect mid-flow — abrupt ProtectedRoute; no return URL
+7. No WhatsApp quick contact — regression vs web
+8. Auth/splash branding ignores remote logo from site config
+
+P2 — Medium
+-----------
+9. Touch target gaps — cart delete, toolbar filters, home profile avatar, favorites heart
+10. RTL navigation icons — login/register back, profile chevrons
+11. Price formatting inconsistency — favorites and orders
+12. Hardcoded brand copy on CheckoutSuccessScreen
+
+P3 — Polish
+-----------
+13. Recent searches on SearchScreen
+14. Pull-to-refresh on OrdersScreen
+15. Order detail screen / reorder flow
+16. Bottom sheet for register city picker and filters
+17. Admin customization UI parity with web
+18. Deep links for product share URLs
+
+================================================================================
+9. KEY FILE INDEX
+================================================================================
+
+Mobile\App.js
+Mobile\src\navigation\MainStack.js
+Mobile\src\navigation\BottomTabNavigator.js
+Mobile\src\navigation\ProtectedRoute.js
+Mobile\src\screens\HomeScreen.js
+Mobile\src\screens\ProductDetailsScreen.js
+Mobile\src\screens\CartScreen.js
+Mobile\src\screens\CheckoutScreen.js
+Mobile\src\screens\CheckoutSuccessScreen.js
+Mobile\src\screens\OrdersScreen.js
+Mobile\src\screens\SearchScreen.js
+Mobile\src\screens\LoginScreen.js
+Mobile\src\screens\RegisterScreen.js
+Mobile\src\screens\ProfileScreen.js
+Mobile\src\screens\SettingsScreen.js
+Mobile\src\screens\AdminDashboardScreen.js
+Mobile\src\screens\AdminSettingsScreen.js
+Mobile\src\constants\theme.js
+Mobile\src\state\useSiteConfigStore.js
+Mobile\src\state\useThemeStore.js
+Mobile\src\config\siteConfigDefaults.js
+Mobile\src\components\ui\AppHeader.js
+Mobile\src\components\ui\AppButton.js
+Mobile\src\features\product\components\ProductListingToolbar.js
+Mobile\src\features\admin\components\AdminEditProductModal.js
+
+Web reference (for parity):
+Front-End\src\components\MobileBottomNav.jsx
+Front-End\src\context\SiteConfigContext.jsx
+Front-End\src\components\WhatsAppFAB.jsx
+
+================================================================================
+10. RECOMMENDED IMPLEMENTATION PASSES (MOBILE ONLY)
+================================================================================
+
+Pass 1 — Bugs & trust (P0)
+- Fix syncCatalog import on HomeScreen pull-to-refresh
+- Fix SearchScreen empty/loading vs FlatList conditional render
+- Align checkout auth policy with web (guest WhatsApp OR login-first with clear messaging)
+- Add returnUrl after login for Checkout/Orders
+
+Pass 2 — Parity (P1)
+- Apply config.theme to RN theme provider
+- WhatsApp FAB from config.contact.whatsapp
+- logoMobileUrl on Splash, Login, Register
+- formatPrice() on FavoritesScreen and OrdersScreen
+
+Pass 3 — Polish (P2–P3)
+- Touch target audit (44px minimum)
+- RTL icon fixes
+- Reduce cart tab bottom chrome (padding / hide tab bar on checkout flow)
+- Brand name from config on CheckoutSuccessScreen
+
+================================================================================
+END OF MOBILE NOTES
+================================================================================

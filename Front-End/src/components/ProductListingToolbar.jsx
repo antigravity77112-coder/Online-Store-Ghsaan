@@ -7,7 +7,7 @@ import { SlidersHorizontal, ArrowUpDown, Loader2 } from 'lucide-react';
 
 const SORT_OPTIONS = [
   { value: 'default', label: 'الافتراضي' },
-  { value: 'trending', label: 'تريندات' },
+  { value: 'trending', label: 'ترندات' },
   { value: 'newest', label: 'الأحدث' },
   { value: 'price-asc', label: 'السعر: الأقل' },
   { value: 'price-desc', label: 'السعر: الأعلى' },
