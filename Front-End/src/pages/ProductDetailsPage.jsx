@@ -37,7 +37,6 @@ import {
   buildWhatsAppUrl,
   buildProductWhatsAppMessage,
 } from "../utils/whatsappOrder";
-import { trackViewItem, trackAddToCart } from "../utils/analytics";
 import { useFormatDisplayPrice } from "../context/CurrencyContext";
 import {
   buildOptionGroups,
@@ -155,7 +154,6 @@ const ProductDetailsPage = () => {
   useEffect(() => {
     if (!product?.id || trackedProductIdRef.current === product.id) return;
     trackedProductIdRef.current = product.id;
-    trackViewItem(product);
     setOptionSelections({});
     if (product.hasVariants && product.variants?.length > 0) {
       const structured = variantsHaveStructuredAttributes(product.variants);
@@ -207,8 +205,8 @@ const ProductDetailsPage = () => {
   );
 
   const specRows = useMemo(
-    () => buildProductSpecRows(product, { selectedVariant, optionGroups }),
-    [product, selectedVariant, optionGroups],
+    () => buildProductSpecRows(product),
+    [product],
   );
 
   const hasDescriptionContent = Boolean(
@@ -298,7 +296,6 @@ const ProductDetailsPage = () => {
     const cartProduct = buildCartProduct();
     if (!cartProduct || displayStock <= 0) return;
     addToCart(cartProduct, quantity);
-    trackAddToCart(cartProduct, quantity);
     setAddedToCart(true);
     setTimeout(() => setAddedToCart(false), 2500);
   };
@@ -501,6 +498,24 @@ const ProductDetailsPage = () => {
                 وفر {formatPrice(savingsAmount, product.currency)} ({discountPercent}%)
               </p>
             )}
+            {product.description?.trim() ? (
+              <p className="mt-2 text-sm text-stone-500 dark:text-stone-400 leading-relaxed line-clamp-3 whitespace-pre-line">
+                {product.description.trim()}
+              </p>
+            ) : null}
+            {specRows.length > 0 ? (
+              <dl className="mt-2.5 space-y-1 border-t border-stone-100 dark:border-stone-800 pt-2">
+                {specRows.slice(0, 4).map((row) => (
+                  <div key={`${row.label}-${row.value}`} className="flex items-start justify-between gap-3 text-xs">
+                    <dt className="text-stone-500 dark:text-stone-400 shrink-0">{row.label}</dt>
+                    <dd className="font-semibold text-stone-800 dark:text-stone-100 text-left break-words">{row.value}</dd>
+                  </div>
+                ))}
+                {specRows.length > 4 ? (
+                  <p className="text-[11px] text-stone-400 pt-0.5">+{specRows.length - 4} مواصفات إضافية في الوصف</p>
+                ) : null}
+              </dl>
+            ) : null}
           </div>
         </div>
 

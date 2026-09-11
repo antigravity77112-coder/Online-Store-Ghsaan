@@ -107,10 +107,19 @@ const AdminProductsTab = ({ openEditProductModal, hasProductDraft, onResumeProdu
       slug,
       ...clonedProduct
     } = product;
+    const suffix = String(Math.floor(Math.random() * 10_000_000) || 1);
+    const variants = Array.isArray(clonedProduct.variants)
+      ? clonedProduct.variants.map((v) => ({
+          ...v,
+          id: undefined,
+          sku: v?.sku ? `${v.sku}-COPY-${suffix}` : `COPY-${suffix}`,
+        }))
+      : clonedProduct.variants;
     openEditProductModal({
       ...clonedProduct,
       title: `${clonedProduct.title || 'منتج'} (نسخة)`,
       sku: '',
+      variants,
       status: 'Draft',
     });
   };

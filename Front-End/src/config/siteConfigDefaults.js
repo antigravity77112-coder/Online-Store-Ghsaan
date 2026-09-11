@@ -33,7 +33,7 @@ export const DEFAULT_SITE_CONFIG = {
     warning: '#f59e0b',
     error: '#EA0001',
   },
-  contact: { phone: null, email: null, whatsapp: null, address: null, mapUrl: null },
+  contact: { phone: null, email: null, whatsapp: null, whatsappContacts: [], address: null, mapUrl: null },
   social: { facebook: null, instagram: null, tiktok: null, twitter: null, youtube: null, telegram: null, linkedin: null, threads: null },
   seo: {
     title: 'Smart Shopper | المتسوق الذكي',
@@ -137,7 +137,13 @@ export function mergeSiteConfig(apiConfig) {
     brand: sanitizeBrand(apiConfig.brand),
     media: sanitizeMedia(apiConfig.media),
     theme: { ...DEFAULT_SITE_CONFIG.theme, ...apiConfig.theme },
-    contact: { ...DEFAULT_SITE_CONFIG.contact, ...apiConfig.contact },
+    contact: {
+      ...DEFAULT_SITE_CONFIG.contact,
+      ...apiConfig.contact,
+      whatsappContacts: Array.isArray(apiConfig.contact?.whatsappContacts)
+        ? apiConfig.contact.whatsappContacts
+        : (DEFAULT_SITE_CONFIG.contact.whatsappContacts || []),
+    },
     social: { ...DEFAULT_SITE_CONFIG.social, ...apiConfig.social },
     seo: sanitizeSeo(apiConfig.seo),
     content: { ...DEFAULT_SITE_CONFIG.content, ...apiConfig.content },

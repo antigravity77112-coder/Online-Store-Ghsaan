@@ -35,6 +35,34 @@ const PRODUCT_VARIANTS_INCLUDE = {
   include: VARIANT_ATTRIBUTES_INCLUDE,
 };
 
+const PRODUCT_ATTRIBUTES_INCLUDE = {
+  include: {
+    categoryAttribute: {
+      select: { id: true, name: true, slug: true, type: true, scope: true, isFilterable: true, sortOrder: true },
+    },
+  },
+  orderBy: { categoryAttribute: { sortOrder: 'asc' } },
+};
+
+/** Blank / whitespace SKUs become null so Postgres unique allows multiple empties. */
+function normalizeSkuValue(sku) {
+  if (sku == null) return null;
+  const trimmed = String(sku).trim();
+  return trimmed ? trimmed : null;
+}
+
+function normalizeProductSkus(productData, variants = []) {
+  const hasVariants = Boolean(productData.hasVariants) && Array.isArray(variants) && variants.length > 0;
+  const normalizedVariants = variants.map((v) => ({
+    ...v,
+    sku: normalizeSkuValue(v.sku),
+  }));
+  return {
+    productSku: hasVariants ? null : normalizeSkuValue(productData.sku),
+    variants: normalizedVariants,
+  };
+}
+
 function mapProductWithScents(product) {
   if (!product) return product;
   const scents = (product.scents || []).map((ps) => ps.scent).filter(Boolean);
@@ -276,8 +304,12 @@ class ProductService {
     delete productData.imageUrls;
 
     // Extract variants
-    const variants = productData.variants || [];
+    let variants = productData.variants || [];
     delete productData.variants;
+
+    const { productSku, variants: normalizedVariants } = normalizeProductSkus(productData, variants);
+    productData.sku = productSku;
+    variants = normalizedVariants;
 
     // Extract & validate product attributes
     const rawAttributes = Array.isArray(productData.attributes) ? productData.attributes : [];
@@ -298,6 +330,7 @@ class ProductService {
       product = await prisma.product.create({
         data: {
           ...productData,
+          sku: productSku,
           // Auto-create ProductImage rows if images provided
           images: rawImages.length > 0
             ? { create: rawImages }
@@ -338,6 +371,7 @@ class ProductService {
           images: { orderBy: { sortOrder: 'asc' } },
           brand: { select: { name: true, slug: true, logoUrl: true } },
           variants: PRODUCT_VARIANTS_INCLUDE,
+          attributes: PRODUCT_ATTRIBUTES_INCLUDE,
           ...SCENT_INCLUDE,
         },
       });
@@ -351,6 +385,7 @@ class ProductService {
             images: { orderBy: { sortOrder: 'asc' } },
             brand: { select: { name: true, slug: true, logoUrl: true } },
             variants: PRODUCT_VARIANTS_INCLUDE,
+            attributes: PRODUCT_ATTRIBUTES_INCLUDE,
             ...SCENT_INCLUDE,
           },
         });
@@ -512,14 +547,7 @@ class ProductService {
         images: { orderBy: { sortOrder: 'asc' } },
         brand: { select: { name: true, slug: true, logoUrl: true } },
         ...SCENT_INCLUDE,
-        attributes: {
-          include: {
-            categoryAttribute: {
-              select: { name: true, slug: true, type: true, scope: true, isFilterable: true, sortOrder: true },
-            },
-          },
-          orderBy: { categoryAttribute: { sortOrder: 'asc' } },
-        },
+        attributes: PRODUCT_ATTRIBUTES_INCLUDE,
         variants: PRODUCT_VARIANTS_INCLUDE,
       },
     });
@@ -545,14 +573,7 @@ class ProductService {
         images: { orderBy: { sortOrder: 'asc' } },
         brand: { select: { name: true, slug: true, logoUrl: true } },
         ...SCENT_INCLUDE,
-        attributes: {
-          include: {
-            categoryAttribute: {
-              select: { name: true, slug: true, type: true, isFilterable: true, sortOrder: true },
-            },
-          },
-          orderBy: { categoryAttribute: { sortOrder: 'asc' } },
-        },
+        attributes: PRODUCT_ATTRIBUTES_INCLUDE,
         variants: {
           where: { isActive: true },
           ...PRODUCT_VARIANTS_INCLUDE,
@@ -615,6 +636,14 @@ class ProductService {
     }
     if (dataToUpdate.promotionLabel === '') dataToUpdate.promotionLabel = null;
 
+    if (Object.prototype.hasOwnProperty.call(dataToUpdate, 'sku') || dataToUpdate.hasVariants) {
+      const { productSku } = normalizeProductSkus(
+        { sku: dataToUpdate.sku, hasVariants: dataToUpdate.hasVariants },
+        Array.isArray(variants) ? variants : [],
+      );
+      dataToUpdate.sku = productSku;
+    }
+
     // Sync images if provided — supports both legacy imageUrls (string[]) and structured images ([{url,altText}])
     const hasNewImages = dataToUpdate.images !== undefined || dataToUpdate.imageUrls !== undefined;
     if (hasNewImages) {
@@ -667,6 +696,11 @@ class ProductService {
       if (dataToUpdate.hasVariants) {
         if (variants.length === 0) {
           throw new Error('يجب إضافة متغير واحد على الأقل عند تفعيل المتغيرات.');
+        }
+
+        // Normalize blank variant SKUs before uniqueness checks
+        for (const v of variants) {
+          v.sku = normalizeSkuValue(v.sku);
         }
 
         // Validate before processing
@@ -753,36 +787,31 @@ class ProductService {
 
     // Sync product attributes if provided
     if (Array.isArray(dataToUpdate.attributes)) {
-      const newAttributes = dataToUpdate.attributes;
+      const newAttributes = dataToUpdate.attributes
+        .filter((a) => a && a.categoryAttributeId && a.value !== undefined && a.value !== null && String(a.value).trim() !== '')
+        .map((a) => ({
+          categoryAttributeId: a.categoryAttributeId,
+          value: String(a.value).trim(),
+        }));
       delete dataToUpdate.attributes;
 
       await validateProductAttributes(effectiveCategoryId, newAttributes);
 
-      // If category is changing, prune ProductAttributes from old category that don't belong to the new one
-      if (dataToUpdate.categoryId) {
-        const newCatAttrIds = new Set(
-          (await prisma.categoryAttribute.findMany({
-            where: { categoryId: dataToUpdate.categoryId, scope: { in: ['PRODUCT', 'BOTH'] } },
-            select: { id: true },
-          })).map(a => a.id)
-        );
-        const existingProdAttrs = await prisma.productAttribute.findMany({
-          where: { productId: id },
-          select: { id: true, categoryAttributeId: true },
-        });
-        const toDelete = existingProdAttrs.filter(a => !newCatAttrIds.has(a.categoryAttributeId));
-        if (toDelete.length > 0) {
-          console.warn(`[ProductService] Category change: pruning ${toDelete.length} incompatible ProductAttribute(s) for product ${id}`);
-          await prisma.productAttribute.deleteMany({ where: { id: { in: toDelete.map(a => a.id) } } });
-        }
-      }
+      const incomingIds = newAttributes.map((a) => a.categoryAttributeId);
+      await prisma.productAttribute.deleteMany({
+        where: {
+          productId: id,
+          ...(incomingIds.length > 0
+            ? { categoryAttributeId: { notIn: incomingIds } }
+            : {}),
+        },
+      });
 
-      // Upsert each attribute — respects @@unique([productId, categoryAttributeId])
       for (const { categoryAttributeId, value } of newAttributes) {
         await prisma.productAttribute.upsert({
           where: { productId_categoryAttributeId: { productId: id, categoryAttributeId } },
-          create: { productId: id, categoryAttributeId, value: String(value) },
-          update: { value: String(value) },
+          create: { productId: id, categoryAttributeId, value },
+          update: { value },
         });
       }
     } else {
@@ -803,6 +832,7 @@ class ProductService {
           brand: { select: { name: true, slug: true, logoUrl: true } },
           images: { orderBy: { sortOrder: 'asc' } },
           variants: PRODUCT_VARIANTS_INCLUDE,
+          attributes: PRODUCT_ATTRIBUTES_INCLUDE,
           ...SCENT_INCLUDE,
         },
       });

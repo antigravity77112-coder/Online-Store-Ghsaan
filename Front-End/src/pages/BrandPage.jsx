@@ -20,7 +20,6 @@ import { useReducedMotion } from '../hooks/useReducedMotion';
 import { mapStorefrontProduct } from '../utils/mapStorefrontProduct';
 import { sortProducts } from '../utils/productListingSort';
 import { getOptimizedImageUrl, IMAGE_WIDTHS } from '../utils/cloudinaryUrl';
-import { trackAddToCart } from '../utils/analytics';
 
 const BrandPage = () => {
   const { slug } = useParams();
@@ -71,7 +70,6 @@ const BrandPage = () => {
     const originalProduct = products.find((prod) => String(prod.id) === String(p.id));
     if (originalProduct) {
       addToCart(originalProduct, 1);
-      trackAddToCart(originalProduct, 1);
     } else {
       addToCart({
         id: p.id,
@@ -83,7 +81,6 @@ const BrandPage = () => {
         mainImageUrl: p.image,
         imageUrl: p.image,
       }, 1);
-      trackAddToCart({ id: p.id, title: p.title, price: p.price, currency: p.currency }, 1);
     }
     notifyQuickAdd();
   }, [products, addToCart, notifyQuickAdd]);

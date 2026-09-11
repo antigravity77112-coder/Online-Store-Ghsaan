@@ -48,6 +48,12 @@ const siteConfigUpdateSchema = Joi.object({
   facebookUrl: optionalUrl,
   twitterUrl: optionalUrl,
   whatsappUrl: optionalUrl,
+  whatsappContacts: Joi.array().max(4).items(
+    Joi.object({
+      label: optionalString(80),
+      url: Joi.string().trim().max(1000).required(),
+    }),
+  ).allow(null),
   instagramUrl: optionalUrl,
   tiktokUrl: optionalUrl,
   telegramUrl: optionalUrl,

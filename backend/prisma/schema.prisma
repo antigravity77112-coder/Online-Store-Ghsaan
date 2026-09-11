@@ -765,6 +765,8 @@ model SystemSetting {
   facebookUrl       String?
   twitterUrl        String?
   whatsappUrl       String?
+  /// Up to 4 labeled WhatsApp contacts: [{ label, url }]
+  whatsappContacts  Json?
   instagramUrl      String?
   tiktokUrl         String?
   telegramUrl       String?

@@ -26,7 +26,7 @@ import { useQuickAddFeedback } from '../hooks/useQuickAddFeedback';
 import { useReducedMotion } from '../hooks/useReducedMotion';
 import { mapStorefrontProduct } from '../utils/mapStorefrontProduct';
 import { sortProducts } from '../utils/productListingSort';
-import { trackAddToCart } from '../utils/analytics';
+
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: { opacity: 1, transition: { staggerChildren: 0.08 } },
@@ -103,7 +103,6 @@ const ProductsPage = () => {
     const originalProduct = activeProducts.find((prod) => String(prod.id) === String(p.id));
     if (originalProduct) {
       addToCart(originalProduct, 1);
-      trackAddToCart(originalProduct, 1);
     } else {
       const fallback = {
         id: p.id,
@@ -116,7 +115,6 @@ const ProductsPage = () => {
         imageUrl: p.image,
       };
       addToCart(fallback, 1);
-      trackAddToCart(fallback, 1);
     }
     notifyQuickAdd();
   }, [activeProducts, addToCart, notifyQuickAdd]);

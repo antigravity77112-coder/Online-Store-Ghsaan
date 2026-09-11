@@ -131,6 +131,40 @@ function pickUrl(value, fallback) {
   return fallback;
 }
 
+/** Normalize up to 4 labeled WhatsApp contacts; keep legacy whatsappUrl as fallback. */
+function normalizeWhatsAppContacts(contacts, legacyUrl = null) {
+  const list = [];
+  if (Array.isArray(contacts)) {
+    for (const item of contacts) {
+      if (!item || typeof item !== 'object') continue;
+      const label = item.label != null ? String(item.label).trim() : '';
+      let url = item.url != null ? String(item.url).trim() : '';
+      if (!url) continue;
+      if (!url.startsWith('http')) {
+        const digits = url.replace(/\D/g, '');
+        if (!digits) continue;
+        url = `https://wa.me/${digits}`;
+      }
+      list.push({
+        label: label || `واتساب ${list.length + 1}`,
+        url,
+      });
+      if (list.length >= 4) break;
+    }
+  }
+  if (list.length === 0 && legacyUrl && String(legacyUrl).trim()) {
+    let url = String(legacyUrl).trim();
+    if (!url.startsWith('http')) {
+      const digits = url.replace(/\D/g, '');
+      if (digits) url = `https://wa.me/${digits}`;
+    }
+    if (url.startsWith('http')) {
+      list.push({ label: 'خدمة العملاء', url });
+    }
+  }
+  return list;
+}
+
 function mergeRecord(record) {
   const r = record || {};
   const theme = mergeTheme(r.themeConfig);
@@ -157,6 +191,7 @@ function mergeRecord(record) {
     footerText: r.footerText || DEFAULT_FOOTER.footerText,
     themeConfig: theme,
     homepageConfig: homepage,
+    whatsappContacts: normalizeWhatsAppContacts(r.whatsappContacts, r.whatsappUrl),
   };
 }
 
@@ -192,7 +227,8 @@ function toPublicConfig(merged, { client = 'web' } = {}) {
     contact: {
       phone: merged.contactPhone,
       email: merged.contactEmail,
-      whatsapp: merged.whatsappUrl,
+      whatsapp: (merged.whatsappContacts?.[0]?.url) || merged.whatsappUrl || null,
+      whatsappContacts: Array.isArray(merged.whatsappContacts) ? merged.whatsappContacts : [],
       address: merged.address || null,
       mapUrl: merged.mapUrl || null,
     },
@@ -278,6 +314,7 @@ module.exports = {
   mergeRecord,
   mergeTheme,
   mergeHomepage,
+  normalizeWhatsAppContacts,
   toPublicConfig,
   toAbsoluteAssetUrl,
   buildWebManifest,

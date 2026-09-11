@@ -269,7 +269,103 @@ const AdminCustomizationTab = ({ config, setConfig, onSave, saving }) => {
       {section === 'contact' && (
         <AdminCard>
           <Field label="الهاتف"><input className={adminInputClass} value={config.contactPhone || ''} onChange={(e) => set('contactPhone', e.target.value)} dir="ltr" /></Field>
-          <Field label="واتساب (رابط)"><input className={adminInputClass} value={config.whatsappUrl || ''} onChange={(e) => set('whatsappUrl', e.target.value)} dir="ltr" placeholder="https://wa.me/967..." /></Field>
+          <div className="mb-4">
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-xs font-bold text-slate-500">أرقام واتساب (حتى 4)</label>
+              <button
+                type="button"
+                disabled={(config.whatsappContacts || []).length >= 4}
+                onClick={() => {
+                  setConfig((prev) => {
+                    const current = Array.isArray(prev.whatsappContacts) ? prev.whatsappContacts : [];
+                    if (current.length >= 4) return prev;
+                    const seed = prev.whatsappUrl && current.length === 0
+                      ? [{ label: 'خدمة العملاء', url: prev.whatsappUrl }]
+                      : current;
+                    return {
+                      ...prev,
+                      whatsappContacts: [...seed, { label: '', url: '' }].slice(0, 4),
+                    };
+                  });
+                }}
+                className="text-xs font-bold text-gold-700 disabled:opacity-40"
+              >
+                + إضافة رقم
+              </button>
+            </div>
+            <p className="text-[11px] text-slate-400 mb-2">أضف تسمية مثل «خدمة العملاء» مع رابط واتساب لكل رقم.</p>
+            {(Array.isArray(config.whatsappContacts) && config.whatsappContacts.length > 0
+              ? config.whatsappContacts
+              : [{ label: 'خدمة العملاء', url: config.whatsappUrl || '' }]
+            ).map((row, index) => (
+              <div key={index} className="mb-3 p-3 rounded-xl border border-slate-100 dark:border-slate-800 space-y-2">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-[10px] font-bold text-slate-400">رقم {index + 1}</span>
+                  <button
+                    type="button"
+                    className="text-[11px] text-rose-600 font-semibold"
+                    onClick={() => {
+                      setConfig((prev) => {
+                        const current = Array.isArray(prev.whatsappContacts) && prev.whatsappContacts.length
+                          ? [...prev.whatsappContacts]
+                          : [{ label: 'خدمة العملاء', url: prev.whatsappUrl || '' }];
+                        current.splice(index, 1);
+                        const next = current.filter((c) => c.label || c.url);
+                        return {
+                          ...prev,
+                          whatsappContacts: next,
+                          whatsappUrl: next[0]?.url || '',
+                        };
+                      });
+                    }}
+                  >
+                    حذف
+                  </button>
+                </div>
+                <input
+                  className={adminInputClass}
+                  placeholder="التسمية (مثال: خدمة العملاء)"
+                  value={row.label || ''}
+                  onChange={(e) => {
+                    const label = e.target.value;
+                    setConfig((prev) => {
+                      const current = Array.isArray(prev.whatsappContacts) && prev.whatsappContacts.length
+                        ? [...prev.whatsappContacts]
+                        : [{ label: 'خدمة العملاء', url: prev.whatsappUrl || '' }];
+                      while (current.length <= index) current.push({ label: '', url: '' });
+                      current[index] = { ...current[index], label };
+                      return {
+                        ...prev,
+                        whatsappContacts: current,
+                        whatsappUrl: current[0]?.url || prev.whatsappUrl || '',
+                      };
+                    });
+                  }}
+                />
+                <input
+                  className={adminInputClass}
+                  dir="ltr"
+                  placeholder="https://wa.me/967..."
+                  value={row.url || ''}
+                  onChange={(e) => {
+                    const url = e.target.value;
+                    setConfig((prev) => {
+                      const current = Array.isArray(prev.whatsappContacts) && prev.whatsappContacts.length
+                        ? [...prev.whatsappContacts]
+                        : [{ label: 'خدمة العملاء', url: prev.whatsappUrl || '' }];
+                      while (current.length <= index) current.push({ label: '', url: '' });
+                      current[index] = { ...current[index], url };
+                      return {
+                        ...prev,
+                        whatsappContacts: current,
+                        whatsappUrl: current[0]?.url || '',
+                      };
+                    });
+                  }}
+                />
+              </div>
+            ))}
+          </div>
           <Field label="البريد"><input className={adminInputClass} value={config.contactEmail || ''} onChange={(e) => set('contactEmail', e.target.value)} dir="ltr" /></Field>
           <Field label="العنوان"><textarea className={`${adminInputClass} min-h-[60px]`} value={config.address || ''} onChange={(e) => set('address', e.target.value)} /></Field>
           <Field label="رابط الخريطة"><input className={adminInputClass} value={config.mapUrl || ''} onChange={(e) => set('mapUrl', e.target.value)} dir="ltr" /></Field>

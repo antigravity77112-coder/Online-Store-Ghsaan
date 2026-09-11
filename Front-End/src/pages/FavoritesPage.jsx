@@ -9,7 +9,6 @@ import { useFavorites } from '../context/FavoritesContext';
 import { useCart } from '../context/CartContext';
 import { useQuickAddFeedback } from '../hooks/useQuickAddFeedback';
 import { useReducedMotion } from '../hooks/useReducedMotion';
-import { trackAddToCart } from '../utils/analytics';
 import { useFormatDisplayPrice } from '../context/CurrencyContext';
 
 const FavoritesPage = () => {
@@ -21,7 +20,6 @@ const FavoritesPage = () => {
 
   const handleAddToCart = useCallback((product) => {
     addToCart({ ...product }, 1);
-    trackAddToCart(product, 1);
     notifyQuickAdd();
   }, [addToCart, notifyQuickAdd]);
 

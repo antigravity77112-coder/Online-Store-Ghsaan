@@ -12,7 +12,6 @@ import { useSiteConfig } from '../context/SiteConfigContext';
 import { useCurrency } from '../context/CurrencyContext';
 import * as api from '../services/api';
 import { getOptimizedImageUrl, IMAGE_WIDTHS } from '../utils/cloudinaryUrl';
-import { trackBeginCheckout } from '../utils/analytics';
 import {
   resolveWhatsAppBaseUrl,
   buildWhatsAppUrl,
@@ -42,7 +41,6 @@ const CartPage = () => {
   const contactWhatsapp = config.contact?.whatsapp || '';
 
   const checkoutSectionRef = useRef(null);
-  const checkoutTrackedRef = useRef(false);
   const addressRef = useRef(null);
 
   const [checkoutForm, setCheckoutForm] = useState({
@@ -73,22 +71,6 @@ const CartPage = () => {
     setShowCheckout(true);
     requestAnimationFrame(scrollToCheckout);
   }, [scrollToCheckout]);
-
-  useEffect(() => {
-    if (!showCheckout || items.length === 0 || checkoutTrackedRef.current) return;
-    checkoutTrackedRef.current = true;
-    trackBeginCheckout(
-      items.map((item) => ({
-        id: item.productId,
-        title: item.title,
-        price: item.price,
-        currency: item.currency,
-        quantity: item.quantity,
-      })),
-      cartTotal,
-      currencyCode,
-    );
-  }, [showCheckout, items, cartTotal, currencyCode]);
 
   const handleCheckout = async () => {
     setAddressTouched(true);

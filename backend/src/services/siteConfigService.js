@@ -4,6 +4,7 @@ const {
   toPublicConfig,
   mergeTheme,
   mergeHomepage,
+  normalizeWhatsAppContacts,
 } = require('../config/siteConfigDefaults');
 
 const GLOBAL_ID = 'global';
@@ -93,6 +94,15 @@ function buildUpdatePayload(body) {
   }
   if (body.footerLinks !== undefined) {
     data.footerLinks = body.footerLinks;
+  }
+  if (body.whatsappContacts !== undefined) {
+    const normalized = normalizeWhatsAppContacts(body.whatsappContacts, body.whatsappUrl);
+    data.whatsappContacts = normalized.length ? normalized : null;
+    if (normalized[0]?.url) {
+      data.whatsappUrl = normalized[0].url;
+    } else if (body.whatsappUrl === '' || body.whatsappUrl === null) {
+      data.whatsappUrl = null;
+    }
   }
   return data;
 }

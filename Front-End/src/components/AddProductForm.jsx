@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Upload, X, Loader2, ImagePlus, AlertCircle, Cloud, CheckCircle, Sparkles, Star, Search, ChevronDown } from 'lucide-react';
+import { Upload, X, Loader2, ImagePlus, AlertCircle, Cloud, CheckCircle, Sparkles, Star, Search, ChevronDown, Dices } from 'lucide-react';
 import * as api from '../services/api';
 import { OptionPicker, BooleanPicker, parseAttrOptions, adminInputClass, adminSelectClass, AdminSwitch, AdminUploadProgress } from '../pages/admin/AdminUI';
 import { formatNativePrice } from '../utils/currency';
@@ -362,7 +362,9 @@ const AddProductForm = ({ onSuccess, onCancel, editProduct, onDirtyChange }) => 
           return { ...existing, attributes: attrs, sortOrder: idx };
         }
         const labelParts = groups.map((g) => attrs[g.id]).filter(Boolean);
-        const skuHint = [prev.sku, ...labelParts].filter(Boolean).join('-').replace(/\s+/g, '').slice(0, 40);
+        const prefix = (prev.sku && String(prev.sku).trim())
+          || String(Math.floor(Math.random() * 10_000_000) || 1);
+        const skuHint = [prefix, ...labelParts].filter(Boolean).join('-').replace(/\s+/g, '').slice(0, 40);
         return emptyVariantRow({
           sku: skuHint,
           price: prev.price,
@@ -705,7 +707,7 @@ const AddProductForm = ({ onSuccess, onCancel, editProduct, onDirtyChange }) => 
           status: form.status,
           discountPrice: form.discountPrice ? parseFloat(form.discountPrice) : null,
           promotionLabel: form.promotionLabel || null,
-          sku: form.sku || null,
+          sku: form.hasVariants ? null : (form.sku?.trim() || null),
           hasVariants: form.hasVariants,
           variants: form.hasVariants ? mapVariantsPayload(form.variants) : [],
           brandId: form.brandId || null,
@@ -714,8 +716,11 @@ const AddProductForm = ({ onSuccess, onCancel, editProduct, onDirtyChange }) => 
           metaTitle: form.metaTitle || null,
           metaDescription: form.metaDescription || null,
           attributes: Object.entries(form.attributes)
-            .filter(([_, value]) => value !== undefined && value !== '')
-            .map(([categoryAttributeId, value]) => ({ categoryAttributeId, value })),
+            .filter(([_, value]) => value !== undefined && value !== null && String(value).trim() !== '')
+            .map(([categoryAttributeId, value]) => ({
+              categoryAttributeId,
+              value: Array.isArray(value) ? value.join(',') : value,
+            })),
         });
       } else {
         await api.createProduct({
@@ -732,7 +737,7 @@ const AddProductForm = ({ onSuccess, onCancel, editProduct, onDirtyChange }) => 
           status: form.status,
           discountPrice: form.discountPrice ? parseFloat(form.discountPrice) : null,
           promotionLabel: form.promotionLabel || null,
-          sku: form.sku || null,
+          sku: form.hasVariants ? null : (form.sku?.trim() || null),
           hasVariants: form.hasVariants,
           variants: form.hasVariants ? mapVariantsPayload(form.variants) : [],
           brandId: form.brandId || null,
@@ -741,8 +746,11 @@ const AddProductForm = ({ onSuccess, onCancel, editProduct, onDirtyChange }) => 
           metaTitle: form.metaTitle || null,
           metaDescription: form.metaDescription || null,
           attributes: Object.entries(form.attributes)
-            .filter(([_, value]) => value !== undefined && value !== '')
-            .map(([categoryAttributeId, value]) => ({ categoryAttributeId, value })),
+            .filter(([_, value]) => value !== undefined && value !== null && String(value).trim() !== '')
+            .map(([categoryAttributeId, value]) => ({
+              categoryAttributeId,
+              value: Array.isArray(value) ? value.join(',') : value,
+            })),
         });
       }
       onSuccess?.();
@@ -779,14 +787,28 @@ const AddProductForm = ({ onSuccess, onCancel, editProduct, onDirtyChange }) => 
         </div>
         <div>
           <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5">رقم الصنف (SKU)</label>
-          <input
-            type="text"
-            name="sku"
-            value={form.sku}
-            onChange={handleChange}
-            placeholder="مثال: IPH15-PRO-256"
-            className="w-full px-4 py-3 border border-slate-200 dark:border-slate-600 rounded-xl text-sm bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-gold-500/40 focus:border-gold-400"
-          />
+          <div className="flex gap-2">
+            <input
+              type="text"
+              name="sku"
+              value={form.sku}
+              onChange={handleChange}
+              placeholder="مثال: 4829103"
+              className="w-full px-4 py-3 border border-slate-200 dark:border-slate-600 rounded-xl text-sm bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-gold-500/40 focus:border-gold-400"
+            />
+            <button
+              type="button"
+              title="توليد رقم عشوائي حتى 7 خانات"
+              onClick={() => {
+                const next = String(Math.floor(Math.random() * 10_000_000) || 1);
+                setForm((prev) => ({ ...prev, sku: next }));
+              }}
+              className="shrink-0 inline-flex items-center gap-1.5 px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-800 text-xs font-bold text-slate-700 dark:text-slate-200 hover:border-gold-400 hover:text-gold-700 transition-colors"
+            >
+              <Dices className="w-4 h-4" aria-hidden="true" />
+              توليد
+            </button>
+          </div>
         </div>
       </div>
 

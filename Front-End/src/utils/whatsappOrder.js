@@ -2,21 +2,72 @@
  * Helpers for WhatsApp order handoff (cart + product detail).
  */
 
-export function resolveWhatsAppBaseUrl(contactPhone = '', contactWhatsapp = '') {
+export function normalizeWhatsAppUrl(raw) {
+  let baseWhatsappUrl = String(raw || '').trim();
+  if (!baseWhatsappUrl) return '';
+
+  if (!baseWhatsappUrl.startsWith('http')) {
+    const linkDigits = baseWhatsappUrl.replace(/\D/g, '');
+    if (linkDigits) {
+      baseWhatsappUrl = `https://wa.me/${linkDigits.startsWith('967') ? linkDigits : `967${linkDigits}`}`;
+    } else {
+      return '';
+    }
+  }
+  return baseWhatsappUrl;
+}
+
+/** Up to 4 labeled contacts from site config (+ legacy whatsapp / phone). */
+export function resolveWhatsAppContacts(contact = {}) {
+  const list = [];
+  const seen = new Set();
+
+  const push = (label, url) => {
+    const normalized = normalizeWhatsAppUrl(url);
+    if (!normalized || seen.has(normalized)) return;
+    seen.add(normalized);
+    list.push({
+      label: (label && String(label).trim()) || `واتساب ${list.length + 1}`,
+      url: normalized,
+    });
+  };
+
+  if (Array.isArray(contact.whatsappContacts)) {
+    for (const item of contact.whatsappContacts) {
+      if (!item) continue;
+      push(item.label, item.url);
+      if (list.length >= 4) break;
+    }
+  }
+
+  if (list.length === 0 && contact.whatsapp) {
+    push('خدمة العملاء', contact.whatsapp);
+  }
+
+  if (list.length === 0 && contact.phone) {
+    const phoneDigits = String(contact.phone).replace(/[^\d]/g, '');
+    if (phoneDigits) {
+      const e164 = phoneDigits.startsWith('967') ? phoneDigits : `967${phoneDigits}`;
+      push('خدمة العملاء', `https://wa.me/${e164}`);
+    }
+  }
+
+  return list.slice(0, 4);
+}
+
+export function resolveWhatsAppBaseUrl(contactPhone = '', contactWhatsapp = '', contact = null) {
+  if (contact && typeof contact === 'object') {
+    const primary = resolveWhatsAppContacts(contact)[0];
+    if (primary?.url) return primary.url;
+  }
+
   const phone = String(contactPhone || '').trim();
   const phoneDigits = phone.replace(/[^\d]/g, '');
   const phoneE164 = phoneDigits
     ? (phoneDigits.startsWith('967') ? phoneDigits : `967${phoneDigits}`)
     : '';
 
-  let baseWhatsappUrl = String(contactWhatsapp || '').trim();
-
-  if (baseWhatsappUrl && !baseWhatsappUrl.startsWith('http')) {
-    const linkDigits = baseWhatsappUrl.replace(/\D/g, '');
-    if (linkDigits) {
-      baseWhatsappUrl = `https://wa.me/${linkDigits.startsWith('967') ? linkDigits : `967${linkDigits}`}`;
-    }
-  }
+  let baseWhatsappUrl = normalizeWhatsAppUrl(contactWhatsapp);
 
   if (!baseWhatsappUrl && phoneE164) {
     baseWhatsappUrl = `https://wa.me/${phoneE164}`;

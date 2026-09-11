@@ -29,7 +29,7 @@ const createProductSchema = Joi.object({
     altText: Joi.string().allow(null, '').optional(),
   })).max(5).optional(),
   attributes: Joi.array().items(Joi.object({
-    categoryAttributeId: Joi.string().guid({ version: ['uuidv4', 'uuidv5'] }).required(),
+    categoryAttributeId: Joi.string().uuid().required(),
     value: Joi.alternatives().try(Joi.string(), Joi.number(), Joi.boolean()).required(),
   })).optional(),
   variants: Joi.array().items(Joi.object({
@@ -41,7 +41,7 @@ const createProductSchema = Joi.object({
     sortOrder: Joi.number().integer().min(0).optional(),
     imageUrl: Joi.string().uri().allow(null, '').optional(),
     attributes: Joi.array().items(Joi.object({
-      categoryAttributeId: Joi.string().guid({ version: ['uuidv4', 'uuidv5'] }).required(),
+      categoryAttributeId: Joi.string().uuid().required(),
       value: Joi.alternatives().try(Joi.string(), Joi.number(), Joi.boolean()).required(),
     })).optional(),
   })).optional(),
@@ -50,7 +50,7 @@ const createProductSchema = Joi.object({
 // Shared attributes sub-schema
 const attributesSchema = Joi.array().items(
   Joi.object({
-    categoryAttributeId: Joi.string().guid({ version: ['uuidv4', 'uuidv5'] }).required(),
+    categoryAttributeId: Joi.string().uuid().required(),
     value: Joi.alternatives().try(
       Joi.string(),
       Joi.number(),

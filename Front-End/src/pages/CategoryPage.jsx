@@ -28,7 +28,6 @@ import { useUrlSearchDraft } from '../hooks/useUrlSearchDraft';
 import { useQuickAddFeedback } from '../hooks/useQuickAddFeedback';
 import { mapStorefrontProduct } from '../utils/mapStorefrontProduct';
 import { sortProducts } from '../utils/productListingSort';
-import { trackAddToCart } from '../utils/analytics';
 
 const CompactCategoryPill = ({ cat, isActive }) => (
   <Link
@@ -118,7 +117,6 @@ const CategoryPage = () => {
     const original = activeProducts.find((prod) => String(prod.id) === String(p.id));
     if (original) {
       addToCart(original, 1);
-      trackAddToCart(original, 1);
     } else {
       addToCart({
         id: p.id,
@@ -130,7 +128,6 @@ const CategoryPage = () => {
         mainImageUrl: p.image,
         imageUrl: p.image,
       }, 1);
-      trackAddToCart({ id: p.id, title: p.title, price: p.price, currency: p.currency }, 1);
     }
     notifyQuickAdd();
   }, [activeProducts, addToCart, notifyQuickAdd]);
