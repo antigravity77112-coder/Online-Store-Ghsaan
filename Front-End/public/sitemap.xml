@@ -368,6 +368,36 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/msds-altdlyk-alahtrafy-ll3dlat-8-rwws-wshashh-rqmyh</loc>
+    <lastmod>2026-09-11</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1789158162/products/jfmekusgie1uwtuv0xss.jpg</image:loc>
+      <image:title>مسدس التدليك الاحترافي للعضلات – 8 رؤوس وشاشة رقمية</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/msds-altdlyk-alzky-8-rwws-lltdlyk-al3myq</loc>
+    <lastmod>2026-09-11</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1789157429/products/tkj83yz53wvrhmx33xzx.jpg</image:loc>
+      <image:title>مسدس التدليك الذكي – 8 رؤوس للتدليك العميق</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/sfynh-qrasnh-3aymh-dykwr</loc>
+    <lastmod>2026-09-11</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1789154927/products/vjg1d4cxvtlmedjx7jox.jpg</image:loc>
+      <image:title>سفينة قراصنة عائمة | ديكور </image:title>
+    </image:image>
+  </url>
+  <url>
     <loc>https://online-store-ghsaan.vercel.app/product/tqm-altmaryn-almnzlyh-alkaml</loc>
     <lastmod>2026-09-11</lastmod>
     <changefreq>weekly</changefreq>
@@ -375,16 +405,6 @@
     <image:image>
       <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1789148266/products/eojtxnukfrkecpukmysf.jpg</image:loc>
       <image:title>طقم التمارين المنزلية الكامل</image:title>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://online-store-ghsaan.vercel.app/product/iphone</loc>
-    <lastmod>2026-09-11</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-    <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1789152912/products/kjbk0elqfmtdfapyqfkh.jpg</image:loc>
-      <image:title>Iphone</image:title>
     </image:image>
   </url>
 </urlset>

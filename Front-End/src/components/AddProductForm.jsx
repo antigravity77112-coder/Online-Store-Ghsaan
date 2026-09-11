@@ -308,6 +308,27 @@ const AddProductForm = ({ onSuccess, onCancel, editProduct, onDirtyChange }) => 
     // eslint-disable-next-line react-hooks/exhaustive-deps -- hydrate from loaded attrs + current variants snapshot
   }, [editProduct?.id, variantAttributes]);
 
+  // A SELECT specification with one possible value is already unambiguous.
+  // Preselect it so the admin does not have to click the only available choice.
+  useEffect(() => {
+    if (!categoryAttributes.length) return;
+    setForm((prev) => {
+      const attributes = { ...(prev.attributes || {}) };
+      let changed = false;
+
+      for (const attr of categoryAttributes) {
+        if (attr.type !== 'SELECT' || attributes[attr.id]) continue;
+        const options = parseAttrOptions(attr.options);
+        if (options.length === 1) {
+          attributes[attr.id] = options[0];
+          changed = true;
+        }
+      }
+
+      return changed ? { ...prev, attributes } : prev;
+    });
+  }, [categoryAttributes]);
+
   const selectVariantAttrs = useMemo(
     () => variantAttributes.filter((a) => a.type === 'SELECT' || a.type === 'MULTI_SELECT' || a.type === 'TEXT'),
     [variantAttributes],
@@ -443,7 +464,7 @@ const AddProductForm = ({ onSuccess, onCancel, editProduct, onDirtyChange }) => 
         .split(/[,،]/)
         .map((s) => s.trim())
         .filter(Boolean);
-      await api.createCategoryAttribute(form.categoryId, {
+      const createdAttribute = await api.createCategoryAttribute(form.categoryId, {
         name: newSpecAttrName.trim(),
         type: options.length > 0 ? 'SELECT' : 'TEXT',
         scope: 'PRODUCT',
@@ -451,6 +472,15 @@ const AddProductForm = ({ onSuccess, onCancel, editProduct, onDirtyChange }) => 
         isRequired: false,
         isFilterable: true,
       });
+      if (createdAttribute?.id && options.length === 1) {
+        setForm((prev) => ({
+          ...prev,
+          attributes: {
+            ...(prev.attributes || {}),
+            [createdAttribute.id]: options[0],
+          },
+        }));
+      }
       const prodAttrs = await api.getCategoryAttributes(form.categoryId, 'PRODUCT,BOTH');
       setCategoryAttributes(prodAttrs || []);
       setNewSpecAttrName('');

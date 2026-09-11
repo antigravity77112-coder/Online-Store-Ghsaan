@@ -21,9 +21,10 @@ export function formatAttributeDisplayValue(attr) {
 
 /**
  * Build key/value rows for the product description sheet.
- * Admin «مواصفات الوصف» only (`product.attributes` with name + value).
+ * Product identifiers, available variant options, and admin «مواصفات الوصف».
+ * Price, condition, stock quantity, and the long description stay outside the sheet.
  */
-export function buildProductSpecRows(product) {
+export function buildProductSpecRows(product, { selectedVariant = null, optionGroups = [] } = {}) {
   if (!product) return [];
   const rows = [];
   const seen = new Set();
@@ -35,6 +36,31 @@ export function buildProductSpecRows(product) {
     seen.add(key);
     rows.push({ label, value: String(value) });
   };
+
+  push('SKU', selectedVariant?.sku || product.sku);
+  push('التصنيف', product.categoryName || product.category?.name);
+  push('البراند', product.brand?.name || product.brandName);
+
+  if (selectedVariant?.attributes?.length) {
+    for (const attr of selectedVariant.attributes) {
+      push(attr.categoryAttribute?.name, formatAttributeDisplayValue(attr));
+    }
+  }
+
+  const groups =
+    (Array.isArray(optionGroups) && optionGroups.length
+      ? optionGroups
+      : product.optionGroups) || [];
+  for (const group of groups) {
+    if (!group?.name || !Array.isArray(group.values) || !group.values.length) continue;
+    const hasSelectedValue = selectedVariant?.attributes?.some(
+      (attr) => attr.categoryAttribute?.name === group.name,
+    );
+    push(
+      hasSelectedValue ? `${group.name} (المتاح)` : group.name,
+      group.values.join('، '),
+    );
+  }
 
   if (Array.isArray(product.attributes)) {
     for (const attr of product.attributes) {
@@ -48,17 +74,23 @@ export function buildProductSpecRows(product) {
     }
   }
 
+  if (Array.isArray(product.scents) && product.scents.length > 0) {
+    push(
+      'الروائح',
+      product.scents.map((scent) => scent.name).filter(Boolean).join('، '),
+    );
+  }
+
   return rows;
 }
 
 /**
- * Bottom-sheet: admin description + admin Details/Properties only.
+ * Bottom-sheet containing key/value specifications only.
  */
 export default function ProductDescriptionSheet({
   open,
   onClose,
-  title = 'الوصف',
-  description = '',
+  title = 'الوصف والمواصفات',
   rows = [],
 }) {
   useEffect(() => {
@@ -78,7 +110,6 @@ export default function ProductDescriptionSheet({
   if (!open || typeof document === 'undefined') return null;
 
   const hasRows = rows.length > 0;
-  const hasDescription = Boolean(description?.trim());
 
   return createPortal(
     <div className="fixed inset-0 z-[80] flex items-end sm:items-center justify-center" role="dialog" aria-modal="true" aria-labelledby="product-desc-title">
@@ -104,19 +135,8 @@ export default function ProductDescriptionSheet({
         </div>
 
         <div className="overflow-y-auto overscroll-contain px-4 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
-          {hasDescription ? (
-            <div className="pt-3 pb-2">
-              <p className="text-sm text-stone-700 dark:text-stone-300 leading-relaxed whitespace-pre-line">
-                {description.trim()}
-              </p>
-            </div>
-          ) : null}
-
           {hasRows ? (
-            <div className={hasDescription ? 'mt-2 border-t border-stone-100 dark:border-stone-800 pt-1' : ''}>
-              {hasDescription ? (
-                <p className="pt-3 pb-1 text-xs font-bold text-stone-500">المواصفات</p>
-              ) : null}
+            <div>
               <ul className="divide-y divide-stone-100 dark:divide-stone-800">
                 {rows.map((row, idx) => (
                   <li
@@ -137,8 +157,8 @@ export default function ProductDescriptionSheet({
             </div>
           ) : null}
 
-          {!hasRows && !hasDescription ? (
-            <p className="py-8 text-center text-sm text-stone-500">لا يوجد وصف مضاف لهذا المنتج.</p>
+          {!hasRows ? (
+            <p className="py-8 text-center text-sm text-stone-500">لا توجد مواصفات مضافة لهذا المنتج.</p>
           ) : null}
         </div>
       </div>

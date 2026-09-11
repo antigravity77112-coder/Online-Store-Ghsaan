@@ -64,6 +64,60 @@ function ProductSkeleton() {
   );
 }
 
+function ExpandableDescription({ text }) {
+  const trimmed = text?.trim() || "";
+  const [expanded, setExpanded] = useState(false);
+  const [needsToggle, setNeedsToggle] = useState(false);
+  const textRef = useRef(null);
+
+  useEffect(() => {
+    setExpanded(false);
+  }, [trimmed]);
+
+  useEffect(() => {
+    const el = textRef.current;
+    if (!el || expanded) return undefined;
+
+    const check = () => {
+      setNeedsToggle(el.scrollHeight > el.clientHeight + 1);
+    };
+
+    check();
+    const ro = typeof ResizeObserver !== "undefined" ? new ResizeObserver(check) : null;
+    ro?.observe(el);
+    window.addEventListener("resize", check);
+    return () => {
+      ro?.disconnect();
+      window.removeEventListener("resize", check);
+    };
+  }, [trimmed, expanded]);
+
+  if (!trimmed) return null;
+
+  return (
+    <div className="mt-2">
+      <p
+        ref={textRef}
+        className={`text-sm text-stone-500 dark:text-stone-400 leading-relaxed whitespace-pre-line ${
+          expanded ? "" : "line-clamp-3"
+        }`}
+      >
+        {trimmed}
+      </p>
+      {needsToggle ? (
+        <button
+          type="button"
+          onClick={() => setExpanded((v) => !v)}
+          className="mt-1 text-xs font-semibold text-[#e6533d] hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 rounded-sm"
+          aria-expanded={expanded}
+        >
+          {expanded ? "عرض أقل" : "عرض المزيد"}
+        </button>
+      ) : null}
+    </div>
+  );
+}
+
 function CompactStarRating({ rating, reviewCount, onReviewsClick }) {
   const numRating = Number(rating) || 0;
   const full = Math.floor(numRating);
@@ -205,13 +259,11 @@ const ProductDetailsPage = () => {
   );
 
   const specRows = useMemo(
-    () => buildProductSpecRows(product),
-    [product],
+    () => buildProductSpecRows(product, { selectedVariant, optionGroups }),
+    [product, selectedVariant, optionGroups],
   );
 
-  const hasDescriptionContent = Boolean(
-    product?.description?.trim() || specRows.length > 0,
-  );
+  const hasSpecContent = specRows.length > 0;
 
   const displayPrice = selectedVariant ? Number(selectedVariant.price) : Number(product?.price || 0);
   const displayDiscount = selectedVariant
@@ -498,24 +550,7 @@ const ProductDetailsPage = () => {
                 وفر {formatPrice(savingsAmount, product.currency)} ({discountPercent}%)
               </p>
             )}
-            {product.description?.trim() ? (
-              <p className="mt-2 text-sm text-stone-500 dark:text-stone-400 leading-relaxed line-clamp-3 whitespace-pre-line">
-                {product.description.trim()}
-              </p>
-            ) : null}
-            {specRows.length > 0 ? (
-              <dl className="mt-2.5 space-y-1 border-t border-stone-100 dark:border-stone-800 pt-2">
-                {specRows.slice(0, 4).map((row) => (
-                  <div key={`${row.label}-${row.value}`} className="flex items-start justify-between gap-3 text-xs">
-                    <dt className="text-stone-500 dark:text-stone-400 shrink-0">{row.label}</dt>
-                    <dd className="font-semibold text-stone-800 dark:text-stone-100 text-left break-words">{row.value}</dd>
-                  </div>
-                ))}
-                {specRows.length > 4 ? (
-                  <p className="text-[11px] text-stone-400 pt-0.5">+{specRows.length - 4} مواصفات إضافية في الوصف</p>
-                ) : null}
-              </dl>
-            ) : null}
+            <ExpandableDescription text={product.description} />
           </div>
         </div>
 
@@ -664,7 +699,7 @@ const ProductDetailsPage = () => {
         </div>
       )}
 
-      {hasDescriptionContent ? (
+      {hasSpecContent ? (
         <button
           type="button"
           onClick={() => setDescSheetOpen(true)}
@@ -672,10 +707,10 @@ const ProductDetailsPage = () => {
         >
           <span className="inline-flex items-center gap-2 text-sm font-extrabold text-stone-900 dark:text-white">
             <FileText className="w-4 h-4 text-stone-500" aria-hidden="true" />
-            الوصف
+            الوصف والمواصفات
           </span>
           <span className="inline-flex items-center gap-1 text-xs font-semibold text-stone-500">
-            التفاصيل والمواصفات
+            عرض التفاصيل
             <ChevronDown className="w-4 h-4 -rotate-90" aria-hidden="true" />
           </span>
         </button>
@@ -991,7 +1026,6 @@ const ProductDetailsPage = () => {
       <ProductDescriptionSheet
         open={descSheetOpen}
         onClose={() => setDescSheetOpen(false)}
-        description={product.description || ''}
         rows={specRows}
       />
     </Layout>
