@@ -134,7 +134,7 @@ export const ProductCard: React.FC<ProductCardProps> = React.memo(({
       <div className={`relative w-full overflow-hidden bg-white dark:bg-stone-900 border-b border-stone-100 dark:border-stone-800 ${imageAspect}`}>
         <Link
           to={productPath}
-          className="absolute inset-0 z-0 flex items-center justify-center p-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gold-500/40"
+          className="absolute inset-0 z-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gold-500/40"
           aria-label={`عرض ${title}`}
         >
           <img
@@ -144,7 +144,7 @@ export const ProductCard: React.FC<ProductCardProps> = React.memo(({
             alt=""
             width={IMAGE_WIDTHS.GRID_CARD}
             height={Math.round(IMAGE_WIDTHS.GRID_CARD * (compact ? 5 / 4 : 1))}
-            className="max-w-full max-h-full w-auto h-auto object-contain transition-transform duration-300 group-hover:scale-[1.02] motion-reduce:transform-none"
+            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02] motion-reduce:transform-none"
             loading="lazy"
             decoding="async"
           />

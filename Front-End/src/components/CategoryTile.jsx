@@ -18,7 +18,7 @@ function getCategoryHref(category) {
 function CategoryTileSkeleton() {
   return (
     <div className="flex flex-col items-center gap-1.5 w-full">
-      <div className="w-full aspect-square rounded-2xl skeleton-shimmer" />
+      <div className="w-full aspect-square rounded-full skeleton-shimmer" />
       <div className="h-2.5 w-[85%] rounded skeleton-shimmer" />
     </div>
   );
@@ -40,7 +40,7 @@ const CategoryTile = React.memo(({ category, isLoading = false }) => {
       className="group flex flex-col items-center gap-1.5 w-full min-h-[44px] rounded-lg p-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 active:scale-[0.98] transition-transform"
       aria-label={`تصفح قسم ${name}`}
     >
-      <div className="w-full aspect-square rounded-2xl overflow-hidden bg-stone-100 dark:bg-stone-800 border border-stone-200/90 dark:border-stone-700/80 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
+      <div className="w-full aspect-square rounded-full overflow-hidden bg-stone-100 dark:bg-stone-800 border border-stone-200/90 dark:border-stone-700/80 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
         {hasImage ? (
           <img
             src={getOptimizedImageUrl(getRawCloudinaryUrl(iconUrl), TILE_IMAGE_WIDTH)}

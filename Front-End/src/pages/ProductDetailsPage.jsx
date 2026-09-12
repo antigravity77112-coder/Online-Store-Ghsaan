@@ -777,7 +777,7 @@ const ProductDetailsPage = () => {
   );
 
   const galleryBlock = (
-    <div className="w-full -mx-3 sm:mx-0">
+    <div className="w-full">
       <div
         className={`relative aspect-[4/5] sm:aspect-square bg-white dark:bg-stone-900 overflow-hidden touch-pan-y ${
           galleryImages.length > 1 ? "cursor-grab active:cursor-grabbing select-none" : ""
