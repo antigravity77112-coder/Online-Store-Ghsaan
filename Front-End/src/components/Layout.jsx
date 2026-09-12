@@ -243,7 +243,7 @@ const Layout = React.memo(({ children, homeMarketplace = false, hideMobileHeader
                   to="/my-orders"
                   title="طلباتي"
                   aria-label="طلباتي"
-                  className="hidden sm:flex items-center justify-center p-2 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 hover:bg-gold-50 dark:hover:bg-gold-900/30 hover:border-gold-300 dark:hover:border-gold-700 transition-all flex-shrink-0"
+                  className="hidden md:flex items-center justify-center p-2 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 hover:bg-gold-50 dark:hover:bg-gold-900/30 hover:border-gold-300 dark:hover:border-gold-700 transition-all flex-shrink-0"
                 >
                   <Package className="w-4 h-4" />
                 </Link>
@@ -291,12 +291,10 @@ const Layout = React.memo(({ children, homeMarketplace = false, hideMobileHeader
                 </span>
               </Link>
 
-              {/* Cart — desktop / non-shop only; mobile shop uses bottom nav */}
+              {/* Cart — desktop only; mobile uses bottom nav (including /cart and /profile) */}
               <Link
                 to="/cart"
-                className={`p-2 transition-colors relative group focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 rounded-xl flex-shrink-0 ${
-                  showShopChrome ? 'hidden md:inline-flex' : ''
-                } ${
+                className={`hidden md:inline-flex p-2 transition-colors relative group focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 rounded-xl flex-shrink-0 ${
                   showShopChrome
                     ? 'max-md:text-stone-200 max-md:hover:text-white max-md:hover:bg-white/10'
                     : 'text-gray-500 dark:text-gold-600 hover:text-gold-600 dark:hover:text-gold-400 hover:bg-gold-50 dark:hover:bg-gold-500/10'
@@ -314,7 +312,7 @@ const Layout = React.memo(({ children, homeMarketplace = false, hideMobileHeader
 
               {/* Profile / Login — avatar only (name in title tooltip) */}
               {isAuthenticated ? (
-                <div className="hidden sm:flex items-center gap-0.5 flex-shrink-0">
+                <div className="hidden md:flex items-center gap-0.5 flex-shrink-0">
                   <Link
                     to="/profile"
                     title={user?.fullName || 'الملف الشخصي'}
@@ -338,7 +336,7 @@ const Layout = React.memo(({ children, homeMarketplace = false, hideMobileHeader
               ) : (
                 <Link
                   to="/auth"
-                  className="hidden sm:flex items-center justify-center gap-1.5 px-3 py-2 bg-gold-500 text-white rounded-xl text-sm font-bold hover:bg-gold-400 transition-all shadow-sm hover:shadow-md active:scale-[0.98] flex-shrink-0"
+                  className="hidden md:flex items-center justify-center gap-1.5 px-3 py-2 bg-gold-500 text-white rounded-xl text-sm font-bold hover:bg-gold-400 transition-all shadow-sm hover:shadow-md active:scale-[0.98] flex-shrink-0"
                 >
                   <LogIn className="w-4 h-4" />
                   <span className="hidden lg:inline">تسجيل الدخول</span>

@@ -9,17 +9,20 @@ import CategoryTile from './CategoryTile';
 
 const ROWS = 2;
 
+function getVisibleCols() {
+  if (typeof window === 'undefined') return 7;
+  if (window.matchMedia('(min-width: 1024px)').matches) return 7;
+  if (window.matchMedia('(min-width: 640px)').matches) return 5;
+  return 4;
+}
+
 function useVisibleCols() {
-  const [cols, setCols] = useState(7);
+  const [cols, setCols] = useState(getVisibleCols);
 
   useEffect(() => {
     const lg = window.matchMedia('(min-width: 1024px)');
     const sm = window.matchMedia('(min-width: 640px)');
-    const sync = () => {
-      if (lg.matches) setCols(7);
-      else if (sm.matches) setCols(5);
-      else setCols(4);
-    };
+    const sync = () => setCols(getVisibleCols());
     sync();
     lg.addEventListener('change', sync);
     sm.addEventListener('change', sync);
@@ -30,6 +33,26 @@ function useVisibleCols() {
   }, []);
 
   return cols;
+}
+
+/** Align a page to the scroller's inline-start (right in RTL). Works on Chrome + Firefox. */
+function alignChildToInlineStart(scroller, child) {
+  if (!scroller || !child) return;
+  const isRtl = getComputedStyle(scroller).direction === 'rtl';
+  const drift = () => {
+    const s = scroller.getBoundingClientRect();
+    const c = child.getBoundingClientRect();
+    return isRtl ? c.right - s.right : c.left - s.left;
+  };
+
+  let delta = drift();
+  if (Math.abs(delta) < 2) return;
+
+  const before = scroller.scrollLeft;
+  scroller.scrollLeft = before + delta;
+  if (Math.abs(drift()) > Math.abs(delta)) {
+    scroller.scrollLeft = before - delta;
+  }
 }
 
 function chunkList(list, size) {
@@ -58,31 +81,44 @@ export default function CategoryIconGrid({
   const [activePage, setActivePage] = useState(0);
   const hasMultiplePages = pages.length > 1;
 
-  // Track active page based on scroll position
+  const goToPage = (pageIndex, behavior = 'smooth') => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const target = Math.max(0, Math.min(pages.length - 1, pageIndex));
+    const pageEl = el.children[target];
+    if (!pageEl) return;
+    if (behavior === 'smooth') {
+      pageEl.scrollIntoView({ behavior: 'smooth', inline: 'start', block: 'nearest' });
+    } else {
+      alignChildToInlineStart(el, pageEl);
+    }
+    setActivePage(target);
+  };
+
+  // Desktop Chrome + dir=rtl starts at the LAST page; pin to the first after layout.
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return undefined;
+    const pinStart = () => {
+      alignChildToInlineStart(el, el.firstElementChild);
+      setActivePage(0);
+    };
+    pinStart();
+    const raf = requestAnimationFrame(pinStart);
+    return () => cancelAnimationFrame(raf);
+  }, [pages.length, pageSize, isLoading, categories.length]);
+
   useEffect(() => {
     const el = scrollRef.current;
     if (!el || !hasMultiplePages) return undefined;
     const onScroll = () => {
       const pageWidth = el.clientWidth || 1;
-      // RTL: scrollLeft is negative in some browsers; normalize
-      const raw = el.scrollLeft;
-      const scrollLeft = Math.abs(raw);
-      const page = Math.round(scrollLeft / pageWidth);
+      const page = Math.round(Math.abs(el.scrollLeft) / pageWidth);
       setActivePage(Math.max(0, Math.min(pages.length - 1, page)));
     };
     el.addEventListener('scroll', onScroll, { passive: true });
     return () => el.removeEventListener('scroll', onScroll);
   }, [hasMultiplePages, pages.length]);
-
-  const goToPage = (pageIndex) => {
-    const el = scrollRef.current;
-    if (!el) return;
-    const target = Math.max(0, Math.min(pages.length - 1, pageIndex));
-    const pageWidth = el.clientWidth || 1;
-    // RTL scroll: use positive left for LTR, negative for RTL
-    el.scrollTo({ left: pageWidth * target, behavior: 'smooth' });
-    setActivePage(target);
-  };
 
   return (
     <section
@@ -112,8 +148,8 @@ export default function CategoryIconGrid({
       <div className="relative">
         <div
           ref={scrollRef}
-          className="category-belt-scroll flex gap-3 overflow-x-auto scrollbar-hide snap-x snap-mandatory pb-0.5 -mx-0.5 px-0.5"
-          style={{ WebkitOverflowScrolling: 'touch' }}
+          className="category-belt-scroll flex overflow-x-auto scrollbar-hide snap-x snap-mandatory pb-0.5 -mx-0.5 px-0.5"
+          style={{ WebkitOverflowScrolling: 'touch', overflowAnchor: 'none' }}
           dir="rtl"
           role="list"
         >
