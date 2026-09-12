@@ -2,10 +2,11 @@ import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
-import { ShoppingBag, Trash2, Plus, Minus, ArrowRight, ShoppingCart, Loader2, MapPin, MessageCircle, AlertCircle, AlertTriangle } from 'lucide-react';
+import { ShoppingBag, Trash2, Plus, Minus, ArrowRight, ShoppingCart, Loader2, MapPin, AlertCircle, AlertTriangle } from 'lucide-react';
 import Layout from '../components/Layout';
 import SEO from '../components/SEO';
 import OrderMethodSelector from '../components/OrderMethodSelector';
+import WhatsAppGlyph from '../components/WhatsAppGlyph';
 import DiscoveryLinks from '../components/listing/DiscoveryLinks';
 import { useCart } from '../context/CartContext';
 import { useSiteConfig } from '../context/SiteConfigContext';
@@ -51,7 +52,7 @@ const CartPage = () => {
   const currencyCode = items[0] ? mapCartCurrency(items[0].currency) : 'YER';
   const displayTotal = useMemo(
     () => items.reduce(
-      (sum, item) => sum + convertAmount(item.price, item.currency) * item.quantity,
+      (sum, item) => sum + convertAmount(item.discountPrice ?? item.price, item.currency) * item.quantity,
       0,
     ),
     [items, convertAmount],
@@ -132,7 +133,7 @@ const CartPage = () => {
             transition={{ type: 'spring', stiffness: 200, damping: 15 }}
             className="w-24 h-24 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mx-auto mb-8"
           >
-            <MessageCircle className="w-12 h-12 text-[#25D366]" aria-hidden="true" />
+            <WhatsAppGlyph className="w-12 h-12 text-[#25D366]" aria-hidden="true" />
           </motion.div>
           <h2 className="text-3xl font-extrabold text-slate-900 dark:text-white mb-3">{t('cart.successTitle')}</h2>
           <p className="text-slate-500 dark:text-slate-400 mb-8 text-lg">{t('cart.successDesc')}</p>
@@ -149,7 +150,7 @@ const CartPage = () => {
                 rel="noopener noreferrer"
                 className="px-6 py-3 min-h-[44px] bg-[#25D366] text-white font-bold rounded-xl hover:bg-[#1fb855] transition-colors flex items-center justify-center gap-2"
               >
-                <MessageCircle className="w-5 h-5" aria-hidden="true" />
+                <WhatsAppGlyph className="w-5 h-5" aria-hidden="true" />
                 {t('common.contactUs')}
               </a>
             )}
@@ -266,7 +267,7 @@ const CartPage = () => {
           {t('cart.trustSecure')}
         </p>
         <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
-          <MessageCircle className="w-3.5 h-3.5 text-[#25D366] flex-shrink-0" aria-hidden="true" />
+          <WhatsAppGlyph className="w-3.5 h-3.5 text-[#25D366] flex-shrink-0" aria-hidden="true" />
           {t('cart.trustWhatsapp')}
         </p>
       </div>
@@ -285,7 +286,7 @@ const CartPage = () => {
           </>
         ) : (
           <>
-            <MessageCircle className="w-5 h-5" aria-hidden="true" />
+            <WhatsAppGlyph className="w-5 h-5" aria-hidden="true" />
             {t('cart.sendWhatsapp')}
           </>
         )}
@@ -383,9 +384,20 @@ const CartPage = () => {
 
                     <div className="mt-3 flex items-end justify-between gap-2">
                       <div className="flex flex-col">
-                        <span className="text-base sm:text-lg font-black text-gold-700 dark:text-gold-400 leading-none">
-                          {formatPrice(item.price, item.currency)}
-                        </span>
+                        {item.discountPrice ? (
+                          <>
+                            <span className="text-base sm:text-lg font-black text-gold-700 dark:text-gold-400 leading-none">
+                              {formatPrice(Number(item.discountPrice), item.currency)}
+                            </span>
+                            <span className="text-xs text-slate-400 line-through mt-0.5">
+                              {formatPrice(Number(item.price), item.currency)}
+                            </span>
+                          </>
+                        ) : (
+                          <span className="text-base sm:text-lg font-black text-slate-900 dark:text-white leading-none">
+                            {formatPrice(item.price, item.currency)}
+                          </span>
+                        )}
 
                         <div className="flex items-center gap-1 mt-3">
                           <button
@@ -498,7 +510,7 @@ const CartPage = () => {
               {checkoutLoading ? (
                 <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
               ) : (
-                <MessageCircle className="w-4 h-4" aria-hidden="true" />
+                <WhatsAppGlyph className="w-4 h-4" aria-hidden="true" />
               )}
               <span className="truncate max-w-[8rem]">{checkoutLoading ? t('cart.openingWhatsapp') : t('cart.sendWhatsapp')}</span>
             </button>

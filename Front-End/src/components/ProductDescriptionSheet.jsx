@@ -21,7 +21,7 @@ export function formatAttributeDisplayValue(attr) {
 
 /**
  * Build key/value rows for the product description sheet.
- * Product identifiers, available variant options, and admin «مواصفات الوصف».
+ * Order: التصنيف → SKU → البراند → variant options → free-form product specs.
  * Price, condition, stock quantity, and the long description stay outside the sheet.
  */
 export function buildProductSpecRows(product, { selectedVariant = null, optionGroups = [] } = {}) {
@@ -37,8 +37,8 @@ export function buildProductSpecRows(product, { selectedVariant = null, optionGr
     rows.push({ label, value: String(value) });
   };
 
-  push('SKU', selectedVariant?.sku || product.sku);
   push('التصنيف', product.categoryName || product.category?.name);
+  push('SKU', selectedVariant?.sku || product.sku);
   push('البراند', product.brand?.name || product.brandName);
 
   if (selectedVariant?.attributes?.length) {
@@ -62,15 +62,10 @@ export function buildProductSpecRows(product, { selectedVariant = null, optionGr
     );
   }
 
-  if (Array.isArray(product.attributes)) {
-    for (const attr of product.attributes) {
-      const label =
-        attr.categoryAttribute?.name ||
-        attr.name ||
-        attr.label ||
-        'مواصفة';
-      const value = formatAttributeDisplayValue(attr);
-      push(label, value);
+  // Free-form per-product specs (name/value) — not tied to the category
+  if (Array.isArray(product.specs)) {
+    for (const spec of product.specs) {
+      push(spec.name, spec.value);
     }
   }
 

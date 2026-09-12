@@ -44,6 +44,11 @@ const PRODUCT_ATTRIBUTES_INCLUDE = {
   orderBy: { categoryAttribute: { sortOrder: 'asc' } },
 };
 
+const PRODUCT_SPECS_INCLUDE = {
+  orderBy: { sortOrder: 'asc' },
+  select: { id: true, name: true, value: true, sortOrder: true },
+};
+
 /** Blank / whitespace SKUs become null so Postgres unique allows multiple empties. */
 function normalizeSkuValue(sku) {
   if (sku == null) return null;
@@ -315,6 +320,10 @@ class ProductService {
     const rawAttributes = Array.isArray(productData.attributes) ? productData.attributes : [];
     delete productData.attributes;
 
+    // Extract free-form per-product specs (name/value pairs)
+    const rawSpecs = Array.isArray(productData.specs) ? productData.specs : [];
+    delete productData.specs;
+
     const scentIds = Array.isArray(productData.scentIds) ? productData.scentIds : undefined;
     delete productData.scentIds;
 
@@ -365,6 +374,18 @@ class ProductService {
               }))
             }
             : undefined,
+          // Free-form per-product specs (name/value)
+          specs: rawSpecs.length > 0
+            ? {
+              create: rawSpecs
+                .filter((s) => s && s.name && String(s.name).trim() && s.value != null && String(s.value).trim() !== '')
+                .map((s, idx) => ({
+                  name: String(s.name).trim(),
+                  value: String(s.value).trim(),
+                  sortOrder: typeof s.sortOrder === 'number' ? s.sortOrder : idx,
+                })),
+            }
+            : undefined,
         },
         include: {
           category: { select: { name: true } },
@@ -372,6 +393,7 @@ class ProductService {
           brand: { select: { name: true, slug: true, logoUrl: true } },
           variants: PRODUCT_VARIANTS_INCLUDE,
           attributes: PRODUCT_ATTRIBUTES_INCLUDE,
+          specs: PRODUCT_SPECS_INCLUDE,
           ...SCENT_INCLUDE,
         },
       });
@@ -386,6 +408,7 @@ class ProductService {
             brand: { select: { name: true, slug: true, logoUrl: true } },
             variants: PRODUCT_VARIANTS_INCLUDE,
             attributes: PRODUCT_ATTRIBUTES_INCLUDE,
+            specs: PRODUCT_SPECS_INCLUDE,
             ...SCENT_INCLUDE,
           },
         });
@@ -447,6 +470,8 @@ class ProductService {
     if (search) {
       where.OR = [
         { title: { contains: search, mode: 'insensitive' } },
+        { sku: { contains: search, mode: 'insensitive' } },
+        { variants: { some: { sku: { contains: search, mode: 'insensitive' } } } },
         { description: { contains: search, mode: 'insensitive' } },
         // Searchable attributes
         {
@@ -548,6 +573,7 @@ class ProductService {
         brand: { select: { name: true, slug: true, logoUrl: true } },
         ...SCENT_INCLUDE,
         attributes: PRODUCT_ATTRIBUTES_INCLUDE,
+        specs: PRODUCT_SPECS_INCLUDE,
         variants: PRODUCT_VARIANTS_INCLUDE,
       },
     });
@@ -574,6 +600,7 @@ class ProductService {
         brand: { select: { name: true, slug: true, logoUrl: true } },
         ...SCENT_INCLUDE,
         attributes: PRODUCT_ATTRIBUTES_INCLUDE,
+        specs: PRODUCT_SPECS_INCLUDE,
         variants: {
           where: { isActive: true },
           ...PRODUCT_VARIANTS_INCLUDE,
@@ -818,6 +845,27 @@ class ProductService {
       delete dataToUpdate.attributes;
     }
 
+    // Sync free-form per-product specs if provided
+    if (Array.isArray(dataToUpdate.specs)) {
+      const newSpecs = dataToUpdate.specs
+        .filter((s) => s && s.name && String(s.name).trim() && s.value != null && String(s.value).trim() !== '')
+        .map((s, idx) => ({
+          name: String(s.name).trim(),
+          value: String(s.value).trim(),
+          sortOrder: typeof s.sortOrder === 'number' ? s.sortOrder : idx,
+        }));
+      delete dataToUpdate.specs;
+
+      await prisma.productSpec.deleteMany({ where: { productId: id } });
+      if (newSpecs.length > 0) {
+        await prisma.productSpec.createMany({
+          data: newSpecs.map((s) => ({ productId: id, ...s })),
+        });
+      }
+    } else {
+      delete dataToUpdate.specs;
+    }
+
     if (Array.isArray(scentIds)) {
       await syncProductScents(id, scentIds);
     }
@@ -833,6 +881,7 @@ class ProductService {
           images: { orderBy: { sortOrder: 'asc' } },
           variants: PRODUCT_VARIANTS_INCLUDE,
           attributes: PRODUCT_ATTRIBUTES_INCLUDE,
+          specs: PRODUCT_SPECS_INCLUDE,
           ...SCENT_INCLUDE,
         },
       });

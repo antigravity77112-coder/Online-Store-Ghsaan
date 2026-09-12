@@ -247,6 +247,11 @@ const AddProductForm = ({ onSuccess, onCancel, editProduct, onDirtyChange }) => 
       acc[attr.categoryAttribute?.id || attr.categoryAttributeId] = attr.value;
       return acc;
     }, {}) || {},
+    specs: (editProduct?.specs || []).map(s => ({
+      name: s.name || '',
+      value: s.value != null ? String(s.value) : '',
+      sortOrder: s.sortOrder ?? 0,
+    })),
   });
 
   const [categoryAttributes, setCategoryAttributes] = useState([]);
@@ -490,6 +495,27 @@ const AddProductForm = ({ onSuccess, onCancel, editProduct, onDirtyChange }) => 
     } finally {
       setCreatingSpecAttr(false);
     }
+  };
+
+  // Free-form per-product specs (name/value) — not tied to the category
+  const addSpecRow = () => {
+    setForm(prev => ({
+      ...prev,
+      specs: [...(prev.specs || []), { name: '', value: '', sortOrder: (prev.specs?.length || 0) }],
+    }));
+  };
+  const updateSpecRow = (index, field, value) => {
+    setForm(prev => {
+      const next = [...(prev.specs || [])];
+      next[index] = { ...next[index], [field]: value };
+      return { ...prev, specs: next };
+    });
+  };
+  const removeSpecRow = (index) => {
+    setForm(prev => ({
+      ...prev,
+      specs: (prev.specs || []).filter((_, i) => i !== index).map((s, i) => ({ ...s, sortOrder: i })),
+    }));
   };
 
   const handleDeleteProductAttribute = async (attr) => {
@@ -751,6 +777,9 @@ const AddProductForm = ({ onSuccess, onCancel, editProduct, onDirtyChange }) => 
               categoryAttributeId,
               value: Array.isArray(value) ? value.join(',') : value,
             })),
+          specs: (form.specs || [])
+            .filter((s) => s && s.name?.trim() && s.value != null && String(s.value).trim() !== '')
+            .map((s, idx) => ({ name: s.name.trim(), value: String(s.value).trim(), sortOrder: idx })),
         });
       } else {
         await api.createProduct({
@@ -781,6 +810,9 @@ const AddProductForm = ({ onSuccess, onCancel, editProduct, onDirtyChange }) => 
               categoryAttributeId,
               value: Array.isArray(value) ? value.join(',') : value,
             })),
+          specs: (form.specs || [])
+            .filter((s) => s && s.name?.trim() && s.value != null && String(s.value).trim() !== '')
+            .map((s, idx) => ({ name: s.name.trim(), value: String(s.value).trim(), sortOrder: idx })),
         });
       }
       onSuccess?.();
@@ -1400,162 +1432,53 @@ const AddProductForm = ({ onSuccess, onCancel, editProduct, onDirtyChange }) => 
         <p className="text-[10px] text-slate-400 mt-1">يمكن اختيار أكثر من رائحة لنفس المنتج.</p>
       </div>
 
-      {/* المواصفات تظهر في نافذة «الوصف» على صفحة المنتج */}
+      {/* المواصفات الحرّة تظهر في نافذة «الوصف والمواصفات» على صفحة المنتج */}
       <div className="bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200 dark:border-slate-700 p-4 space-y-4">
         <div className="flex items-center gap-2 mb-1">
           <Sparkles className="w-4 h-4 text-slate-500" />
           <div>
             <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300">مواصفات الوصف</h3>
-            <p className="text-[11px] text-slate-500">تظهر للزبون عند الضغط على «الوصف» (المادة، الأبعاد…)</p>
+            <p className="text-[11px] text-slate-500">تظهر للزبون عند الضغط على «الوصف والمواصفات». لكل منتج مواصفاته الخاصة (المادة، الأبعاد…).</p>
           </div>
         </div>
 
-        {!form.categoryId ? (
-          <p className="text-xs text-slate-500">اختر التصنيف أولاً.</p>
-        ) : categoryAttributes.length === 0 ? (
-          <div className="space-y-2">
-            <p className="text-xs text-amber-700 dark:text-amber-300">لا توجد مواصفات لهذا التصنيف. أنشئ حقولاً مثل المادة أو الأبعاد.</p>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+        <div className="space-y-2">
+          {(form.specs || []).map((spec, index) => (
+            <div key={index} className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)_auto] gap-2 items-center">
               <input
                 type="text"
-                value={newSpecAttrName}
-                onChange={(e) => setNewSpecAttrName(e.target.value)}
-                placeholder="اسم المواصفة (مثال: المادة)"
-                className="px-2 py-1.5 border border-slate-200 dark:border-slate-600 rounded-lg text-xs bg-white dark:bg-slate-800"
+                value={spec.name}
+                onChange={(e) => updateSpecRow(index, 'name', e.target.value)}
+                placeholder="المواصفة (مثال: المادة)"
+                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-xl text-sm bg-white dark:bg-slate-700 focus:ring-2 focus:ring-gold-500/40 text-slate-900 dark:text-white"
               />
               <input
                 type="text"
-                value={newSpecAttrOptions}
-                onChange={(e) => setNewSpecAttrOptions(e.target.value)}
-                placeholder="قيم اختيارية بفاصلة (أو فارغ لنص حر)"
-                className="px-2 py-1.5 border border-slate-200 dark:border-slate-600 rounded-lg text-xs bg-white dark:bg-slate-800"
+                value={spec.value}
+                onChange={(e) => updateSpecRow(index, 'value', e.target.value)}
+                placeholder="القيمة (مثال: بولي بروبيلين)"
+                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-xl text-sm bg-white dark:bg-slate-700 focus:ring-2 focus:ring-gold-500/40 text-slate-900 dark:text-white"
               />
               <button
                 type="button"
-                disabled={creatingSpecAttr || !newSpecAttrName.trim()}
-                onClick={handleCreateProductAttribute}
-                className="px-3 py-1.5 bg-gold-500 text-white font-bold rounded-lg text-xs disabled:opacity-50"
+                onClick={() => removeSpecRow(index)}
+                className="inline-flex items-center justify-center w-9 h-9 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                title="حذف المواصفة"
+                aria-label="حذف المواصفة"
               >
-                {creatingSpecAttr ? 'جاري الإنشاء…' : 'إنشاء مواصفة'}
+                <X className="w-4 h-4" />
               </button>
             </div>
-          </div>
-        ) : (
-          <>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {categoryAttributes.map(attr => {
-                const val = form.attributes[attr.id] ?? '';
-                const handleAttrChange = (nextVal) => {
-                  setForm(prev => ({
-                    ...prev,
-                    attributes: { ...prev.attributes, [attr.id]: nextVal }
-                  }));
-                };
-
-                let inputElement = null;
-
-                if (attr.type === 'TEXT') {
-                  inputElement = (
-                    <input
-                      type="text"
-                      value={val}
-                      onChange={e => handleAttrChange(e.target.value)}
-                      required={attr.isRequired}
-                      placeholder="أدخل القيمة"
-                      className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-xl text-sm bg-white dark:bg-slate-700 focus:ring-2 focus:ring-gold-500/40 text-slate-900 dark:text-white"
-                    />
-                  );
-                } else if (attr.type === 'NUMBER') {
-                  inputElement = (
-                    <input
-                      type="number"
-                      value={val}
-                      onChange={e => handleAttrChange(e.target.value)}
-                      required={attr.isRequired}
-                      className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-xl text-sm bg-white dark:bg-slate-700 focus:ring-2 focus:ring-gold-500/40 text-slate-900 dark:text-white"
-                    />
-                  );
-                } else if (attr.type === 'BOOLEAN') {
-                  inputElement = (
-                    <BooleanPicker
-                      value={val}
-                      onChange={handleAttrChange}
-                      required={attr.isRequired}
-                      trueLabel="نعم / يستخدم"
-                      falseLabel="لا / لا يستخدم"
-                    />
-                  );
-                } else if (attr.type === 'SELECT') {
-                  const opts = parseAttrOptions(attr.options);
-                  inputElement = (
-                    <OptionPicker
-                      value={val}
-                      onChange={handleAttrChange}
-                      options={opts}
-                      required={attr.isRequired}
-                    />
-                  );
-                } else if (attr.type === 'MULTI_SELECT') {
-                  const opts = parseAttrOptions(attr.options);
-                  inputElement = (
-                    <OptionPicker
-                      value={val}
-                      onChange={handleAttrChange}
-                      options={opts}
-                      multiple
-                      required={attr.isRequired}
-                    />
-                  );
-                }
-
-                return (
-                  <div key={attr.id} className={attr.type === 'MULTI_SELECT' ? 'md:col-span-2' : ''}>
-                    <div className="flex items-center justify-between gap-2 mb-1.5">
-                      <label className="block text-xs font-bold text-slate-500 dark:text-slate-400">
-                        {attr.name} {attr.isRequired && <span className="text-red-500">*</span>}
-                      </label>
-                      <button
-                        type="button"
-                        disabled={creatingSpecAttr}
-                        onClick={() => handleDeleteProductAttribute(attr)}
-                        className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors disabled:opacity-50"
-                        title={`حذف مواصفة ${attr.name}`}
-                      >
-                        <X className="w-3 h-3" />
-                        حذف
-                      </button>
-                    </div>
-                    {inputElement}
-                  </div>
-                );
-              })}
-            </div>
-            <div className="pt-2 border-t border-slate-200 dark:border-slate-700 grid grid-cols-1 sm:grid-cols-3 gap-2">
-              <input
-                type="text"
-                value={newSpecAttrName}
-                onChange={(e) => setNewSpecAttrName(e.target.value)}
-                placeholder="مواصفة جديدة (مثال: الأبعاد)"
-                className="px-2 py-1.5 border border-slate-200 dark:border-slate-600 rounded-lg text-xs bg-white dark:bg-slate-800"
-              />
-              <input
-                type="text"
-                value={newSpecAttrOptions}
-                onChange={(e) => setNewSpecAttrOptions(e.target.value)}
-                placeholder="قيم SELECT بفاصلة (اختياري)"
-                className="px-2 py-1.5 border border-slate-200 dark:border-slate-600 rounded-lg text-xs bg-white dark:bg-slate-800"
-              />
-              <button
-                type="button"
-                disabled={creatingSpecAttr || !newSpecAttrName.trim()}
-                onClick={handleCreateProductAttribute}
-                className="px-3 py-1.5 border border-slate-200 dark:border-slate-600 font-bold rounded-lg text-xs disabled:opacity-50"
-              >
-                + مواصفة للتصنيف
-              </button>
-            </div>
-          </>
-        )}
+          ))}
+          <button
+            type="button"
+            onClick={addSpecRow}
+            className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-gold-700 dark:text-gold-300 border border-dashed border-gold-300 dark:border-gold-700 rounded-xl hover:bg-gold-50 dark:hover:bg-gold-900/20 transition-colors"
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            إضافة مواصفة
+          </button>
+        </div>
       </div>
 
       {/* حالة القطعة، الكمية */}

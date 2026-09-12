@@ -24,7 +24,9 @@ import {
 } from "lucide-react";
 import { useSiteConfig } from "../context/SiteConfigContext";
 import { DEFAULT_SITE_CONFIG } from "../config/siteConfigDefaults";
+import { resolveWhatsAppBaseUrl, buildWhatsAppUrl } from "../utils/whatsappOrder";
 import BrandTrio from "./BrandTrio";
+import WhatsAppGlyph from "./WhatsAppGlyph";
 
 const SHOP_LINKS = [
   { to: "/", label: "الرئيسية" },
@@ -153,8 +155,9 @@ function XIcon({ className }) {
   );
 }
 
-function SocialLinks({ social, className = "" }) {
+function SocialLinks({ social, whatsappHref = "", className = "" }) {
   const links = [
+    whatsappHref && { href: whatsappHref, label: "واتساب", Icon: WhatsAppGlyph },
     social?.instagram && { href: social.instagram, label: "انستغرام", Icon: Instagram },
     social?.facebook && { href: social.facebook, label: "فيسبوك", Icon: Facebook },
     social?.tiktok && { href: social.tiktok, label: "تيك توك", Icon: TikTokIcon },
@@ -190,6 +193,8 @@ const Footer = () => {
   const phone = (config.contact?.phone || "").trim();
   const phoneDigits = phone.replace(/[^\d]/g, "");
   const email = (config.contact?.email || "").trim();
+  const whatsappNumber = (config.contact?.whatsapp || "").trim();
+  const whatsappHref = whatsappNumber ? buildWhatsAppUrl(resolveWhatsAppBaseUrl(whatsappNumber), "") : "";
   const shippingOffer = (config.content?.shippingOfferText || "").trim();
   const tagline = (config.content?.footerText || config.seo?.description || DEFAULT_SITE_CONFIG.content.footerText).trim();
   const siteName = config.brand?.siteShortName || DEFAULT_SITE_CONFIG.brand.siteShortName;
@@ -217,7 +222,7 @@ const Footer = () => {
           <p className="mx-auto max-w-md text-xs leading-relaxed text-slate-600 dark:text-slate-400 line-clamp-3">
             {tagline}
           </p>
-          <SocialLinks social={config.social} className="mt-5 justify-center" />
+          <SocialLinks social={config.social} whatsappHref={whatsappHref} className="mt-5 justify-center" />
         </div>
 
         <div className="hidden md:grid md:grid-cols-3 gap-8 lg:gap-12 mb-8">

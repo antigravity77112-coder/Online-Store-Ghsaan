@@ -2,7 +2,8 @@ import React, { useMemo } from 'react';
 import Layout from '../components/Layout';
 import SEO from '../components/SEO';
 import { useSiteConfig } from '../context/SiteConfigContext';
-import { Phone, MessageCircle, Instagram, Mail } from 'lucide-react';
+import { Phone, Instagram, Mail } from 'lucide-react';
+import WhatsAppGlyph from '../components/WhatsAppGlyph';
 
 const ContactPage = () => {
   const { config } = useSiteConfig();
@@ -57,7 +58,7 @@ const ContactPage = () => {
                 className="flex items-center gap-3 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-emerald-300 dark:hover:border-emerald-500/60 hover:bg-emerald-50/60 dark:hover:bg-emerald-500/10 transition-colors"
               >
                 <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center">
-                  <MessageCircle className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                  <WhatsAppGlyph className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
                 </div>
                 <div className="min-w-0">
                   <div className="text-sm font-extrabold text-slate-900 dark:text-white">واتساب</div>

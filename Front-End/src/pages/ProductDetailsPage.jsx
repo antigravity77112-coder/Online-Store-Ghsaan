@@ -8,7 +8,6 @@ import {
   Loader2,
   AlertCircle,
   ShoppingCart,
-  MessageCircle,
   Minus,
   Plus,
   ChevronDown,
@@ -23,6 +22,7 @@ import Breadcrumbs from "../components/Breadcrumbs";
 import RelatedProducts from "../components/RelatedProducts";
 import BannerRenderer from "../components/BannerRenderer";
 import ProductDescriptionSheet, { buildProductSpecRows } from "../components/ProductDescriptionSheet";
+import WhatsAppGlyph from "../components/WhatsAppGlyph";
 import * as api from "../services/api";
 import { useProduct } from "../hooks/useProducts";
 import { useGallerySwipe } from "../hooks/useGallerySwipe";
@@ -98,7 +98,7 @@ function ExpandableDescription({ text }) {
     <div className="mt-2">
       <p
         ref={textRef}
-        className={`text-sm text-stone-500 dark:text-stone-400 leading-relaxed whitespace-pre-line ${
+        className={`text-sm text-stone-700 dark:text-stone-200 leading-relaxed whitespace-pre-line ${
           expanded ? "" : "line-clamp-3"
         }`}
       >
@@ -492,7 +492,7 @@ const ProductDetailsPage = () => {
 
   const trustItems = [
     shippingOfferText ? { icon: Truck, text: shippingOfferText } : null,
-    productWhatsAppUrl ? { icon: MessageCircle, text: "دعم سريع عبر واتساب" } : null,
+    productWhatsAppUrl ? { icon: WhatsAppGlyph, text: "دعم سريع عبر واتساب" } : null,
     displayStock > 0 ? { icon: ShieldCheck, text: "متوفر للطلب" } : null,
   ].filter(Boolean);
 
@@ -753,7 +753,7 @@ const ProductDetailsPage = () => {
             rel="noopener noreferrer"
             className="w-full h-11 rounded-sm font-bold text-sm flex items-center justify-center gap-2 bg-[#25D366] text-white hover:bg-[#1fb855] transition-colors"
           >
-            <MessageCircle className="w-4 h-4" />
+            <WhatsAppGlyph className="w-4 h-4" />
             الطلب عبر واتساب
           </a>
         ) : null}
@@ -789,7 +789,7 @@ const ProductDetailsPage = () => {
           srcSet={activeImageSources.srcSet}
           sizes={activeImageSources.sizes}
           alt={product.title}
-          className="w-full h-full object-contain p-3 sm:p-6"
+          className="w-full h-full object-cover"
           fetchPriority="high"
           onError={() => handleGalleryImageError(activeImageRawUrl)}
         />
@@ -1007,7 +1007,7 @@ const ProductDetailsPage = () => {
               aria-label="واتساب"
               className="flex-shrink-0 w-11 h-11 rounded-sm bg-[#25D366] text-white flex items-center justify-center"
             >
-              <MessageCircle className="w-5 h-5" />
+              <WhatsAppGlyph className="w-5 h-5" />
             </a>
           ) : null}
         </div>

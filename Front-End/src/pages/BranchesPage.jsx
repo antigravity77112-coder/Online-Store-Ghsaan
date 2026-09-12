@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { MapPin, Phone, Clock, ExternalLink, MessageCircle, Building2, Navigation } from 'lucide-react';
+import { MapPin, Phone, Clock, ExternalLink, Building2, Navigation } from 'lucide-react';
 import Layout from '../components/Layout';
 import SEO from '../components/SEO';
+import WhatsAppGlyph from '../components/WhatsAppGlyph';
 import * as api from '../services/api';
 
 const BranchCard = ({ branch, index }) => (
@@ -73,7 +74,7 @@ const BranchCard = ({ branch, index }) => (
           rel="noopener noreferrer"
           className="inline-flex items-center gap-1.5 px-3 py-2 bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 text-emerald-700 dark:text-emerald-400 text-xs font-bold rounded-xl transition-colors"
         >
-          <MessageCircle className="w-3.5 h-3.5" />
+          <WhatsAppGlyph className="w-3.5 h-3.5" />
           واتساب
         </a>
       )}

@@ -1,6 +1,7 @@
 import React from 'react';
-import { MessageCircle, CreditCard, Clock } from 'lucide-react';
+import { CreditCard, Clock } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import WhatsAppGlyph from './WhatsAppGlyph';
 
 const OrderMethodSelector = ({ value, onChange, className = '', showPaymentOption = true }) => {
   const { t } = useTranslation();
@@ -12,7 +13,7 @@ const OrderMethodSelector = ({ value, onChange, className = '', showPaymentOptio
           {t('cart.orderMethod')}
         </p>
         <div className="flex items-center gap-2.5 rounded-xl border border-[#25D366]/30 bg-[#25D366]/10 px-3 py-3 min-h-[44px]">
-          <MessageCircle className="w-5 h-5 text-[#128C7E] dark:text-[#25D366] flex-shrink-0" aria-hidden="true" />
+          <WhatsAppGlyph className="w-5 h-5 text-[#128C7E] dark:text-[#25D366] flex-shrink-0" aria-hidden="true" />
           <div className="min-w-0">
             <p className="text-xs font-bold text-[#128C7E] dark:text-[#25D366]">{t('cart.viaWhatsapp')}</p>
             <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed">{t('cart.whatsappCheckoutHint')}</p>
@@ -40,7 +41,7 @@ const OrderMethodSelector = ({ value, onChange, className = '', showPaymentOptio
               : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-600 text-slate-500 hover:border-[#25D366]/40'
           }`}
         >
-          <MessageCircle className="w-5 h-5" />
+          <WhatsAppGlyph className="w-5 h-5" />
           <span>{t('cart.viaWhatsapp')}</span>
         </button>
         <button

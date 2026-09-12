@@ -32,6 +32,11 @@ const createProductSchema = Joi.object({
     categoryAttributeId: Joi.string().uuid().required(),
     value: Joi.alternatives().try(Joi.string(), Joi.number(), Joi.boolean()).required(),
   })).optional(),
+  specs: Joi.array().items(Joi.object({
+    name: Joi.string().allow('', null).optional(),
+    value: Joi.alternatives().try(Joi.string(), Joi.number(), Joi.boolean()).allow('', null).optional(),
+    sortOrder: Joi.number().integer().min(0).optional(),
+  })).optional(),
   variants: Joi.array().items(Joi.object({
     sku: Joi.string().required(),
     price: Joi.number().positive().required(),

@@ -236,6 +236,8 @@ class AdminController {
       if (search) {
         whereClause.OR = [
           { title: { contains: search, mode: 'insensitive' } },
+          { sku: { contains: search, mode: 'insensitive' } },
+          { variants: { some: { sku: { contains: search, mode: 'insensitive' } } } },
           // Prisma doesn't easily substring match UUIDs in postgres without raw query, so we do exact match if length is 36, or startsWith if supported.
           // Wait, 'contains' on String works on UUID fields if casted? No, in Prisma Postgres, String operations on UUID require specific syntax.
           // Let's search title and category name.

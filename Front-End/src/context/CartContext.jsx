@@ -123,6 +123,11 @@ export const CartProvider = ({ children }) => {
                 options: options || i.options || null,
                 title: product.title || i.title,
                 slug: product.slug || i.slug || null,
+                price: product.price != null ? Number(product.price) : i.price,
+                discountPrice:
+                  product.discountPrice != null && product.discountPrice !== ''
+                    ? Number(product.discountPrice)
+                    : i.discountPrice ?? null,
               }
             : i,
         );
@@ -140,7 +145,11 @@ export const CartProvider = ({ children }) => {
           title: product.title,
           description: product.description || null,
           categoryName: product.categoryName || null,
-          price: product.discountPrice ?? product.price,
+          price: product.price != null ? Number(product.price) : 0,
+          discountPrice:
+            product.discountPrice != null && product.discountPrice !== ''
+              ? Number(product.discountPrice)
+              : null,
           currency: product.currency,
           imageUrl: product.imageUrl || product.mainImageUrl,
           mainImageUrl: product.mainImageUrl,
@@ -177,7 +186,7 @@ export const CartProvider = ({ children }) => {
   );
 
   const cartTotal = useMemo(
-    () => items.reduce((sum, i) => sum + i.price * i.quantity, 0),
+    () => items.reduce((sum, i) => sum + (i.discountPrice ?? i.price) * i.quantity, 0),
     [items],
   );
 

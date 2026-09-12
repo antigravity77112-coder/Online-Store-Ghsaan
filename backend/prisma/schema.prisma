@@ -458,6 +458,7 @@ model Product {
   images     ProductImage[]
   variants   ProductVariant[]
   attributes ProductAttribute[]
+  specs      ProductSpec[]
   reviews    Review[]
 
   // Order/Cart/Favorites (productId becomes nullable on delete via SetNull)
@@ -624,6 +625,24 @@ model ProductAttribute {
   // Attribute-value filtering: WHERE categoryAttributeId = ? AND value = ?
   // This is the core index for the filter sidebar.
   @@index([categoryAttributeId, value])
+}
+
+/// Free-form, per-product description specifications (key/value pairs).
+/// Unlike ProductAttribute, these are NOT tied to a CategoryAttribute — each
+/// product owns its own spec names and values (e.g. "المادة": "بولي بروبيلين").
+/// Shown in the storefront «الوصف والمواصفات» sheet.
+model ProductSpec {
+  id        String  @id @default(uuid()) @db.Uuid
+  productId String  @db.Uuid
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  /// Human-readable spec label (e.g. "المادة", "يحمل وزن").
+  name      String
+  /// Spec value as free text (e.g. "البولي بولين", "80 كيلو").
+  value     String
+  sortOrder Int     @default(0)
+
+  @@index([productId])
 }
 
 // =============================================================================
