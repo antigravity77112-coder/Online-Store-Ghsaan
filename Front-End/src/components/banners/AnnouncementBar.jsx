@@ -1,88 +1,94 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import { Megaphone } from 'lucide-react';
 import * as api from '../../services/api';
 import { getTrackedSet, markTracked, BANNER_IMPRESSION_KEY } from './bannerUtils';
 
-const ROTATE_MS = 4500;
+function bannerLabel(banner) {
+  return [banner.title, banner.subtitle, banner.description].filter(Boolean).join(' — ');
+}
 
+/**
+ * Scrolling announcement ticker (gisaah.com-style moving belt).
+ * Multiple active banners are joined with · into one continuous RTL marquee.
+ */
 export default function AnnouncementBar({ banners, overlay = false }) {
-  const [index, setIndex] = useState(0);
-  const banner = banners[index];
-  const hasMultiple = banners.length > 1;
+  const segments = useMemo(
+    () => (banners || []).map((b) => ({ id: b.id, label: bannerLabel(b), ctaUrl: b.ctaUrl })).filter((s) => s.label),
+    [banners],
+  );
+
+  const primary = banners?.[0];
+  const bgColor = primary?.bgColor && primary.bgColor !== 'transparent'
+    ? primary.bgColor
+    : '#C9A227';
+  const textColor = primary?.textColor || '#ffffff';
+  const scrollSpeed = Math.min(120, Math.max(8, Number(primary?.scrollSpeed) || 40));
+
+  const joinedText = useMemo(
+    () => segments.map((s) => s.label).join('  ·  '),
+    [segments],
+  );
 
   useEffect(() => {
-    setIndex(0);
-  }, [banners.length]);
-
-  useEffect(() => {
-    if (!banner) return;
+    if (!banners?.length) return;
     const tracked = getTrackedSet(BANNER_IMPRESSION_KEY);
-    if (tracked.has(banner.id)) return;
-    markTracked(banner.id, BANNER_IMPRESSION_KEY);
-    api.trackBannerEvent(banner.id, 'impression').catch(() => {});
-  }, [banner?.id]);
-
-  useEffect(() => {
-    if (!hasMultiple) return undefined;
-    const timer = setInterval(() => {
-      setIndex((i) => (i + 1) % banners.length);
-    }, ROTATE_MS);
-    return () => clearInterval(timer);
-  }, [hasMultiple, banners.length]);
+    for (const banner of banners) {
+      if (tracked.has(banner.id)) continue;
+      markTracked(banner.id, BANNER_IMPRESSION_KEY);
+      api.trackBannerEvent(banner.id, 'impression').catch(() => {});
+    }
+  }, [banners]);
 
   const handleClick = useCallback(() => {
-    if (!banner) return;
-    api.trackBannerEvent(banner.id, 'click').catch(() => {});
-    if (banner.ctaUrl) {
-      window.open(banner.ctaUrl, '_blank', 'noopener,noreferrer');
+    const withCta = banners?.find((b) => b.ctaUrl) || primary;
+    if (!withCta) return;
+    api.trackBannerEvent(withCta.id, 'click').catch(() => {});
+    if (withCta.ctaUrl) {
+      window.open(withCta.ctaUrl, '_blank', 'noopener,noreferrer');
     }
-  }, [banner]);
+  }, [banners, primary]);
 
-  if (!banner) return null;
+  if (!segments.length || !joinedText) return null;
 
-  const label = [banner.title, banner.subtitle, banner.description].filter(Boolean).join(' — ');
-  const bgStyle = banner.bgColor && banner.bgColor !== 'transparent'
-    ? { backgroundColor: banner.bgColor }
-    : undefined;
+  const hasCta = Boolean(banners?.some((b) => b.ctaUrl));
+
+  const track = (
+    <div className="offer-belt-track flex w-max max-w-none items-center gap-10 whitespace-nowrap py-2.5 sm:py-3" style={{ animationDuration: `${scrollSpeed}s` }}>
+      {[0, 1].map((copy) => (
+        <span key={copy} className="inline-flex items-center gap-3 text-xs sm:text-sm font-bold leading-none" style={{ color: textColor }}>
+          <Megaphone className="w-3.5 h-3.5 flex-shrink-0 opacity-90 hidden sm:block" aria-hidden="true" />
+          <span>{joinedText}</span>
+          <span className="opacity-50" aria-hidden="true">·</span>
+          <span>{joinedText}</span>
+        </span>
+      ))}
+    </div>
+  );
 
   const inner = (
     <div
       className={`relative w-full overflow-hidden ${overlay ? '' : ''}`}
-      style={!overlay ? bgStyle : undefined}
+      style={overlay ? undefined : { backgroundColor: bgColor }}
     >
-      <div className={`absolute inset-0 ${overlay ? 'bg-black/35 backdrop-blur-md' : 'bg-gradient-to-r from-gold-600/90 via-gold-500/90 to-gold-600/90'}`} />
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className={`flex items-center justify-center gap-2 py-2 ${overlay ? 'min-h-[36px]' : 'min-h-[40px] sm:min-h-[44px]'}`}>
-          <Megaphone className="w-3.5 h-3.5 text-white/90 flex-shrink-0 hidden sm:block" />
-          <AnimatePresence mode="wait">
-            <motion.p
-              key={banner.id}
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -6 }}
-              transition={{ duration: 0.3 }}
-              className="text-xs sm:text-sm font-bold text-white text-center leading-snug line-clamp-2"
-            >
-              {label}
-            </motion.p>
-          </AnimatePresence>
-          {hasMultiple && (
-            <div className="flex items-center gap-1 mr-2 flex-shrink-0">
-              {banners.map((b, i) => (
-                <span
-                  key={b.id}
-                  className={`rounded-full transition-all ${i === index ? 'w-3 h-1 bg-white' : 'w-1 h-1 bg-white/50'}`}
-                />
-              ))}
-            </div>
-          )}
+      {overlay ? (
+        <div className="absolute inset-0 bg-black/35 backdrop-blur-md" />
+      ) : null}
+      <div className="relative z-10">
+        <div className="offer-belt-viewport overflow-hidden" dir="ltr">
+          {track}
         </div>
+        {/* Static fallback for reduced motion (CSS hides the animated track) */}
+        <p
+          className="offer-belt-static hidden text-xs sm:text-sm font-bold text-center leading-snug px-4 py-2.5 line-clamp-2"
+          style={{ color: textColor }}
+        >
+          {joinedText}
+        </p>
       </div>
     </div>
   );
 
-  if (banner.ctaUrl) {
+  if (hasCta) {
     return (
       <button type="button" onClick={handleClick} className="w-full text-right cursor-pointer">
         {inner}

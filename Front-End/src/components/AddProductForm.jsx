@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useLayoutEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Upload, X, Loader2, ImagePlus, AlertCircle, Cloud, CheckCircle, Check, Sparkles, Star, Search, ChevronDown, Dices } from 'lucide-react';
 import { matchesSearch } from '../utils/arabicSearch';
@@ -12,11 +13,13 @@ import {
   buildOptionGroups,
 } from '../utils/variantOptions';
 
-/** Searchable multi-select for product categories. The first id drives attribute definitions. */
+/** Searchable multi-select for product categories. Dropdown portals to body to avoid modal clipping. */
 function CategoryMultiSelect({ categories = [], value = [], onChange, required = false }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
-  const containerRef = useRef(null);
+  const [menuStyle, setMenuStyle] = useState(null);
+  const triggerRef = useRef(null);
+  const menuRef = useRef(null);
   const inputRef = useRef(null);
 
   const selected = useMemo(
@@ -29,16 +32,46 @@ function CategoryMultiSelect({ categories = [], value = [], onChange, required =
     return categories.filter((c) => matchesSearch(query, c.name, c.slug));
   }, [categories, query]);
 
+  const updateMenuPosition = useCallback(() => {
+    const el = triggerRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const openUp = spaceBelow < 240 && rect.top > spaceBelow;
+    setMenuStyle({
+      position: 'fixed',
+      left: rect.left,
+      width: rect.width,
+      zIndex: 400,
+      ...(openUp
+        ? { bottom: window.innerHeight - rect.top + 6, top: 'auto' }
+        : { top: rect.bottom + 6, bottom: 'auto' }),
+    });
+  }, []);
+
+  useLayoutEffect(() => {
+    if (!open) return undefined;
+    updateMenuPosition();
+    const onScroll = () => updateMenuPosition();
+    window.addEventListener('resize', onScroll);
+    window.addEventListener('scroll', onScroll, true);
+    return () => {
+      window.removeEventListener('resize', onScroll);
+      window.removeEventListener('scroll', onScroll, true);
+    };
+  }, [open, updateMenuPosition, selected.length]);
+
   useEffect(() => {
+    if (!open) return undefined;
     const onOutside = (e) => {
-      if (containerRef.current && !containerRef.current.contains(e.target)) {
-        setOpen(false);
-        setQuery('');
-      }
+      const t = e.target;
+      if (triggerRef.current?.contains(t) || menuRef.current?.contains(t)) return;
+      setOpen(false);
+      setQuery('');
     };
     document.addEventListener('mousedown', onOutside);
     return () => document.removeEventListener('mousedown', onOutside);
-  }, []);
+  }, [open]);
 
   useEffect(() => {
     if (open) {
@@ -52,13 +85,66 @@ function CategoryMultiSelect({ categories = [], value = [], onChange, required =
     onChange?.(value.includes(id) ? value.filter((v) => v !== id) : [...value, id]);
   };
 
+  const dropdown = open && menuStyle
+    ? createPortal(
+      <div
+        ref={menuRef}
+        style={menuStyle}
+        className="rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 shadow-xl overflow-hidden"
+      >
+        <div className="p-2 border-b border-slate-100 dark:border-slate-700">
+          <div className="relative">
+            <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
+            <input
+              ref={inputRef}
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="ابحث عن تصنيف..."
+              className="w-full pr-9 pl-3 py-2 rounded-lg text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-gold-500/40"
+            />
+          </div>
+        </div>
+        <ul role="listbox" className="max-h-52 overflow-y-auto py-1">
+          {filtered.length === 0 ? (
+            <li className="px-4 py-3 text-xs text-slate-400 text-center">لا توجد نتائج</li>
+          ) : (
+            filtered.map((cat) => {
+              const active = value.includes(cat.id);
+              return (
+                <li key={cat.id}>
+                  <button
+                    type="button"
+                    role="option"
+                    aria-selected={active}
+                    onClick={() => toggle(cat.id)}
+                    className={`w-full flex items-center justify-between gap-2 text-right px-4 py-2.5 text-sm transition-colors ${
+                      active
+                        ? 'bg-gold-50 dark:bg-gold-900/30 text-gold-800 dark:text-gold-200 font-bold'
+                        : 'text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/60'
+                    }`}
+                  >
+                    {cat.name}
+                    {active ? <Check className="w-4 h-4 flex-shrink-0" aria-hidden="true" /> : null}
+                  </button>
+                </li>
+              );
+            })
+          )}
+        </ul>
+      </div>,
+      document.body,
+    )
+    : null;
+
   return (
-    <div ref={containerRef} className="relative">
+    <div className="relative">
       <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5">
         الأقسام {required ? <span className="text-red-500">*</span> : null}
         <span className="font-normal text-slate-400 mr-1">— يظهر المنتج في كل قسم تختاره</span>
       </label>
       <div
+        ref={triggerRef}
         role="button"
         tabIndex={0}
         onClick={() => setOpen((o) => !o)}
@@ -102,51 +188,7 @@ function CategoryMultiSelect({ categories = [], value = [], onChange, required =
           خصائص المتغيرات (اللون، المقاس...) تُؤخذ من قسم «{selected[0].name}».
         </p>
       ) : null}
-
-      {open && (
-        <div className="absolute z-30 mt-1.5 w-full rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 shadow-xl overflow-hidden">
-          <div className="p-2 border-b border-slate-100 dark:border-slate-700">
-            <div className="relative">
-              <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
-              <input
-                ref={inputRef}
-                type="text"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="ابحث عن تصنيف..."
-                className="w-full pr-9 pl-3 py-2 rounded-lg text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-gold-500/40"
-              />
-            </div>
-          </div>
-          <ul role="listbox" className="max-h-52 overflow-y-auto py-1">
-            {filtered.length === 0 ? (
-              <li className="px-4 py-3 text-xs text-slate-400 text-center">لا توجد نتائج</li>
-            ) : (
-              filtered.map((cat) => {
-                const active = value.includes(cat.id);
-                return (
-                  <li key={cat.id}>
-                    <button
-                      type="button"
-                      role="option"
-                      aria-selected={active}
-                      onClick={() => toggle(cat.id)}
-                      className={`w-full flex items-center justify-between gap-2 text-right px-4 py-2.5 text-sm transition-colors ${
-                        active
-                          ? 'bg-gold-50 dark:bg-gold-900/30 text-gold-800 dark:text-gold-200 font-bold'
-                          : 'text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/60'
-                      }`}
-                    >
-                      {cat.name}
-                      {active ? <Check className="w-4 h-4 flex-shrink-0" aria-hidden="true" /> : null}
-                    </button>
-                  </li>
-                );
-              })
-            )}
-          </ul>
-        </div>
-      )}
+      {dropdown}
     </div>
   );
 }
@@ -634,49 +676,71 @@ const AddProductForm = ({ onSuccess, onCancel, editProduct, onDirtyChange }) => 
     loadData();
   }, []);
 
-  // Keep form in sync when the full product is loaded for editing
+  // Hydrate once when opening a product for edit — do not re-run on image/variant length
+  // changes (those would wipe in-progress category edits).
   useEffect(() => {
     if (!editProduct?.id) return;
-    setForm((prev) => ({
-      ...prev,
-      title: editProduct.title || prev.title,
-      description: editProduct.description || prev.description,
-      price: editProduct.price != null ? String(editProduct.price) : prev.price,
-      currency: editProduct.currency || prev.currency,
+    setForm({
+      title: editProduct.title || '',
+      description: editProduct.description || '',
+      price: editProduct.price != null ? String(editProduct.price) : '',
+      currency: editProduct.currency || 'USD',
       condition: getInitialCondition(editProduct.condition),
-      stockQuantity: editProduct.stockQuantity ?? prev.stockQuantity,
-      categoryId: editProduct.categoryId || prev.categoryId,
-      categoryIds: extractCategoryIds(editProduct).length ? extractCategoryIds(editProduct) : prev.categoryIds,
+      stockQuantity: editProduct.stockQuantity ?? 1,
+      categoryId: editProduct.categoryId || '',
+      categoryIds: extractCategoryIds(editProduct),
       showStock: editProduct.showStock !== false,
       searchKeywords: editProduct.searchKeywords || '',
       imageUrls: extractImageUrls(editProduct),
       imageAltTexts: extractImageAltTexts(editProduct),
       isPromoted: editProduct.isPromoted || false,
       isTrending: editProduct.isTrending || false,
-      status: editProduct.status || prev.status,
+      status: editProduct.status || 'Active',
       discountPrice: editProduct.discountPrice != null ? String(editProduct.discountPrice) : '',
       promotionLabel: editProduct.promotionLabel || '',
       sku: editProduct.sku || '',
       hasVariants: editProduct.hasVariants || (editProduct.variants || []).length > 0,
-      lowStockThreshold: editProduct.lowStockThreshold ?? prev.lowStockThreshold,
+      lowStockThreshold: editProduct.lowStockThreshold ?? 5,
       metaTitle: editProduct.metaTitle || '',
       metaDescription: editProduct.metaDescription || '',
       brandId: editProduct.brandId || '',
       scentIds: (editProduct.scents || []).map((s) => s.id),
-      variants: editProduct.variants?.map(v => ({
+      variants: editProduct.variants?.map((v) => ({
         ...v,
         imageUrl: v.imageUrl || '',
         attributes: v.attributes?.reduce((acc, attr) => {
           acc[attr.categoryAttribute?.id || attr.categoryAttributeId] = attr.value;
           return acc;
-        }, {}) || {}
+        }, {}) || {},
       })) || [],
       attributes: editProduct.attributes?.reduce((acc, attr) => {
         acc[attr.categoryAttribute?.id || attr.categoryAttributeId] = attr.value;
         return acc;
       }, {}) || {},
+      specs: (editProduct.specs || []).map((s) => ({
+        name: s.name || '',
+        value: s.value != null ? String(s.value) : '',
+        sortOrder: s.sortOrder ?? 0,
+      })),
+    });
+    setRemovedCombos(new Set());
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- hydrate only when edit target id changes
+  }, [editProduct?.id]);
+
+  // When primary category changes, drop attribute values that belonged to the old category.
+  const prevCategoryIdRef = useRef(form.categoryId);
+  useEffect(() => {
+    const prev = prevCategoryIdRef.current;
+    prevCategoryIdRef.current = form.categoryId;
+    if (!prev || !form.categoryId || prev === form.categoryId) return;
+    setForm((f) => ({
+      ...f,
+      attributes: {},
+      variants: (f.variants || []).map((v) => ({ ...v, attributes: {} })),
     }));
-  }, [editProduct?.id, editProduct?.images?.length, editProduct?.variants?.length]);
+    setOptionGroupValues({});
+    setRemovedCombos(new Set());
+  }, [form.categoryId]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -988,11 +1052,14 @@ const AddProductForm = ({ onSuccess, onCancel, editProduct, onDirtyChange }) => 
         categories={categories}
         value={form.categoryIds}
         required
-        onChange={(categoryIds) => setForm((prev) => ({
-          ...prev,
-          categoryIds,
-          categoryId: categoryIds[0] || '',
-        }))}
+        onChange={(categoryIds) => {
+          markDirty();
+          setForm((prev) => ({
+            ...prev,
+            categoryIds,
+            categoryId: categoryIds[0] || '',
+          }));
+        }}
       />
 
       {/* ── إعدادات الظهور ── */}

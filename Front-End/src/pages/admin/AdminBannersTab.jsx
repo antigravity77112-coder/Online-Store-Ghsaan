@@ -17,7 +17,7 @@ import { AdminToolbar, AdminPrimaryButton, AdminGhostButton, adminSelectClass, A
 const PLACEMENTS = [
   { value: 'hero',         label: 'القسم الرئيسي (الهيرو)' },
   { value: 'promo_home',   label: 'قسم ترويجي - الرئيسية' },
-  { value: 'announcement', label: 'شريط الإعلان العلوي' },
+  { value: 'announcement', label: 'شريط متحرك (تيكر)' },
   { value: 'category',     label: 'صفحة الأقسام' },
   { value: 'product',      label: 'صفحة المنتج' },
   { value: 'sidebar',      label: 'الشريط الجانبي' },
@@ -45,7 +45,8 @@ const STATUSES = [
 
 const EMPTY_FORM = {
   title: '', subtitle: '', description: '', ctaText: '', ctaUrl: '',
-  imageUrl: '', mobileImageUrl: '', bgColor: '#1A0A0A',
+  imageUrl: '', mobileImageUrl: '', bgColor: '#C9A227', textColor: '#ffffff',
+  scrollSpeed: 40,
   textAlign: 'right', overlayOpacity: 30,
   placement: 'promo_home', status: 'active',
   showOnDesktop: true, showOnMobile: true,
@@ -56,7 +57,7 @@ const EMPTY_FORM = {
 const PLACEMENT_WHERE = {
   hero: 'أعلى الصفحة الرئيسية.',
   promo_home: 'داخل الصفحة الرئيسية بين الأقسام.',
-  announcement: 'شريط نصي أعلى كل صفحات المتجر، فوق الهيدر. يُستخدم العنوان والوصف كنص.',
+  announcement: 'شريط متحرك (تيكر) أعلى كل صفحات المتجر فوق الهيدر — نص يمر باستمرار. العنوان والوصف يصبحان النص المتحرك.',
   category: 'صفحة «الفئات»، وأعلى منتجات كل قسم، وصفحة جميع المنتجات.',
   product: 'صفحة كل منتج، تحت زر الشراء مباشرة.',
   sidebar: 'صفحة المنتج بجانب معلومات الشراء (على الجوال: تحت مزايا المتجر).',
@@ -151,7 +152,11 @@ const selectCls = inputCls + ' cursor-pointer appearance-none';
 function EditorPanel({ banner, allBanners = [], visible, onSoftClose, onHardClose, onSaved, onDirtyChange, showSuccess, setError }) {
   const isEdit = !!banner?.id;
   const [form, setForm] = useState(isEdit ? {
+    ...EMPTY_FORM,
     ...banner,
+    textColor: banner.textColor || '#ffffff',
+    scrollSpeed: banner.scrollSpeed ?? 40,
+    bgColor: banner.bgColor || (banner.placement === 'announcement' ? '#C9A227' : '#1A0A0A'),
     peekProductIds: Array.isArray(banner.peekProductIds) ? banner.peekProductIds : [],
     scheduledAt: banner.scheduledAt ? banner.scheduledAt.slice(0, 16) : '',
     expiresAt:   banner.expiresAt   ? banner.expiresAt.slice(0, 16)   : '',
@@ -217,6 +222,8 @@ function EditorPanel({ banner, allBanners = [], visible, onSoftClose, onHardClos
         expiresAt:   form.expiresAt   || null,
         overlayOpacity: Number(form.overlayOpacity),
         priority:       Number(form.priority),
+        scrollSpeed:    Math.min(120, Math.max(8, Number(form.scrollSpeed) || 40)),
+        textColor:      form.textColor || null,
         peekProductIds: Array.isArray(form.peekProductIds)
           ? form.peekProductIds.filter(Boolean).slice(0, 2)
           : [],
@@ -278,33 +285,35 @@ function EditorPanel({ banner, allBanners = [], visible, onSoftClose, onHardClos
             </div>
           </div>
 
-          {/* Images */}
-          <div className="grid grid-cols-1 gap-4">
-            <Field label={
-              <div className="flex justify-between items-center w-full">
-                <span>صورة البانر الأساسية (سطح المكتب)</span>
-                <span className="text-xs text-slate-400 font-normal" dir="ltr">{DIMENSION_HINTS[form.placement]?.desktop}</span>
-              </div>
-            }>
-              {form.imageUrl && <img src={form.imageUrl} className="h-20 rounded-lg object-cover mb-2 border border-slate-200 dark:border-slate-700" alt="" />}
-              <div className="relative">
-                <input type="file" accept="image/*" onChange={e => handleImageUpload(e, 'imageUrl')} disabled={uploadingField === 'imageUrl'} className={inputCls + ' file:mr-3 file:rounded-lg file:border-0 file:bg-gold-50 dark:file:bg-gold-900/40 file:text-gold-700 dark:file:text-gold-300 file:font-semibold file:text-sm cursor-pointer disabled:opacity-50'} />
-                <AdminUploadProgress active={uploadingField === 'imageUrl'} />
-              </div>
-            </Field>
-            <Field label={
-              <div className="flex justify-between items-center w-full">
-                <span>صورة الجوال (اختياري)</span>
-                <span className="text-xs text-slate-400 font-normal" dir="ltr">{DIMENSION_HINTS[form.placement]?.mobile}</span>
-              </div>
-            }>
-              {form.mobileImageUrl && <img src={form.mobileImageUrl} className="h-16 rounded-lg object-cover mb-2 border border-slate-200 dark:border-slate-700" alt="" />}
-              <div className="relative">
-                <input type="file" accept="image/*" onChange={e => handleImageUpload(e, 'mobileImageUrl')} disabled={uploadingField === 'mobileImageUrl'} className={inputCls + ' file:mr-3 file:rounded-lg file:border-0 file:bg-gold-50 dark:file:bg-gold-900/40 file:text-gold-700 dark:file:text-gold-300 file:font-semibold file:text-sm cursor-pointer disabled:opacity-50'} />
-                <AdminUploadProgress active={uploadingField === 'mobileImageUrl'} />
-              </div>
-            </Field>
-          </div>
+          {/* Images — hidden for announcement ticker */}
+          {form.placement !== 'announcement' && (
+            <div className="grid grid-cols-1 gap-4">
+              <Field label={
+                <div className="flex justify-between items-center w-full">
+                  <span>صورة البانر الأساسية (سطح المكتب)</span>
+                  <span className="text-xs text-slate-400 font-normal" dir="ltr">{DIMENSION_HINTS[form.placement]?.desktop}</span>
+                </div>
+              }>
+                {form.imageUrl && <img src={form.imageUrl} className="h-20 rounded-lg object-cover mb-2 border border-slate-200 dark:border-slate-700" alt="" />}
+                <div className="relative">
+                  <input type="file" accept="image/*" onChange={e => handleImageUpload(e, 'imageUrl')} disabled={uploadingField === 'imageUrl'} className={inputCls + ' file:mr-3 file:rounded-lg file:border-0 file:bg-gold-50 dark:file:bg-gold-900/40 file:text-gold-700 dark:file:text-gold-300 file:font-semibold file:text-sm cursor-pointer disabled:opacity-50'} />
+                  <AdminUploadProgress active={uploadingField === 'imageUrl'} />
+                </div>
+              </Field>
+              <Field label={
+                <div className="flex justify-between items-center w-full">
+                  <span>صورة الجوال (اختياري)</span>
+                  <span className="text-xs text-slate-400 font-normal" dir="ltr">{DIMENSION_HINTS[form.placement]?.mobile}</span>
+                </div>
+              }>
+                {form.mobileImageUrl && <img src={form.mobileImageUrl} className="h-16 rounded-lg object-cover mb-2 border border-slate-200 dark:border-slate-700" alt="" />}
+                <div className="relative">
+                  <input type="file" accept="image/*" onChange={e => handleImageUpload(e, 'mobileImageUrl')} disabled={uploadingField === 'mobileImageUrl'} className={inputCls + ' file:mr-3 file:rounded-lg file:border-0 file:bg-gold-50 dark:file:bg-gold-900/40 file:text-gold-700 dark:file:text-gold-300 file:font-semibold file:text-sm cursor-pointer disabled:opacity-50'} />
+                  <AdminUploadProgress active={uploadingField === 'mobileImageUrl'} />
+                </div>
+              </Field>
+            </div>
+          )}
 
           {form.placement === 'hero' && (
             <HeroPeekProductPicker
@@ -314,28 +323,53 @@ function EditorPanel({ banner, allBanners = [], visible, onSoftClose, onHardClos
           )}
 
           {/* Appearance */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className={`grid gap-4 ${form.placement === 'announcement' ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-2'}`}>
             <Field label="لون الخلفية">
               <div className="flex items-center gap-3">
-                <input type="color" value={form.bgColor || '#1A0A0A'} onChange={e => set('bgColor', e.target.value)} className="w-10 h-10 rounded-lg border border-slate-200 dark:border-slate-700 cursor-pointer" />
-                <input className={inputCls} dir="ltr" value={form.bgColor} onChange={e => set('bgColor', e.target.value)} placeholder="#1A0A0A" />
+                <input type="color" value={form.bgColor || '#C9A227'} onChange={e => set('bgColor', e.target.value)} className="w-10 h-10 rounded-lg border border-slate-200 dark:border-slate-700 cursor-pointer" />
+                <input className={inputCls} dir="ltr" value={form.bgColor} onChange={e => set('bgColor', e.target.value)} placeholder="#C9A227" />
               </div>
             </Field>
-            <Field label={`شفافية التعتيم: ${form.overlayOpacity}%`}>
-              <input type="range" min="0" max="100" value={form.overlayOpacity} onChange={e => set('overlayOpacity', e.target.value)} className="w-full mt-3" />
-            </Field>
+            {form.placement === 'announcement' ? (
+              <Field label="لون النص">
+                <div className="flex items-center gap-3">
+                  <input type="color" value={form.textColor || '#ffffff'} onChange={e => set('textColor', e.target.value)} className="w-10 h-10 rounded-lg border border-slate-200 dark:border-slate-700 cursor-pointer" />
+                  <input className={inputCls} dir="ltr" value={form.textColor || ''} onChange={e => set('textColor', e.target.value)} placeholder="#ffffff" />
+                </div>
+              </Field>
+            ) : (
+              <Field label={`شفافية التعتيم: ${form.overlayOpacity}%`}>
+                <input type="range" min="0" max="100" value={form.overlayOpacity} onChange={e => set('overlayOpacity', e.target.value)} className="w-full mt-3" />
+              </Field>
+            )}
           </div>
 
-          <Field label="محاذاة النص">
-            <div className="flex gap-2">
-              {['right','center','left'].map(a => (
-                <button key={a} onClick={() => set('textAlign', a)}
-                  className={`flex-1 py-2 text-sm font-semibold rounded-xl border transition-all ${form.textAlign === a ? 'bg-gold-600 text-white border-gold-600' : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-gold-400'}`}>
-                  {a === 'right' ? 'يمين' : a === 'center' ? 'وسط' : 'يسار'}
-                </button>
-              ))}
-            </div>
-          </Field>
+          {form.placement === 'announcement' && (
+            <Field label={`سرعة الحركة: ${form.scrollSpeed || 40} ثانية لكل دورة (أقل = أسرع)`}>
+              <input
+                type="range"
+                min="8"
+                max="120"
+                value={form.scrollSpeed || 40}
+                onChange={(e) => set('scrollSpeed', Number(e.target.value))}
+                className="w-full mt-2"
+              />
+              <p className="mt-1 text-[11px] text-slate-400">النص يمر بشكل مستمر من اليمين لليسار (مثل gisaah.com).</p>
+            </Field>
+          )}
+
+          {form.placement !== 'announcement' && (
+            <Field label="محاذاة النص">
+              <div className="flex gap-2">
+                {['right','center','left'].map(a => (
+                  <button key={a} type="button" onClick={() => set('textAlign', a)}
+                    className={`flex-1 py-2 text-sm font-semibold rounded-xl border transition-all ${form.textAlign === a ? 'bg-gold-600 text-white border-gold-600' : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-gold-400'}`}>
+                    {a === 'right' ? 'يمين' : a === 'center' ? 'وسط' : 'يسار'}
+                  </button>
+                ))}
+              </div>
+            </Field>
+          )}
 
           {/* Placement + Status */}
           <div className="grid grid-cols-2 gap-4">

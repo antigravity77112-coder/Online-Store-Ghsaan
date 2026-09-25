@@ -854,6 +854,10 @@ model Banner {
   imageUrl       String?
   mobileImageUrl String?
   bgColor        String?
+  /// Text color for announcement ticker (e.g. #ffffff).
+  textColor      String?
+  /// Seconds for one full marquee loop on announcement placement (8–120).
+  scrollSpeed    Int             @default(40)
   textAlign      String          @default("right")
   overlayOpacity Int             @default(30)
   placement      BannerPlacement @default(promo_home)

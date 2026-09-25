@@ -13,6 +13,8 @@ import {
   X,
   CheckCircle2,
   AlertCircle,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 import * as api from '../../services/api';
 import { formatNativePrice } from '../../utils/currency';
@@ -124,21 +126,32 @@ const AdminProductsTab = ({ openEditProductModal, hasProductDraft, onResumeProdu
     });
   };
 
-  const handleBulkStatus = async (isHidden) => {
-    if (selectedIds.size === 0) return;
+  const handleBulkStatus = async (isHidden, ids = null) => {
+    const targetIds = ids || Array.from(selectedIds);
+    if (targetIds.length === 0) return;
     setIsBulkLoading(true);
     try {
-      const newPages = productsData.map((page) => page.map((p) => (selectedIds.has(p.id) ? { ...p, isHidden } : p)));
+      const idSet = new Set(targetIds);
+      const newPages = productsData.map((page) => page.map((p) => (
+        idSet.has(p.id)
+          ? { ...p, isHidden, status: isHidden ? 'Archived' : 'Active' }
+          : p
+      )));
       mutateProducts(newPages, { revalidate: false });
-      await api.bulkUpdateAdminProductStatus(Array.from(selectedIds), isHidden);
+      await api.bulkUpdateAdminProductStatus(targetIds, isHidden);
       mutateProducts();
-      setSelectedIds(new Set());
+      if (!ids) setSelectedIds(new Set());
     } catch (err) {
       alert('حدث خطأ: ' + err.message);
       mutateProducts();
     } finally {
       setIsBulkLoading(false);
     }
+  };
+
+  const handleToggleVisibility = (product) => {
+    const isHidden = product.status === 'Archived' || product.isHidden;
+    handleBulkStatus(!isHidden, [product.id]);
   };
 
   const handleBulkDelete = async () => {
@@ -208,8 +221,13 @@ const AdminProductsTab = ({ openEditProductModal, hasProductDraft, onResumeProdu
     { id: 'outofstock', label: 'نفد المخزون' },
   ];
 
+  const selectedSingleId = selectedIds.size === 1 ? [...selectedIds][0] : null;
+  const selectedSingleProduct = selectedSingleId
+    ? products.find((p) => p.id === selectedSingleId)
+    : null;
+
   return (
-    <div className="relative min-h-[60vh] pb-24">
+    <div className={`relative min-h-[60vh] ${selectedIds.size > 0 ? 'pb-36' : 'pb-24'}`}>
       <AdminToolbar
         title="إدارة المنتجات"
         subtitle={`${products.length} منتج محمّل`}
@@ -249,35 +267,46 @@ const AdminProductsTab = ({ openEditProductModal, hasProductDraft, onResumeProdu
             initial={{ y: 50, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 50, opacity: 0 }}
-            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[95%] sm:w-auto max-w-2xl bg-slate-900/95 backdrop-blur-xl shadow-2xl rounded-2xl border border-gold-500/20 p-3 flex items-center justify-between gap-4 flex-wrap sm:flex-nowrap"
+            className="fixed left-1/2 -translate-x-1/2 z-[60] w-[min(95vw,42rem)] bg-slate-900/95 backdrop-blur-xl shadow-2xl rounded-2xl border border-gold-500/20 p-3 flex items-center gap-3 flex-nowrap"
+            style={{ bottom: 'max(1rem, env(safe-area-inset-bottom))' }}
           >
-            <div className="flex items-center gap-2 text-white px-2">
+            <div className="flex items-center gap-2 text-white px-1 flex-shrink-0">
               <div className="bg-gold-500 text-white text-xs font-bold w-7 h-7 rounded-full flex items-center justify-center">
                 {selectedIds.size}
               </div>
-              <span className="text-sm font-semibold">منتجات محددة</span>
+              <span className="text-sm font-semibold hidden xs:inline sm:inline">محددة</span>
             </div>
-            <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide">
+            <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide flex-1 min-w-0">
               {showCategorySelector ? (
                 <div className="flex items-center gap-2">
                   <select
                     onChange={(e) => { if (e.target.value) handleBulkCategoryChange(e.target.value); }}
-                    className="bg-slate-800 border border-slate-600 text-white text-xs rounded-xl px-3 py-2 outline-none min-w-[160px]"
+                    className="bg-slate-800 border border-slate-600 text-white text-xs rounded-xl px-3 py-2.5 min-h-[44px] outline-none min-w-[140px]"
                     defaultValue=""
                   >
                     <option value="" disabled>اختر القسم...</option>
                     {categories?.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
                   </select>
-                  <button type="button" onClick={() => setShowCategorySelector(false)} className="p-2 bg-slate-800 rounded-xl text-white"><X className="w-4 h-4" /></button>
+                  <button type="button" onClick={() => setShowCategorySelector(false)} className="p-2.5 min-w-[44px] min-h-[44px] bg-slate-800 rounded-xl text-white flex items-center justify-center"><X className="w-4 h-4" /></button>
                 </div>
               ) : (
                 <>
-                  <button type="button" disabled={isBulkLoading} onClick={() => setShowCategorySelector(true)} className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-bold whitespace-nowrap">
+                  {selectedSingleProduct && (
+                    <button
+                      type="button"
+                      disabled={isBulkLoading}
+                      onClick={() => openEditProductModal(selectedSingleProduct)}
+                      className="px-3 py-2.5 min-h-[44px] bg-blue-500/20 text-blue-300 rounded-xl text-xs font-bold whitespace-nowrap"
+                    >
+                      <Edit3 className="w-3.5 h-3.5 inline ml-1" /> تعديل
+                    </button>
+                  )}
+                  <button type="button" disabled={isBulkLoading} onClick={() => setShowCategorySelector(true)} className="px-3 py-2.5 min-h-[44px] bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-bold whitespace-nowrap">
                     <Tag className="w-3.5 h-3.5 inline ml-1" /> نقل
                   </button>
-                  <button type="button" disabled={isBulkLoading} onClick={() => handleBulkStatus(false)} className="px-3 py-1.5 bg-emerald-500/20 text-emerald-300 rounded-xl text-xs font-bold whitespace-nowrap">تنشيط</button>
-                  <button type="button" disabled={isBulkLoading} onClick={() => handleBulkStatus(true)} className="px-3 py-1.5 bg-slate-800 text-slate-300 rounded-xl text-xs font-bold whitespace-nowrap">إخفاء</button>
-                  <button type="button" disabled={isBulkLoading} onClick={handleBulkDelete} className="px-3 py-1.5 bg-red-500/20 text-red-400 rounded-xl text-xs font-bold whitespace-nowrap">حذف</button>
+                  <button type="button" disabled={isBulkLoading} onClick={() => handleBulkStatus(false)} className="px-3 py-2.5 min-h-[44px] bg-emerald-500/20 text-emerald-300 rounded-xl text-xs font-bold whitespace-nowrap">تنشيط</button>
+                  <button type="button" disabled={isBulkLoading} onClick={() => handleBulkStatus(true)} className="px-3 py-2.5 min-h-[44px] bg-slate-800 text-slate-300 rounded-xl text-xs font-bold whitespace-nowrap">إخفاء</button>
+                  <button type="button" disabled={isBulkLoading} onClick={handleBulkDelete} className="px-3 py-2.5 min-h-[44px] bg-red-500/20 text-red-400 rounded-xl text-xs font-bold whitespace-nowrap">حذف</button>
                 </>
               )}
             </div>
@@ -364,18 +393,21 @@ const AdminProductsTab = ({ openEditProductModal, hasProductDraft, onResumeProdu
                       <p className="text-sm font-semibold text-slate-700 dark:text-slate-300 text-center">{p.stockQuantity}</p>
                       <p className="text-xs text-slate-500 text-center truncate">{p.categoryName || '—'}</p>
                       <div className="flex justify-center">{getStatusBadge(p)}</div>
-                      <div className="flex items-center justify-center gap-0.5">
+                      <div className="flex items-center justify-center gap-0.5 relative z-10">
                         <button type="button" onClick={() => openEditProductModal(p)} title="تعديل" className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg"><Edit3 className="w-4 h-4" /></button>
                         <button type="button" onClick={() => handleDuplicate(p)} title="تكرار" className="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 rounded-lg"><Copy className="w-4 h-4" /></button>
+                        <button type="button" onClick={() => handleToggleVisibility(p)} title={(p.status === 'Archived' || p.isHidden) ? 'إظهار' : 'إخفاء'} disabled={isBulkLoading} className="p-1.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/30 rounded-lg disabled:opacity-50">
+                          {(p.status === 'Archived' || p.isHidden) ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                        </button>
                         <a href={`/product/${p.slug || p.id}`} target="_blank" rel="noreferrer" title="عرض" className="p-1.5 text-slate-400 hover:text-slate-900 dark:hover:text-white rounded-lg"><ExternalLink className="w-4 h-4" /></a>
                         <button type="button" onClick={() => handleDeleteProduct(p.id)} title="حذف" className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg"><Trash2 className="w-4 h-4" /></button>
                       </div>
                     </div>
 
                     {/* Mobile card */}
-                    <div className="lg:hidden space-y-3">
+                    <div className="lg:hidden space-y-3 relative z-10">
                       <div className="flex items-center gap-3">
-                        <button type="button" onClick={() => toggleSelection(p.id)} className="flex-shrink-0">
+                        <button type="button" onClick={() => toggleSelection(p.id)} className="flex-shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center">
                           {isSelected ? <CheckSquare className="w-5 h-5 text-gold-500" /> : <Square className="w-5 h-5 text-slate-400" />}
                         </button>
                         <div className="w-12 h-12 rounded-xl overflow-hidden bg-slate-100 flex-shrink-0">
@@ -390,10 +422,19 @@ const AdminProductsTab = ({ openEditProductModal, hasProductDraft, onResumeProdu
                         <div><span className="text-[10px] text-slate-400 block">السعر</span><span className="font-bold">{formatNativePrice(p.price, p.currency)}</span></div>
                         <div><span className="text-[10px] text-slate-400 block">المخزون</span><span className="font-semibold">{p.stockQuantity}</span></div>
                       </div>
-                      <div className="flex justify-end gap-1 pl-8 border-t border-slate-100 dark:border-slate-800 pt-2">
-                        <button type="button" onClick={() => openEditProductModal(p)} className="p-2 text-blue-600 bg-blue-50 dark:bg-blue-900/20 rounded-lg"><Edit3 className="w-4 h-4" /></button>
-                        <button type="button" onClick={() => handleDuplicate(p)} className="p-2 text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg"><Copy className="w-4 h-4" /></button>
-                        <button type="button" onClick={() => handleDeleteProduct(p.id)} className="p-2 text-red-600 bg-red-50 dark:bg-red-900/20 rounded-lg"><Trash2 className="w-4 h-4" /></button>
+                      <div className="flex justify-end gap-1.5 pl-8 border-t border-slate-100 dark:border-slate-800 pt-2">
+                        <button type="button" onClick={() => openEditProductModal(p)} className="p-2.5 min-w-[44px] min-h-[44px] text-blue-600 bg-blue-50 dark:bg-blue-900/20 rounded-lg flex items-center justify-center" aria-label="تعديل"><Edit3 className="w-4 h-4" /></button>
+                        <button type="button" onClick={() => handleDuplicate(p)} className="p-2.5 min-w-[44px] min-h-[44px] text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg flex items-center justify-center" aria-label="تكرار"><Copy className="w-4 h-4" /></button>
+                        <button
+                          type="button"
+                          disabled={isBulkLoading}
+                          onClick={() => handleToggleVisibility(p)}
+                          className="p-2.5 min-w-[44px] min-h-[44px] text-amber-700 bg-amber-50 dark:bg-amber-900/20 rounded-lg flex items-center justify-center disabled:opacity-50"
+                          aria-label={(p.status === 'Archived' || p.isHidden) ? 'إظهار' : 'إخفاء'}
+                        >
+                          {(p.status === 'Archived' || p.isHidden) ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                        </button>
+                        <button type="button" onClick={() => handleDeleteProduct(p.id)} className="p-2.5 min-w-[44px] min-h-[44px] text-red-600 bg-red-50 dark:bg-red-900/20 rounded-lg flex items-center justify-center" aria-label="حذف"><Trash2 className="w-4 h-4" /></button>
                       </div>
                     </div>
                   </div>

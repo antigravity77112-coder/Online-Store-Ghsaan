@@ -5,12 +5,13 @@
  */
 
 import React from 'react';
+import { Megaphone } from 'lucide-react';
 import { getBannerResponsiveSources } from '../../../utils/cloudinaryUrl';
 
 const PLACEMENT_RATIOS = {
   hero: 'aspect-[4/5] sm:aspect-[16/9] lg:aspect-[21/8] min-h-[280px] sm:min-h-[240px]',
   promo_home: 'aspect-[2.2/1] sm:aspect-[3.5/1]',
-  announcement: 'min-h-[40px]',
+  announcement: 'min-h-[44px]',
   category: 'aspect-[2/1] sm:aspect-[3/1]',
   product: 'aspect-[2/1] sm:aspect-[3/1]',
   sidebar: 'aspect-[2/1] lg:aspect-[9/16] lg:max-h-[420px]',
@@ -41,6 +42,8 @@ export default function BannerPreview({
     imageUrl = '',
     mobileImageUrl = '',
     bgColor = '#1A0A0A',
+    textColor = '#ffffff',
+    scrollSpeed = 40,
     textAlign = 'right',
     overlayOpacity = 30,
     placement = 'promo_home',
@@ -48,6 +51,39 @@ export default function BannerPreview({
   } = banner;
 
   const resolvedPlacement = placementProp || placement;
+  const isAnnouncement = resolvedPlacement === 'announcement';
+
+  if (isAnnouncement) {
+    const label = [title, subtitle, description].filter(Boolean).join(' — ') || 'نص الشريط المتحرك...';
+    const speed = Math.min(120, Math.max(8, Number(scrollSpeed) || 40));
+    return (
+      <div
+        className={`relative w-full overflow-hidden ${rounded ? 'rounded-xl' : ''} ${compact ? '' : 'min-h-[44px]'}`}
+        style={{ backgroundColor: bgColor || '#C9A227' }}
+      >
+        <div className="offer-belt-viewport overflow-hidden" dir="ltr">
+          <div
+            className="offer-belt-track flex w-max max-w-none items-center gap-8 whitespace-nowrap py-2.5 px-2"
+            style={{ animationDuration: `${speed}s` }}
+          >
+            {[0, 1].map((copy) => (
+              <span
+                key={copy}
+                className="inline-flex items-center gap-2 text-xs font-bold"
+                style={{ color: textColor || '#ffffff' }}
+              >
+                <Megaphone className="w-3.5 h-3.5 opacity-90" aria-hidden="true" />
+                <span>{label}</span>
+                <span className="opacity-50">·</span>
+                <span>{label}</span>
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const ratioClass = compact ? 'aspect-[16/5]' : (PLACEMENT_RATIOS[resolvedPlacement] || 'aspect-[4/1]');
   const alignClass = ALIGN_CLASSES[textAlign] || ALIGN_CLASSES.right;
   const overlayAlpha = Math.round((overlayOpacity / 100) * 255).toString(16).padStart(2, '0');
@@ -56,11 +92,6 @@ export default function BannerPreview({
     placement: resolvedPlacement === 'hero' ? 'hero' : resolvedPlacement,
     isMobile,
   });
-  const isAnnouncement = resolvedPlacement === 'announcement';
-
-  if (isAnnouncement && !compact) {
-    return null;
-  }
 
   return (
     <div

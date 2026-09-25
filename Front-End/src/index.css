@@ -290,19 +290,26 @@
   }
 }
 
+.offer-belt-viewport {
+  overflow: hidden;
+}
+
 .offer-belt-track {
-  animation: offer-belt-scroll 15s linear infinite;
+  animation: offer-belt-scroll 40s linear infinite;
   will-change: transform;
 }
 
-.offer-belt-track:hover {
+.offer-belt-viewport:hover .offer-belt-track {
   animation-play-state: paused;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .offer-belt-track {
-    animation: none;
-    transform: none;
+    display: none;
+  }
+
+  .offer-belt-static {
+    display: block !important;
   }
 
   .gisaah-motion-carousel,

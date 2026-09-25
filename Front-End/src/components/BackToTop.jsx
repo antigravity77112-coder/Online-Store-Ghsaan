@@ -16,6 +16,9 @@ const BackToTop = React.memo(() => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  if (pathname.startsWith('/admin')) {
+    return null;
+  }
   if (isProductPage && isMobile) {
     return null;
   }
