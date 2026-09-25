@@ -10,13 +10,33 @@ import { mapStorefrontProduct } from '../utils/mapStorefrontProduct';
 import * as api from '../services/api';
 import ProductVerticalSection from './ProductVerticalSection';
 
-const RelatedProducts = React.memo(({ categoryName, currentId }) => {
+const MAX_RELATED_CATEGORIES = 3;
+
+async function fetchRelated(names) {
+  const lists = await Promise.all(
+    names.map((categoryName) => api.getProducts({ categoryName, pageSize: 12 }).catch(() => [])),
+  );
+  const seen = new Set();
+  return lists.flat().filter((p) => {
+    const id = String(p.id);
+    if (seen.has(id)) return false;
+    seen.add(id);
+    return true;
+  });
+}
+
+const RelatedProducts = React.memo(({ categoryName, categoryNames, currentId }) => {
   const { addToCart } = useCart();
   const { isFavorite, toggleFavorite } = useFavorites();
 
+  const names = (categoryNames?.length ? categoryNames : [categoryName])
+    .filter(Boolean)
+    .slice(0, MAX_RELATED_CATEGORIES);
+  const namesKey = names.join('|');
+
   const { data: products, isLoading } = useSWR(
-    categoryName ? ['related-products', categoryName] : null,
-    () => api.getProducts({ categoryName, pageSize: 12 }),
+    namesKey ? ['related-products', namesKey] : null,
+    () => fetchRelated(names),
     {
       revalidateOnFocus: false,
       dedupingInterval: 60000,

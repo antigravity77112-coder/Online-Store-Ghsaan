@@ -8,6 +8,11 @@ const createProductSchema = Joi.object({
   condition: Joi.number().valid(1, 2, 3).required(),
   stockQuantity: Joi.number().integer().min(0).required(),
   categoryId: Joi.string().guid({ version: ['uuidv4', 'uuidv5'] }).required(),
+  categoryIds: Joi.array().items(
+    Joi.string().guid({ version: ['uuidv4', 'uuidv5'] })
+  ).max(20).optional(),
+  showStock: Joi.boolean().optional(),
+  searchKeywords: Joi.string().max(1000).allow(null, '').optional(),
   isPromoted: Joi.boolean().optional(),
   isTrending: Joi.boolean().optional(),
   imageUrls: Joi.array().items(Joi.string().uri().allow(null, '')).max(5).optional(),

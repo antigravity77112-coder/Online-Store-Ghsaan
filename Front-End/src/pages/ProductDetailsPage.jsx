@@ -15,6 +15,7 @@ import {
   Truck,
   ShieldCheck,
   Star,
+  ZoomIn,
 } from "lucide-react";
 import Layout from "../components/Layout";
 import SEO from "../components/SEO";
@@ -23,6 +24,7 @@ import RelatedProducts from "../components/RelatedProducts";
 import BannerRenderer from "../components/BannerRenderer";
 import ProductDescriptionSheet, { buildProductSpecRows } from "../components/ProductDescriptionSheet";
 import WhatsAppGlyph from "../components/WhatsAppGlyph";
+import ImageLightbox from "../components/ImageLightbox";
 import * as api from "../services/api";
 import { useProduct } from "../hooks/useProducts";
 import { useGallerySwipe } from "../hooks/useGallerySwipe";
@@ -200,6 +202,7 @@ const ProductDetailsPage = () => {
     setBrokenGalleryUrls(new Set());
     setQuantity(1);
     setDescSheetOpen(false);
+    setLightboxOpen(false);
     setOptionSelections({});
     setSelectedVariantId(null);
     trackedProductIdRef.current = null;
@@ -383,12 +386,13 @@ const ProductDetailsPage = () => {
       title: product.title,
       quantity,
       price: finalPrice,
+      originalPrice: hasDiscount ? displayPrice : null,
       currencySymbol: api.CurrencySymbol[product.currency] || "",
       variantLabel,
       options,
       productUrl: typeof window !== "undefined" ? window.location.href : "",
     });
-  }, [product, quantity, finalPrice, selectedVariant]);
+  }, [product, quantity, finalPrice, hasDiscount, displayPrice, selectedVariant]);
 
   const productWhatsAppUrl = useMemo(() => {
     const base = resolveWhatsAppBaseUrl(contactPhone, contactWhatsapp);
@@ -400,11 +404,27 @@ const ProductDetailsPage = () => {
     reviewsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
-  const imageCount = useMemo(() => {
-    if (!product) return 0;
-    if (product.images?.length > 0) return product.images.length;
-    return product.imageUrl ? 1 : 1;
+  const galleryImages = useMemo(() => {
+    if (!product) return [];
+    const productImages = product.images?.length > 0
+      ? product.images.map((img) => img.url)
+      : (product.imageUrl ? [product.imageUrl] : ["https://images.unsplash.com/photo-1560472355-536de3962603?w=1000&q=80"]);
+    const variantImage = selectedVariant?.imageUrl;
+    return variantImage
+      ? [variantImage, ...productImages.filter((url) => url !== variantImage)]
+      : productImages;
+  }, [product, selectedVariant?.imageUrl]);
+
+  const imageAltByUrl = useMemo(() => {
+    const map = {};
+    for (const img of product?.images || []) {
+      if (img.url && img.altText) map[img.url] = img.altText;
+    }
+    return map;
   }, [product]);
+
+  const imageCount = galleryImages.length;
+  const [lightboxOpen, setLightboxOpen] = useState(false);
 
   const goToPrevImage = useCallback(() => {
     if (imageCount <= 1) return;
@@ -449,13 +469,6 @@ const ProductDetailsPage = () => {
       </Layout>
     );
   }
-
-  const productImages = product.images?.length > 0
-    ? product.images.map((img) => img.url)
-    : (product.imageUrl ? [product.imageUrl] : ["https://images.unsplash.com/photo-1560472355-536de3962603?w=1000&q=80"]);
-  const galleryImages = selectedVariant?.imageUrl
-    ? [selectedVariant.imageUrl, ...productImages.filter((url) => url !== selectedVariant.imageUrl)]
-    : productImages;
 
   const safeIndex = Math.min(selectedImageIndex, galleryImages.length - 1);
   const activeImageRawUrl = galleryImages[safeIndex];
@@ -599,7 +612,9 @@ const ProductDetailsPage = () => {
           </span>
         ) : displayStock > 0 ? (
           <span className="px-1.5 py-0.5 text-[10px] font-semibold text-emerald-700 bg-emerald-50 rounded-sm border border-emerald-200/70">
-            متبقي {Number(displayStock).toLocaleString("en-US")}
+            {product.showStock !== false
+              ? `متبقي ${Number(displayStock).toLocaleString("en-US")}`
+              : "متوفر"}
           </span>
         ) : (
           <span className="px-1.5 py-0.5 text-[10px] font-semibold text-stone-500 bg-stone-100 rounded-sm">
@@ -707,7 +722,7 @@ const ProductDetailsPage = () => {
         >
           <span className="inline-flex items-center gap-2 text-sm font-extrabold text-stone-900 dark:text-white">
             <FileText className="w-4 h-4 text-stone-500" aria-hidden="true" />
-            الوصف والمواصفات
+            المواصفات
           </span>
           <span className="inline-flex items-center gap-1 text-xs font-semibold text-stone-500">
             عرض التفاصيل
@@ -770,9 +785,7 @@ const ProductDetailsPage = () => {
         </div>
       )}
 
-      <div className="hidden lg:block">
-        <BannerRenderer placement="sidebar" className="w-full" />
-      </div>
+      <BannerRenderer placement="sidebar" className="w-full mb-4" />
     </div>
   );
 
@@ -784,15 +797,26 @@ const ProductDetailsPage = () => {
         }`}
         {...(galleryImages.length > 1 ? gallerySwipe : {})}
       >
-        <img
-          src={activeImageSources.src}
-          srcSet={activeImageSources.srcSet}
-          sizes={activeImageSources.sizes}
-          alt={product.title}
-          className="w-full h-full object-cover"
-          fetchPriority="high"
-          onError={() => handleGalleryImageError(activeImageRawUrl)}
-        />
+        <button
+          type="button"
+          onClick={() => setLightboxOpen(true)}
+          className="absolute inset-0 w-full h-full cursor-zoom-in focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gold-500/60"
+          aria-label="عرض الصورة بملء الشاشة"
+        >
+          <img
+            src={activeImageSources.src}
+            srcSet={activeImageSources.srcSet}
+            sizes={activeImageSources.sizes}
+            alt={imageAltByUrl[activeImageRawUrl] || product.title}
+            className="w-full h-full object-cover"
+            fetchPriority="high"
+            draggable={false}
+            onError={() => handleGalleryImageError(activeImageRawUrl)}
+          />
+        </button>
+        <span className="pointer-events-none absolute bottom-3 left-3 z-10 flex items-center justify-center w-8 h-8 rounded-full bg-black/40 text-white" aria-hidden="true">
+          <ZoomIn className="w-4 h-4" />
+        </span>
 
         <div className="absolute top-2 inset-x-2 z-20 flex items-center justify-between pointer-events-none lg:hidden">
           <button
@@ -898,6 +922,10 @@ const ProductDetailsPage = () => {
           </div>
         </div>
 
+        <div className="px-3 sm:px-6 lg:px-8 max-w-6xl mx-auto">
+          <BannerRenderer placement="product" className="w-full mt-4" />
+        </div>
+
         <div className="mt-4 px-3 sm:px-6 lg:px-8 max-w-6xl mx-auto">
           {shippingOfferText ? (
             <div className="border-t border-stone-100 dark:border-stone-800">
@@ -937,13 +965,13 @@ const ProductDetailsPage = () => {
           )}
         </div>
 
-        <div className="px-3 sm:px-6 lg:px-8 max-w-6xl mx-auto mt-6">
-          <BannerRenderer placement="product" />
-        </div>
-
         {product.categoryName && (
           <div className="px-3 sm:px-6 lg:px-8 max-w-6xl mx-auto mt-6 pb-4">
-            <RelatedProducts categoryName={product.categoryName} currentId={product.id} />
+            <RelatedProducts
+              categoryName={product.categoryName}
+              categoryNames={product.categoryNames}
+              currentId={product.id}
+            />
           </div>
         )}
       </div>
@@ -1027,6 +1055,16 @@ const ProductDetailsPage = () => {
         open={descSheetOpen}
         onClose={() => setDescSheetOpen(false)}
         rows={specRows}
+      />
+
+      <ImageLightbox
+        open={lightboxOpen}
+        images={galleryImages}
+        index={safeIndex}
+        onIndexChange={setSelectedImageIndex}
+        onClose={() => setLightboxOpen(false)}
+        altByUrl={imageAltByUrl}
+        fallbackAlt={product.title}
       />
     </Layout>
   );

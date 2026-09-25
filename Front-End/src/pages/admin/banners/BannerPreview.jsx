@@ -11,9 +11,9 @@ const PLACEMENT_RATIOS = {
   hero: 'aspect-[4/5] sm:aspect-[16/9] lg:aspect-[21/8] min-h-[280px] sm:min-h-[240px]',
   promo_home: 'aspect-[2.2/1] sm:aspect-[3.5/1]',
   announcement: 'min-h-[40px]',
-  category: 'aspect-[4/5] sm:aspect-[3/4]',
+  category: 'aspect-[2/1] sm:aspect-[3/1]',
   product: 'aspect-[2/1] sm:aspect-[3/1]',
-  sidebar: 'aspect-[9/16] max-h-[420px]',
+  sidebar: 'aspect-[2/1] lg:aspect-[9/16] lg:max-h-[420px]',
   footer: 'aspect-[2/1] sm:aspect-[5/1]',
   popup: 'aspect-[4/3] sm:aspect-[4/3]',
 };

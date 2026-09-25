@@ -4,6 +4,7 @@ const { uploadBuffer, deleteByUrl } = require('../utils/cloudinaryClient');
 const { generateUniqueSlug } = require('../utils/slugify');
 const notificationService = require('./notificationService');
 const { withOptionGroups } = require('../utils/variantOptions');
+const { normalizeArabic, searchTokens, buildSearchText } = require('../utils/arabicNormalize');
 
 const SCENT_INCLUDE = {
   scents: {
@@ -116,6 +117,127 @@ async function syncProductScents(productId, scentIds) {
       data: unique.map((scentId) => ({ productId, scentId })),
       skipDuplicates: true,
     });
+  }
+}
+
+// ─── Search Helpers ───────────────────────────────────────────────────────────
+
+/** Rebuild Product.searchText from everything a customer might type. */
+async function refreshSearchText(productId) {
+  const p = await prisma.product.findUnique({
+    where: { id: productId },
+    select: {
+      title: true,
+      description: true,
+      sku: true,
+      searchKeywords: true,
+      category: { select: { name: true } },
+      categories: { select: { category: { select: { name: true } } } },
+      brand: { select: { name: true } },
+      variants: { select: { sku: true } },
+      attributes: {
+        where: { categoryAttribute: { isSearchable: true } },
+        select: { value: true },
+      },
+    },
+  });
+  if (!p) return;
+  const searchText = buildSearchText([
+    p.title,
+    p.searchKeywords,
+    p.sku,
+    ...p.variants.map((v) => v.sku),
+    p.brand?.name,
+    p.category?.name,
+    ...p.categories.map((c) => c.category?.name),
+    ...p.attributes.map((a) => a.value),
+    p.description,
+  ]);
+  await prisma.product.update({ where: { id: productId }, data: { searchText } });
+}
+
+function categoryNamesOf(p) {
+  const names = [p.category?.name, ...(p.categories || []).map((c) => c.category?.name)];
+  return [...new Set(names.filter(Boolean))];
+}
+
+/** Unique, existing category ids with the primary (Product.categoryId) first. */
+async function resolveCategoryIds(primaryId, categoryIds) {
+  const unique = [...new Set([primaryId, ...(categoryIds || [])].filter(Boolean))];
+  if (unique.length === 0) return [];
+  const found = await prisma.category.findMany({ where: { id: { in: unique } }, select: { id: true } });
+  if (found.length !== unique.length) {
+    throw new Error('واحد أو أكثر من الأقسام المحددة غير موجود');
+  }
+  return unique;
+}
+
+async function syncProductCategories(productId, categoryIds) {
+  await prisma.productCategory.deleteMany({
+    where: { productId, categoryId: { notIn: categoryIds } },
+  });
+  await prisma.productCategory.createMany({
+    data: categoryIds.map((categoryId) => ({ productId, categoryId })),
+    skipDuplicates: true,
+  });
+}
+
+const PRODUCT_CATEGORIES_INCLUDE = {
+  select: { categoryId: true, category: { select: { name: true, slug: true } } },
+};
+
+function withCategoryLinks(p) {
+  if (!p || !Array.isArray(p.categories)) return p;
+  const { categories, ...rest } = p;
+  const ids = [p.categoryId, ...categories.map((c) => c.categoryId)].filter(Boolean);
+  return {
+    ...rest,
+    categoryIds: [...new Set(ids)],
+    categoryNames: categoryNamesOf(p),
+  };
+}
+
+/** Prisma condition: every query word (in any accepted spelling) appears in searchText, or an SKU/title matches as typed. */
+function productSearchCondition(search) {
+  const raw = String(search).trim();
+  const or = [
+    { sku: { contains: raw, mode: 'insensitive' } },
+    { variants: { some: { sku: { contains: raw, mode: 'insensitive' } } } },
+    { title: { contains: raw, mode: 'insensitive' } },
+  ];
+  const tokens = searchTokens(raw);
+  if (tokens.length > 0) {
+    or.push({
+      AND: tokens.map((variants) => ({
+        OR: variants.map((v) => ({ searchText: { contains: v } })),
+      })),
+    });
+  }
+  return { OR: or };
+}
+
+/** Typo-tolerant fallback via pg_trgm; returns product ids ordered by similarity. */
+async function fuzzySearchIds(search, { activeOnly = true, limit = 60 } = {}) {
+  const q = normalizeArabic(search);
+  if (q.length < 3) return [];
+  try {
+    const rows = activeOnly
+      ? await prisma.$queryRaw`
+          SELECT id FROM "Product"
+          WHERE status = 'Active' AND "searchText" IS NOT NULL
+            AND word_similarity(${q}, "searchText") >= 0.45
+          ORDER BY word_similarity(${q}, "searchText") DESC
+          LIMIT ${limit}`
+      : await prisma.$queryRaw`
+          SELECT id FROM "Product"
+          WHERE "searchText" IS NOT NULL
+            AND word_similarity(${q}, "searchText") >= 0.45
+          ORDER BY word_similarity(${q}, "searchText") DESC
+          LIMIT ${limit}`;
+    return rows.map((r) => r.id);
+  } catch (err) {
+    console.warn('[search] fuzzy fallback unavailable:', err.message);
+    return [];
   }
 }
 
@@ -327,6 +449,12 @@ class ProductService {
     const scentIds = Array.isArray(productData.scentIds) ? productData.scentIds : undefined;
     delete productData.scentIds;
 
+    const categoryIds = await resolveCategoryIds(productData.categoryId, productData.categoryIds);
+    delete productData.categoryIds;
+    if (typeof productData.searchKeywords === 'string') {
+      productData.searchKeywords = productData.searchKeywords.trim() || null;
+    }
+
     await validateProductAttributes(productData.categoryId, rawAttributes);
 
     // Validate variant attributes if product has variants
@@ -400,19 +528,9 @@ class ProductService {
 
       if (scentIds) {
         await syncProductScents(product.id, scentIds);
-        product = await prisma.product.findUnique({
-          where: { id: product.id },
-          include: {
-            category: { select: { name: true } },
-            images: { orderBy: { sortOrder: 'asc' } },
-            brand: { select: { name: true, slug: true, logoUrl: true } },
-            variants: PRODUCT_VARIANTS_INCLUDE,
-            attributes: PRODUCT_ATTRIBUTES_INCLUDE,
-            specs: PRODUCT_SPECS_INCLUDE,
-            ...SCENT_INCLUDE,
-          },
-        });
       }
+      await syncProductCategories(product.id, categoryIds);
+      await refreshSearchText(product.id);
     } catch (error) {
       if (error.code === 'P2002' && error.meta?.target?.includes('sku')) {
         throw new Error('رقم الصنف (SKU) مستخدم بالفعل، يرجى اختيار رقم آخر.');
@@ -420,7 +538,7 @@ class ProductService {
       throw error;
     }
 
-    const mapped = withOptionGroups(mapProductWithScents({ ...product, categoryName: product.category?.name || null }));
+    const mapped = await this.getProductById(product.id);
     try {
       await notificationService.notifyEngagementNewProduct(mapped);
     } catch (err) {
@@ -449,12 +567,19 @@ class ProductService {
       where.isTrending = true;
     }
 
+    const and = [];
+
     if (categoryName) {
-      where.category = { name: { equals: categoryName } };
+      and.push({
+        OR: [
+          { category: { name: { equals: categoryName } } },
+          { categories: { some: { category: { name: { equals: categoryName } } } } },
+        ],
+      });
     }
 
     if (categoryId) {
-      where.categoryId = categoryId;
+      and.push({ OR: [{ categoryId }, { categories: { some: { categoryId } } }] });
     }
 
     if (brandId) {
@@ -467,30 +592,12 @@ class ProductService {
       where.scents = { some: { scent: { slug: scentSlug, isActive: true } } };
     }
 
-    if (search) {
-      where.OR = [
-        { title: { contains: search, mode: 'insensitive' } },
-        { sku: { contains: search, mode: 'insensitive' } },
-        { variants: { some: { sku: { contains: search, mode: 'insensitive' } } } },
-        { description: { contains: search, mode: 'insensitive' } },
-        // Searchable attributes
-        {
-          attributes: {
-            some: {
-              categoryAttribute: { isSearchable: true },
-              value: { contains: search, mode: 'insensitive' },
-            },
-          },
-        },
-      ];
-    }
-
     // Attribute-based filtering: ?attr[slug]=value
     // Each entry adds an AND condition requiring a ProductAttribute match
     if (attrFilters && typeof attrFilters === 'object') {
-      const attrConditions = Object.entries(attrFilters)
+      Object.entries(attrFilters)
         .filter(([, v]) => v)
-        .map(([slug, value]) => ({
+        .forEach(([slug, value]) => and.push({
           attributes: {
             some: {
               categoryAttribute: { slug },
@@ -498,14 +605,52 @@ class ProductService {
             },
           },
         }));
-      if (attrConditions.length > 0) {
-        where.AND = attrConditions;
+    }
+
+    const hasSearch = typeof search === 'string' && search.trim() !== '';
+    const whereWith = (searchCondition) => {
+      const conditions = searchCondition ? [...and, searchCondition] : and;
+      return conditions.length > 0 ? { ...where, AND: conditions } : where;
+    };
+
+    let products = await this._findProductCards(
+      whereWith(hasSearch ? productSearchCondition(search) : null),
+      { trending, pageNumber, pageSize },
+    );
+
+    if (hasSearch && products.length === 0) {
+      const ids = await fuzzySearchIds(search);
+      if (ids.length > 0) {
+        products = await this._findProductCards(whereWith({ id: { in: ids } }), { trending, pageNumber, pageSize });
       }
     }
 
-    // Card payload only — full gallery/scents/description load on detail endpoints
-    // Skip total count (was unused) to avoid an extra DB round-trip per page
-    const products = await prisma.product.findMany({
+    let filtered = products;
+    if (maxPriceUsd !== undefined) {
+      filtered = products.filter(p => p.currency !== 'USD' || Number(p.price) <= maxPriceUsd);
+    }
+
+    return filtered.map((p) => {
+      const { variants, showStock, categories, ...rest } = p;
+      const variantStockTotal = Array.isArray(variants)
+        ? variants.reduce((sum, v) => sum + (Number(v.stockQuantity) || 0), 0)
+        : 0;
+      const remainingStock = p.hasVariants ? variantStockTotal : (Number(p.stockQuantity) || 0);
+      return {
+        ...rest,
+        showStock: showStock !== false,
+        categoryName: p.category?.name || null,
+        categoryNames: categoryNamesOf(p),
+        imageUrl: p.images?.[0]?.url ?? null,
+        scents: [],
+        remainingStock,
+      };
+    });
+  }
+
+  /** Card payload only — full gallery/scents/description load on detail endpoints. */
+  _findProductCards(where, { trending, pageNumber, pageSize }) {
+    return prisma.product.findMany({
       where,
       select: {
         id: true,
@@ -531,6 +676,8 @@ class ProductService {
           select: { id: true, url: true, isPrimary: true, sortOrder: true },
         },
         brand: { select: { name: true, slug: true } },
+        showStock: true,
+        categories: { select: { category: { select: { name: true } } } },
         variants: {
           where: { isActive: true },
           select: { stockQuantity: true },
@@ -542,26 +689,6 @@ class ProductService {
       skip: (pageNumber - 1) * pageSize,
       take: pageSize,
     });
-
-    let filtered = products;
-    if (maxPriceUsd !== undefined) {
-      filtered = products.filter(p => p.currency !== 'USD' || Number(p.price) <= maxPriceUsd);
-    }
-
-    return filtered.map((p) => {
-      const { variants, ...rest } = p;
-      const variantStockTotal = Array.isArray(variants)
-        ? variants.reduce((sum, v) => sum + (Number(v.stockQuantity) || 0), 0)
-        : 0;
-      const remainingStock = p.hasVariants ? variantStockTotal : (Number(p.stockQuantity) || 0);
-      return {
-        ...rest,
-        categoryName: p.category?.name || null,
-        imageUrl: p.images?.[0]?.url ?? null,
-        scents: [],
-        remainingStock,
-      };
-    });
   }
 
   async getProductById(id) {
@@ -569,6 +696,7 @@ class ProductService {
       where: { id },
       include: {
         category: { select: { name: true, slug: true } },
+        categories: PRODUCT_CATEGORIES_INCLUDE,
         images: { orderBy: { sortOrder: 'asc' } },
         brand: { select: { name: true, slug: true, logoUrl: true } },
         ...SCENT_INCLUDE,
@@ -578,11 +706,11 @@ class ProductService {
       },
     });
     if (!p) return null;
-    return withOptionGroups(mapProductWithScents({
+    return withOptionGroups(withCategoryLinks(mapProductWithScents({
       ...p,
       categoryName: p.category?.name || null,
       imageUrl: p.images?.[0]?.url ?? null,
-    }));
+    })));
   }
 
   async getProductBySlug(slug) {
@@ -595,7 +723,7 @@ class ProductService {
             parent: { select: { name: true, slug: true } },
           },
         },
-
+        categories: PRODUCT_CATEGORIES_INCLUDE,
         images: { orderBy: { sortOrder: 'asc' } },
         brand: { select: { name: true, slug: true, logoUrl: true } },
         ...SCENT_INCLUDE,
@@ -614,22 +742,30 @@ class ProductService {
       },
     });
     if (!p) return null;
-    return withOptionGroups(mapProductWithScents({
+    return withOptionGroups(withCategoryLinks(mapProductWithScents({
       ...p,
       categoryName: p.category?.name || null,
       imageUrl: p.images?.[0]?.url ?? null,
-    }));
+    })));
   }
 
   async updateProduct(id, updateData) {
-    const { id: _, createdAt: __, variants, scentIds, ...dataToUpdate } = updateData;
+    const { id: _, createdAt: __, variants, scentIds, categoryIds: incomingCategoryIds, ...dataToUpdate } = updateData;
 
     const existing = await prisma.product.findUnique({
       where: { id },
-      select: { stockQuantity: true, title: true },
+      select: { stockQuantity: true, title: true, categoryId: true },
     });
     if (!existing) throw new Error('Product not found');
     const previousStock = existing.stockQuantity;
+
+    const categoryIds = Array.isArray(incomingCategoryIds)
+      ? await resolveCategoryIds(dataToUpdate.categoryId || existing.categoryId, incomingCategoryIds)
+      : null;
+    if (categoryIds) dataToUpdate.categoryId = categoryIds[0];
+    if (typeof dataToUpdate.searchKeywords === 'string') {
+      dataToUpdate.searchKeywords = dataToUpdate.searchKeywords.trim() || null;
+    }
 
     if (dataToUpdate.title) {
       dataToUpdate.slug = await generateUniqueSlug(dataToUpdate.title, prisma, id);
@@ -803,12 +939,8 @@ class ProductService {
           }
         }
       } else if (dataToUpdate.hasVariants === false) {
-        // If hasVariants was toggled to false, do not delete existing variants to preserve history.
-        // Instead, just mark them inactive so they don't show up on the storefront.
-        await prisma.productVariant.updateMany({
-          where: { productId: id },
-          data: { isActive: false }
-        });
+        // Orders keep their own copy of the chosen options, so removed variants can be deleted.
+        await prisma.productVariant.deleteMany({ where: { productId: id } });
       }
     }
 
@@ -892,13 +1024,24 @@ class ProductService {
       throw error;
     }
 
+    if (categoryIds) {
+      await syncProductCategories(id, categoryIds);
+    } else if (product.categoryId !== existing.categoryId) {
+      await prisma.productCategory.deleteMany({ where: { productId: id, categoryId: existing.categoryId } });
+      await prisma.productCategory.createMany({
+        data: [{ productId: id, categoryId: product.categoryId }],
+        skipDuplicates: true,
+      });
+    }
+    await refreshSearchText(id);
+
     try {
       await notificationService.notifyAdminsLowStock(product, previousStock);
     } catch (err) {
       console.error('[products] low stock notify:', err.message);
     }
 
-    return withOptionGroups(mapProductWithScents(product));
+    return this.getProductById(id);
   }
 
   async deleteProduct(id) {
@@ -1043,3 +1186,6 @@ class ProductService {
 }
 
 module.exports = ProductService;
+module.exports.productSearchCondition = productSearchCondition;
+module.exports.fuzzySearchIds = fuzzySearchIds;
+module.exports.refreshSearchText = refreshSearchText;

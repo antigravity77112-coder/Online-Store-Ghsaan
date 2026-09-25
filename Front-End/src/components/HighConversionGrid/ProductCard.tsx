@@ -25,12 +25,16 @@ export interface Product {
   stockQuantity?: number;
   remainingStock?: number;
   hasVariants?: boolean;
+  /** false → hide the "متبقي N" count (out-of-stock is always shown). */
+  showStock?: boolean;
 }
 
 interface ProductCardProps {
   product?: Product;
   isLoading?: boolean;
   compact?: boolean;
+  /** Above-the-fold cards load eagerly with high fetch priority. */
+  priority?: boolean;
   onQuickAdd?: (product: Product) => void;
   /** @deprecated Navigation uses internal Link when slug/id is present */
   onClick?: (product: Product) => void;
@@ -53,10 +57,12 @@ export const ProductCard: React.FC<ProductCardProps> = React.memo(({
   product,
   isLoading = false,
   compact = false,
+  priority = false,
   onFavorite,
 }) => {
   const formatPrice = useFormatDisplayPrice();
   const [isFavoriteLocal, setIsFavoriteLocal] = useState(product?.isFavorite ?? false);
+  const [useRawImage, setUseRawImage] = useState(false);
 
   React.useEffect(() => {
     if (product?.isFavorite !== undefined) {
@@ -92,6 +98,7 @@ export const ProductCard: React.FC<ProductCardProps> = React.memo(({
     promotionLabel,
     remainingStock,
     stockQuantity,
+    showStock = true,
   } = product;
 
   const leftInStock = remainingStock != null
@@ -121,12 +128,10 @@ export const ProductCard: React.FC<ProductCardProps> = React.memo(({
 
   const imageAspect = compact ? 'aspect-[4/5]' : 'aspect-square';
   const rawImage = getRawCloudinaryUrl(image);
-  const imageSrc = getOptimizedImageUrl(rawImage, IMAGE_WIDTHS.GRID_CARD);
-  const imageSrcSet = [
-    `${getOptimizedImageUrl(rawImage, 360)} 360w`,
-    `${getOptimizedImageUrl(rawImage, IMAGE_WIDTHS.GRID_CARD)} 480w`,
-    `${getOptimizedImageUrl(rawImage, IMAGE_WIDTHS.GRID_CARD_RETINA)} 640w`,
-  ].join(', ');
+  const imageSrc = useRawImage ? rawImage : getOptimizedImageUrl(rawImage, IMAGE_WIDTHS.GRID_CARD);
+  const imageSrcSet = useRawImage ? undefined : [360, IMAGE_WIDTHS.GRID_CARD, IMAGE_WIDTHS.GRID_CARD_RETINA]
+    .map((w) => `${getOptimizedImageUrl(rawImage, w)} ${w}w`)
+    .join(', ');
   const imageSizes = '(max-width: 640px) 46vw, (max-width: 1024px) 30vw, 16vw';
 
   return (
@@ -140,13 +145,15 @@ export const ProductCard: React.FC<ProductCardProps> = React.memo(({
           <img
             src={imageSrc}
             srcSet={imageSrcSet}
-            sizes={imageSizes}
+            sizes={useRawImage ? undefined : imageSizes}
             alt=""
             width={IMAGE_WIDTHS.GRID_CARD}
             height={Math.round(IMAGE_WIDTHS.GRID_CARD * (compact ? 5 / 4 : 1))}
             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02] motion-reduce:transform-none"
-            loading="lazy"
+            loading={priority ? 'eager' : 'lazy'}
+            fetchPriority={priority ? 'high' : 'auto'}
             decoding="async"
+            onError={() => { if (!useRawImage) setUseRawImage(true); }}
           />
         </Link>
 
@@ -211,7 +218,7 @@ export const ProductCard: React.FC<ProductCardProps> = React.memo(({
           )}
         </div>
 
-        {leftInStock != null && !Number.isNaN(leftInStock) ? (
+        {leftInStock != null && !Number.isNaN(leftInStock) && (showStock || leftInStock <= 0) ? (
           <p className={`mt-1 text-[10px] sm:text-[11px] font-semibold leading-none ${
             leftInStock > 0
               ? 'text-emerald-700 dark:text-emerald-400'

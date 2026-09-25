@@ -7,7 +7,9 @@ import { Search, LayoutGrid } from 'lucide-react';
 import Layout from '../components/Layout';
 import SEO from '../components/SEO';
 import CategoryTile from '../components/CategoryTile';
+import BannerRenderer from '../components/BannerRenderer';
 import { useCategories } from '../hooks/useProducts';
+import { matchesSearch } from '../utils/arabicSearch';
 
 const SKELETON_COUNT = 14;
 
@@ -17,8 +19,7 @@ const CategoriesPage = () => {
 
   const filteredCategories = useMemo(() => {
     if (!searchText.trim()) return categories;
-    const q = searchText.trim().toLowerCase();
-    return categories.filter((cat) => cat.name?.toLowerCase().includes(q));
+    return categories.filter((cat) => matchesSearch(searchText, cat.name, cat.slug));
   }, [categories, searchText]);
 
   return (
@@ -47,6 +48,8 @@ const CategoriesPage = () => {
         </div>
 
         <div className="px-2 py-3 sm:px-4 pb-6 md:pb-10">
+          <BannerRenderer placement="category" className="mb-3" />
+
           {!isLoading && categories.length > 0 && (
             <p className="text-[10px] text-stone-400 dark:text-stone-500 mb-2.5 px-0.5">
               {filteredCategories.length} فئة

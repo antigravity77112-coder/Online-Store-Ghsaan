@@ -85,7 +85,7 @@ export function buildProductSpecRows(product, { selectedVariant = null, optionGr
 export default function ProductDescriptionSheet({
   open,
   onClose,
-  title = 'الوصف والمواصفات',
+  title = 'المواصفات',
   rows = [],
 }) {
   useEffect(() => {

@@ -40,6 +40,7 @@ export default function HomeProductFeed({
         loadingCount={loadingCount}
         variant="vertical"
         onFavorite={onFavorite}
+        priorityCount={0}
       />
     </section>
   );

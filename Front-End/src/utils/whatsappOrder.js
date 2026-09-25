@@ -101,23 +101,47 @@ function formatItemOptions(item) {
   return Object.entries(item.options).filter(([, v]) => v != null && v !== '');
 }
 
+const formatAmount = (value, currencySymbol) =>
+  `${Number(value || 0).toLocaleString('en-US', { maximumFractionDigits: 2 })} ${currencySymbol}`.trim();
+
+/** Original and discounted unit price; discount is null when the item is not on sale. */
+function itemPrices(item) {
+  const price = Number(item.price) || 0;
+  const discount = item.discountPrice != null && item.discountPrice !== ''
+    ? Number(item.discountPrice)
+    : null;
+  const onSale = discount != null && !Number.isNaN(discount) && discount < price;
+  return { price, discount: onSale ? discount : null };
+}
+
 export function buildCartWhatsAppMessage(items, cartTotal, shippingAddress, currencySymbol = '') {
   const origin = typeof window !== 'undefined' ? window.location.origin : '';
 
   let message = 'مرحباً، أود طلب المنتجات التالية:\n\n';
+  let originalTotal = 0;
 
   items.forEach((item, index) => {
+    const { price, discount } = itemPrices(item);
+    originalTotal += price * item.quantity;
     message += `${index + 1}. ${item.title}\n`;
     const opts = formatItemOptions(item);
     opts.forEach(([key, value]) => {
       message += `   ${key}: ${value}\n`;
     });
+    message += `   سعر المنتج: ${formatAmount(price, currencySymbol)}\n`;
+    if (discount != null) {
+      message += `   سعر الخصم: ${formatAmount(discount, currencySymbol)}\n`;
+    }
     message += `   الكمية: ${item.quantity}\n`;
-    message += `   السعر: ${item.price.toLocaleString('en-US')} ${currencySymbol}\n`;
     message += `   الرابط: ${buildProductPageUrl(origin, item)}\n\n`;
   });
 
-  message += `الإجمالي: ${cartTotal.toLocaleString('en-US')} ${currencySymbol}\n`;
+  const savings = originalTotal - cartTotal;
+  message += `الإجمالي: ${formatAmount(originalTotal, currencySymbol)}\n`;
+  if (savings > 0.009) {
+    message += `الخصم: ${formatAmount(savings, currencySymbol)}\n`;
+    message += `بعد الخصم: ${formatAmount(cartTotal, currencySymbol)}\n`;
+  }
 
   if (shippingAddress?.trim()) {
     message += `العنوان: ${shippingAddress.trim()}\n`;
@@ -127,10 +151,15 @@ export function buildCartWhatsAppMessage(items, cartTotal, shippingAddress, curr
   return message;
 }
 
+/**
+ * `price` is the unit price the customer pays; pass `originalPrice` when it is discounted
+ * so the message shows both «سعر المنتج» and «سعر الخصم».
+ */
 export function buildProductWhatsAppMessage({
   title,
   quantity = 1,
   price,
+  originalPrice = null,
   currencySymbol = '',
   variantLabel = '',
   options = null,
@@ -149,8 +178,22 @@ export function buildProductWhatsAppMessage({
   } else if (variantLabel) {
     message += `الخيار: ${variantLabel}\n`;
   }
+  const { price: unitOriginal, discount } = itemPrices({
+    price: originalPrice != null ? originalPrice : price,
+    discountPrice: originalPrice != null ? price : null,
+  });
+  const unitFinal = discount ?? unitOriginal;
+  message += `سعر المنتج: ${formatAmount(unitOriginal, currencySymbol)}\n`;
+  if (discount != null) {
+    message += `سعر الخصم: ${formatAmount(discount, currencySymbol)}\n`;
+  }
   message += `الكمية: ${quantity}\n`;
-  message += `السعر: ${Number(price).toLocaleString('en-US')} ${currencySymbol}\n`;
+  if (quantity > 1 || discount != null) {
+    message += `الإجمالي: ${formatAmount(unitOriginal * quantity, currencySymbol)}\n`;
+    if (discount != null) {
+      message += `بعد الخصم: ${formatAmount(unitFinal * quantity, currencySymbol)}\n`;
+    }
+  }
   if (productUrl) {
     message += `الرابط: ${productUrl}\n`;
   }

@@ -57,6 +57,15 @@ const CartPage = () => {
     ),
     [items, convertAmount],
   );
+  const displayOriginalTotal = useMemo(
+    () => items.reduce(
+      (sum, item) => sum + convertAmount(Math.max(item.price, item.discountPrice ?? 0), item.currency) * item.quantity,
+      0,
+    ),
+    [items, convertAmount],
+  );
+  const displayDiscount = Math.max(0, displayOriginalTotal - displayTotal);
+  const hasCartDiscount = displayDiscount > 0.009;
   const displayTotalLabel = formatPrice(displayTotal, preferredCurrency);
   const addressInvalid = addressTouched && !checkoutForm.shippingAddress.trim();
 
@@ -192,18 +201,28 @@ const CartPage = () => {
   const summaryTotals = (
     <div className="space-y-3 text-sm">
       <div className="flex justify-between text-slate-500 dark:text-slate-400">
-        <span>{t('cart.subtotal')} ({cartCount})</span>
+        <span>{hasCartDiscount ? 'الإجمالي قبل الخصم' : t('cart.subtotal')} ({cartCount})</span>
         <span className="font-semibold text-slate-800 dark:text-white">
-          {displayTotalLabel}
+          {formatPrice(displayOriginalTotal, preferredCurrency)}
         </span>
       </div>
+      {hasCartDiscount && (
+        <div className="flex justify-between text-slate-500 dark:text-slate-400">
+          <span>الخصم الكلي</span>
+          <span className="font-bold text-[#e6533d]" dir="ltr">
+            −{formatPrice(displayDiscount, preferredCurrency)}
+          </span>
+        </div>
+      )}
       <div className="flex justify-between text-slate-500 dark:text-slate-400">
         <span>{t('common.delivery')}</span>
         <span className="text-slate-600 dark:text-slate-300 font-medium text-xs">{t('cart.shippingNote')}</span>
       </div>
       <hr className="border-slate-100 dark:border-slate-700" />
       <div className="flex justify-between items-baseline">
-        <span className="font-bold text-slate-900 dark:text-white text-base">{t('common.total')}</span>
+        <span className="font-bold text-slate-900 dark:text-white text-base">
+          {hasCartDiscount ? 'الإجمالي النهائي' : t('common.total')}
+        </span>
         <span className="font-extrabold text-gold-600 dark:text-gold-400 text-lg">
           {displayTotalLabel}
         </span>

@@ -40,10 +40,12 @@ function buildCategorySectionsFromCatalog(catalog, categories) {
   const byCategory = new Map();
 
   for (const product of catalog) {
-    const catName = product.categoryName;
-    if (!catName) continue;
-    if (!byCategory.has(catName)) byCategory.set(catName, []);
-    byCategory.get(catName).push(product);
+    const names = product.categoryNames?.length ? product.categoryNames : [product.categoryName];
+    for (const catName of names) {
+      if (!catName) continue;
+      if (!byCategory.has(catName)) byCategory.set(catName, []);
+      byCategory.get(catName).push(product);
+    }
   }
 
   const orderedNames = categories.length > 0

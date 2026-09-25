@@ -31,7 +31,7 @@ const DIMENSION_HINTS = {
   announcement: { desktop: 'لا يحتاج إلى صورة عادة',    mobile: 'لا يحتاج إلى صورة عادة' },
   category:     { desktop: '1200x400 بكسل (أو 3:1)',  mobile: '800x400 بكسل (أو 2:1)' },
   product:      { desktop: '1200x400 بكسل (أو 3:1)',  mobile: '800x400 بكسل (أو 2:1)' },
-  sidebar:      { desktop: '400x710 بكسل (أو 9:16)',  mobile: '400x710 بكسل (أو 9:16)' },
+  sidebar:      { desktop: '400x710 بكسل (أو 9:16)',  mobile: '800x400 بكسل (أو 2:1)' },
   footer:       { desktop: '1200x240 بكسل (أو 5:1)',  mobile: '800x400 بكسل (أو 2:1)' },
   popup:        { desktop: '800x600 بكسل (أو 4:3)',   mobile: '600x600 بكسل (أو 1:1)' },
 };
@@ -51,6 +51,17 @@ const EMPTY_FORM = {
   showOnDesktop: true, showOnMobile: true,
   priority: 0, scheduledAt: '', expiresAt: '',
   peekProductIds: [],
+};
+
+const PLACEMENT_WHERE = {
+  hero: 'أعلى الصفحة الرئيسية.',
+  promo_home: 'داخل الصفحة الرئيسية بين الأقسام.',
+  announcement: 'شريط نصي أعلى كل صفحات المتجر، فوق الهيدر. يُستخدم العنوان والوصف كنص.',
+  category: 'صفحة «الفئات»، وأعلى منتجات كل قسم، وصفحة جميع المنتجات.',
+  product: 'صفحة كل منتج، تحت زر الشراء مباشرة.',
+  sidebar: 'صفحة المنتج بجانب معلومات الشراء (على الجوال: تحت مزايا المتجر).',
+  footer: 'أسفل كل الصفحات فوق التذييل.',
+  popup: 'نافذة تظهر مرة واحدة لكل زائر حتى يغلقها.',
 };
 
 function statusInfo(s) { return STATUSES.find(x => x.value === s) || STATUSES[1]; }
@@ -332,6 +343,9 @@ function EditorPanel({ banner, allBanners = [], visible, onSoftClose, onHardClos
               <select className={selectCls} value={form.placement} onChange={e => set('placement', e.target.value)}>
                 {PLACEMENTS.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
               </select>
+              {PLACEMENT_WHERE[form.placement] && (
+                <p className="mt-1 text-[11px] text-slate-400">يظهر في: {PLACEMENT_WHERE[form.placement]}</p>
+              )}
             </Field>
             <Field label="الحالة">
               <select className={selectCls} value={form.status} onChange={e => set('status', e.target.value)}>

@@ -3,623 +3,827 @@
         xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
   <url>
     <loc>https://online-store-ghsaan.vercel.app/</loc>
-    <lastmod>2026-09-12</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/products</loc>
-    <lastmod>2026-09-12</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/categories</loc>
-    <lastmod>2026-09-12</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/scents</loc>
-    <lastmod>2026-09-12</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/branches</loc>
-    <lastmod>2026-09-12</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/about</loc>
-    <lastmod>2026-09-12</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/contact</loc>
-    <lastmod>2026-09-12</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/privacy-policy</loc>
-    <lastmod>2026-09-12</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/category/group-games</loc>
-    <lastmod>2026-09-12</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/category/beauty-tools</loc>
-    <lastmod>2026-09-12</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/category/magic-tricks-toys</loc>
-    <lastmod>2026-09-12</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/category/office-school-supplies</loc>
-    <lastmod>2026-09-12</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/category/school-supplies</loc>
-    <lastmod>2026-09-12</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/category/art-supplies</loc>
-    <lastmod>2026-09-12</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/category/bags-luggage</loc>
-    <lastmod>2026-09-12</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/category/camping-equipment</loc>
-    <lastmod>2026-09-12</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/category/travel-trips</loc>
-    <lastmod>2026-09-12</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/category/electrical-appliances</loc>
-    <lastmod>2026-09-12</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/category/clothing</loc>
-    <lastmod>2026-09-12</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/category/analog-watches</loc>
-    <lastmod>2026-09-12</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/category/kids-toys</loc>
-    <lastmod>2026-09-12</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/category/frashat</loc>
-    <lastmod>2026-09-12</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/category/computer-accessories</loc>
-    <lastmod>2026-09-12</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/category/watches</loc>
-    <lastmod>2026-09-12</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/category/pocket-watche</loc>
-    <lastmod>2026-09-12</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/category/digital-watches</loc>
-    <lastmod>2026-09-12</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/category/headphones-earphones</loc>
-    <lastmod>2026-09-12</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/category/chargers-cables</loc>
-    <lastmod>2026-09-12</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/category/mobile-accessories</loc>
-    <lastmod>2026-09-12</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/category/smart-devices</loc>
-    <lastmod>2026-09-12</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/category/audio-devices</loc>
-    <lastmod>2026-09-12</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/category/cameras-accessories</loc>
-    <lastmod>2026-09-12</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/category/electrical-home-appliances</loc>
-    <lastmod>2026-09-12</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/category/kitchen-appliances</loc>
-    <lastmod>2026-09-12</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/category/sports-fitness</loc>
-    <lastmod>2026-09-12</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/category/mens-perfumes</loc>
-    <lastmod>2026-09-12</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/category/womens-perfumes</loc>
-    <lastmod>2026-09-12</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/category/oud</loc>
-    <lastmod>2026-09-12</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/category/air-fresheners</loc>
-    <lastmod>2026-09-12</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/category/skin-care</loc>
-    <lastmod>2026-09-12</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/category/hair-care</loc>
-    <lastmod>2026-09-12</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/category/personal-care-devices</loc>
-    <lastmod>2026-09-12</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/category/mens-clothing</loc>
-    <lastmod>2026-09-12</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/category/womens-clothing</loc>
-    <lastmod>2026-09-12</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/category/kids-clothing</loc>
-    <lastmod>2026-09-12</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/category/sports-clothing</loc>
-    <lastmod>2026-09-12</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/category/eyewear</loc>
-    <lastmod>2026-09-12</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/category/incense</loc>
-    <lastmod>2026-09-12</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/category/mens-accessories</loc>
-    <lastmod>2026-09-12</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/category/womens-accessories</loc>
-    <lastmod>2026-09-12</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/category/toys-games</loc>
-    <lastmod>2026-09-12</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/category/educational-toys</loc>
-    <lastmod>2026-09-12</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/category/electronic-games</loc>
-    <lastmod>2026-09-12</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/category/electric-bikes</loc>
-    <lastmod>2026-09-12</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/category/electronics</loc>
-    <lastmod>2026-09-12</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/category/decoration-home-decor</loc>
-    <lastmod>2026-09-12</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/category/sports-equipment</loc>
-    <lastmod>2026-09-12</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/category/household-tools</loc>
-    <lastmod>2026-09-12</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/category/perfumes-incense</loc>
-    <lastmod>2026-09-12</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/category/jewelry-accessories</loc>
-    <lastmod>2026-09-12</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/brand/UGREEN</loc>
-    <lastmod>2026-09-12</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://online-store-ghsaan.vercel.app/product/msbah-lyly-khshby-led</loc>
-    <lastmod>2026-09-12</lastmod>
+    <loc>https://online-store-ghsaan.vercel.app/product/maws-bad-jymnj</loc>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1789234780/products/edvmx5e4ft8j2lojltnw.jpg</image:loc>
+      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790282213/products/syrw6w9fmwch0tqyvsxn.jpg</image:loc>
+      <image:title>ماوس باد جيمنج </image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/maws-bad-mnzr-lyly-mrs3-balnjwm</loc>
+    <lastmod>2026-09-25</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790282071/products/l0poxiru1aooavlfyzds.jpg</image:loc>
+      <image:title>ماوس باد منظر ليلي مرصع بالنجوم</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/maws-bad-syarh-sbaq-lansr-iyfwlwshn</loc>
+    <lastmod>2026-09-25</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790281919/products/xqff8pzqrjdaimb86jgk.jpg</image:loc>
+      <image:title>ماوس باد سيارة سباق لانسر إيفولوشن</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/maws-bad-syarh-ryadyh-yabanyh</loc>
+    <lastmod>2026-09-25</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790281604/products/lfylhd4klwa0kq4nixcu.jpg</image:loc>
+      <image:title>ماوس باد سيارة رياضية يابانية </image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/maws-bad-alsamwray-alyabany</loc>
+    <lastmod>2026-09-25</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790280912/products/a4ifgljfjfsdtoxhtmlo.jpg</image:loc>
+      <image:title>ماوس باد الساموراي الياباني</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/maws-bad-almnazr-altby3yh-alsynyh</loc>
+    <lastmod>2026-09-25</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790280688/products/lfdibjdfpce337zw0wjr.jpg</image:loc>
+      <image:title>ماوس باد المناظر الطبيعية الصينية</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/maws-bad-sakwra-yabany</loc>
+    <lastmod>2026-09-25</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790280499/products/sjwn1ehtu09trrxutrp9.jpg</image:loc>
+      <image:title>ماوس باد ساكورا ياباني</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/maws-bad-mnzr-lyly-qmr-ahmr</loc>
+    <lastmod>2026-09-25</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790280185/products/hq2zvw0nuz4ckpu0zxdg.jpg</image:loc>
+      <image:title>ماوس باد منظر ليلي قمر أحمر </image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/maws-bad-aldwamh-albhryh</loc>
+    <lastmod>2026-09-25</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790279450/products/uv4vsbdptothb6dzx5rp.jpg</image:loc>
+      <image:title>ماوس باد الدوامة البحرية</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/maws-bad-jymnj-btsmym-hndsy</loc>
+    <lastmod>2026-09-25</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790279092/products/dnmqu9r3l5fbsbwsutfu.jpg</image:loc>
+      <image:title>ماوس باد جيمنج بتصميم هندسي </image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/maws-bad-sdasy-btsmym-brkany</loc>
+    <lastmod>2026-09-25</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790278899/products/fjrvffrbjkash8tjv39l.jpg</image:loc>
+      <image:title>ماوس باد سداسي بتصميم بركاني</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/maws-bad-yabany-ahmr</loc>
+    <lastmod>2026-09-25</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790278740/products/xz368jipbhhfwdipggaw.jpg</image:loc>
+      <image:title>ماوس باد ياباني أحمر</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/maws-bad-slah-m4</loc>
+    <lastmod>2026-09-25</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790278483/products/j5fhiqnszbx58quvkdlc.jpg</image:loc>
+      <image:title>ماوس باد سلاح M4</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/maws-bad-jld-aswd-sadh</loc>
+    <lastmod>2026-09-25</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790278223/products/rrkugqqqmstp1h5rlniz.jpg</image:loc>
+      <image:title>ماوس باد جلد أسود سادة</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/maws-bad-jld-rmady-sadh</loc>
+    <lastmod>2026-09-25</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790278051/products/n7zc32zs48h1tk4kqxwj.jpg</image:loc>
+      <image:title>ماوس باد جلد رمادي سادة</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/maws-bad-akhtsarat-word-wexcel-wpowerpoint</loc>
+    <lastmod>2026-09-25</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790277564/products/k8dskfhegye9hpr66dbb.jpg</image:loc>
+      <image:title>ماوس باد اختصارات Word وExcel وPowerPoint</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/maws-bad-akhtsarat-alkmbywtr</loc>
+    <lastmod>2026-09-25</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790277419/products/aoomgcl6wigq9fv2aqyw.jpg</image:loc>
+      <image:title>ماوس باد اختصارات الكمبيوتر</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/maws-bad-syarh-ryadyh-bnfsjyh</loc>
+    <lastmod>2026-09-25</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790277244/products/uap1sqv33lwedarea9vz.jpg</image:loc>
+      <image:title>ماوس باد سيارة رياضية بنفسجية</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/sa3h-jyb-hary-bwtr</loc>
+    <lastmod>2026-09-25</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790276430/products/ehnhlbqsbtbrgveybhx9.jpg</image:loc>
+      <image:title>ساعة جيب هاري بوتر</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/sa3h-jyb-mlwnh-klasykyh</loc>
+    <lastmod>2026-09-25</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790275999/products/tyjrgwj9g6ohv88tqrl9.jpg</image:loc>
+      <image:title>ساعة جيب ملونة كلاسيكية</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/sa3h-jyb-narwtwa</loc>
+    <lastmod>2026-09-25</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790275548/products/j0acn4y1gpvo5d6admef.jpg</image:loc>
+      <image:title>ساعة جيب ناروتوا</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/msbah-lyly-khshby-led</loc>
+    <lastmod>2026-09-25</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790274682/products/dvcpprw43jocl74ojvba.jpg</image:loc>
       <image:title>مصباح ليلي خشبي LED</image:title>
     </image:image>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/product/mjmw3h-tmaryn-qbdh-alyd</loc>
-    <lastmod>2026-09-12</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1789234552/products/tqzxmtjmvfpvz9cdxx7y.jpg</image:loc>
+      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790282650/products/cyilvqjtgznjmdhurhxa.jpg</image:loc>
       <image:title>مجموعة تمارين قبضة اليد</image:title>
     </image:image>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/product/sa3h-abw-wla3h-ghaz</loc>
-    <lastmod>2026-09-12</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1789233067/products/dpkok3oj7agwqgujly06.jpg</image:loc>
+      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790023287/products/ejhkn4xakobc19eevmaz.jpg</image:loc>
       <image:title>ساعة أبو ولاعة غاز</image:title>
     </image:image>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/product/msds-altdlyk-altby-ll3dlat-8-rwws-wshashh-rqmyh</loc>
-    <lastmod>2026-09-12</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1789158162/products/jfmekusgie1uwtuv0xss.jpg</image:loc>
+      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790273069/products/kall9somphfmozqgtils.jpg</image:loc>
       <image:title>مسدس التدليك الطبي للعضلات – 8 رؤوس وشاشة رقمية</image:title>
     </image:image>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/product/msds-altdlyk-alzky-8-rwws-lltdlyk-al3myq</loc>
-    <lastmod>2026-09-12</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1789157429/products/tkj83yz53wvrhmx33xzx.jpg</image:loc>
+      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790023205/products/j3crozzo9cupfjm0wgyd.jpg</image:loc>
       <image:title>مسدس التدليك الذكي – 8 رؤوس للتدليك العميق</image:title>
     </image:image>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/product/sfynh-qrasnh-3aymh-dykwr</loc>
-    <lastmod>2026-09-12</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1789154927/products/vjg1d4cxvtlmedjx7jox.jpg</image:loc>
+      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790022985/products/pz5wemupdlpfcvnwql3b.jpg</image:loc>
       <image:title>سفينة قراصنة عائمة | ديكور </image:title>
     </image:image>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/product/bkj-altmaryn-almnzlyh</loc>
-    <lastmod>2026-09-12</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1789148266/products/eojtxnukfrkecpukmysf.jpg</image:loc>
+      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790022518/products/ohxoifjhmyw0g6mao2im.jpg</image:loc>
       <image:title>بكج التمارين المنزلية </image:title>
     </image:image>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/product/sma3at-jymnj-yx37-llal3ab</loc>
-    <lastmod>2026-09-12</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1789238746/products/woa5ihpm17y22huex3tf.jpg</image:loc>
+      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790024901/products/hvhmmpzduwncandvnr8c.jpg</image:loc>
       <image:title> سماعات جيمنج YX37 للألعاب</image:title>
     </image:image>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/product/sa3h-jyb-shjrh-dm-alakhwyn</loc>
-    <lastmod>2026-09-12</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1789237945/products/kkhvisbjkufwlodr8aym.jpg</image:loc>
+      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790024705/products/lab74icgqss09xvctaxd.jpg</image:loc>
       <image:title>ساعة جيب شجرة دم الأخوين</image:title>
     </image:image>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/product/sa3h-skmei-alrjalyh</loc>
-    <lastmod>2026-09-12</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1789232281/products/frs1brdr3r1ubjllwaol.jpg</image:loc>
+      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790015393/products/zgj5p8lcz5wfjop5x5rs.jpg</image:loc>
       <image:title>ساعة SKMEI الرجالية</image:title>
     </image:image>
   </url>
   <url>
-    <loc>https://online-store-ghsaan.vercel.app/product/altttat</loc>
-    <lastmod>2026-09-12</lastmod>
+    <loc>https://online-store-ghsaan.vercel.app/product/sa3h-jyb-khryth-al3alm</loc>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1789250916/products/artbvkqwrmc0gypwwqxo.jpg</image:loc>
-      <image:title>التتتات</image:title>
+      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790275794/products/jbosechqv3bu50g5ac0i.jpg</image:loc>
+      <image:title>ساعة جيب خريطة العالم</image:title>
     </image:image>
   </url>
   <url>
-    <loc>https://online-store-ghsaan.vercel.app/product/lddlld</loc>
-    <lastmod>2026-09-12</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
     <loc>https://online-store-ghsaan.vercel.app/product/mhfzh-btaqat-awtwmatyk</loc>
-    <lastmod>2026-09-12</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1789241243/products/hc5ciuaoia4hxzosxjjo.jpg</image:loc>
+      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790025789/products/s3gn2csfzwbr4bpfgcbm.jpg</image:loc>
       <image:title>محفظة بطاقات أوتوماتيك</image:title>
     </image:image>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/product/kamyra-mraqbh-zkyh-mt3ddh-al3dsat</loc>
-    <lastmod>2026-09-12</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1789240044/products/p259r4umin6bccjo6uph.jpg</image:loc>
+      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790025463/products/espdpetocovkafxn6ona.jpg</image:loc>
       <image:title>كاميرا مراقبة ذكية متعددة العدسات</image:title>
     </image:image>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/product/kamyra-taqh-shmsyh</loc>
-    <lastmod>2026-09-12</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1789239640/products/njoacwv7kixljxlkrkne.jpg</image:loc>
+      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790025275/products/wlg9g4yogvhemxx258ew.jpg</image:loc>
       <image:title>كاميرا طاقة شمسية</image:title>
     </image:image>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/product/alktab-almdy</loc>
-    <lastmod>2026-09-12</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1789239427/products/ijlw5hsxxziqxzusfy8m.jpg</image:loc>
+      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790274165/products/eoyyewvlsdfluccrak6w.jpg</image:loc>
       <image:title>الكتاب المضيء</image:title>
     </image:image>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/product/bkj-x8-plus-altqnyh</loc>
-    <lastmod>2026-09-12</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1789239165/products/mxbnavla7mhxno0dslo3.jpg</image:loc>
+      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790025127/products/lfodwis13pbabgtkitus.jpg</image:loc>
       <image:title>بكج  X8 plus التقنية</image:title>
     </image:image>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/product/almyzan-alzky-lthlyl-aljsm</loc>
-    <lastmod>2026-09-12</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1789237825/products/hys4rlwqdc5e0zpozddm.jpg</image:loc>
+      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790283901/products/igmzxp3wvkkqw276foft.jpg</image:loc>
       <image:title>الميزان الذكي لتحليل الجسم</image:title>
     </image:image>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/product/jhaz-tqwyh-alm3sm-walsa3d</loc>
-    <lastmod>2026-09-12</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1789237636/products/ynlbetqqxbzl1o4pmyya.jpg</image:loc>
+      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790024622/products/cosposbi1tlhrbms2ztx.jpg</image:loc>
       <image:title>جهاز تقوية المعصم والساعد</image:title>
     </image:image>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/product/mqwy-qbdh-alyd-5165-kjm</loc>
-    <lastmod>2026-09-12</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1789237536/products/gsneklic0mqfq2nxrnzl.jpg</image:loc>
+      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790024383/products/srgtatbxgpn2po6bzxel.jpg</image:loc>
       <image:title>مقوّي قبضة اليد 5–165 كجم</image:title>
     </image:image>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/product/jhaz-twsy3-alsdr-3-fy-1</loc>
-    <lastmod>2026-09-12</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1789237358/products/kn95wmskhsnjbalzivis.jpg</image:loc>
+      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790024251/products/e025jysfy7tv6cekcayr.jpg</image:loc>
       <image:title>جهاز توسيع الصدر 3 في 1</image:title>
     </image:image>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/product/msds-tdlyk-sghyr</loc>
-    <lastmod>2026-09-12</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1789236853/products/ol4ng0lk8mbmip35om9u.jpg</image:loc>
+      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790024131/products/zfmxo0irsrdqc7ymrfrt.jpg</image:loc>
       <image:title>مسدس تدليك صغير</image:title>
     </image:image>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/product/mydalyh-mfatyh-mdadh-lldya3</loc>
-    <lastmod>2026-09-12</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1789236558/products/hrq0hwlmyjnx0molr8ek.jpg</image:loc>
+      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790023917/products/waumczsezeanwz3sryon.jpg</image:loc>
       <image:title>ميدالية مفاتيح مضادة للضياع</image:title>
     </image:image>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/product/haml-hatf-mghnatysy</loc>
-    <lastmod>2026-09-12</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1789236345/products/f6bsaffnun2v4rflr7xf.jpg</image:loc>
+      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790274028/products/l5qtb7tfmqjwdyslfc1r.jpg</image:loc>
       <image:title>حامل هاتف مغناطيسي</image:title>
     </image:image>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/product/sa3h-abw-wla3h-shhn</loc>
-    <lastmod>2026-09-12</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1789232723/products/fcbjhcgl4ylsj9ixdxtt.jpg</image:loc>
+      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790023439/products/kc8j25033fu1lbhesldk.jpg</image:loc>
       <image:title>ساعة أبو ولاعة شحن</image:title>
     </image:image>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/product/sa3h-nsayyh-hi-watch-i-530-mini</loc>
-    <lastmod>2026-09-12</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1789231842/products/byahebmkau8liazowqhu.jpg</image:loc>
+      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790026036/products/ggkoynhcvdjwxfqob1h0.jpg</image:loc>
       <image:title>ساعة نسائية Hi Watch I-530 Mini</image:title>
     </image:image>
   </url>

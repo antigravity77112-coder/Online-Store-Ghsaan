@@ -232,6 +232,7 @@ model Category {
   children Category[] @relation("CategoryHierarchy")
 
   products         Product[]           @relation("CategoryProducts")
+  productLinks     ProductCategory[]
   /// Attribute definitions that apply to products in this category.
   categoryAttributes CategoryAttribute[]
 
@@ -321,6 +322,19 @@ model Scent {
 
   @@index([isActive, sortOrder])
   @@index([name])
+}
+
+/// Many-to-many junction: Product ↔ Category.
+/// A product is listed in every linked category. Product.categoryId stays set to
+/// the first selected category (breadcrumbs, attribute definitions).
+model ProductCategory {
+  productId  String   @db.Uuid
+  categoryId String   @db.Uuid
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([productId, categoryId])
+  @@index([categoryId])
 }
 
 /// Many-to-many junction: Product ↔ Scent.
@@ -438,6 +452,15 @@ model Product {
   isTrending     Boolean @default(false)
   promotionLabel String?
 
+  /// When false, the storefront hides the remaining stock count ("متبقي N").
+  showStock Boolean @default(true)
+
+  /// Admin-entered synonyms for search (e.g. "ألعاب، العاب، toys").
+  searchKeywords String?
+  /// Normalized Arabic text (title, description, SKUs, keywords, categories, brand).
+  /// Rebuilt by productService.refreshSearchText on every save. Never edit directly.
+  searchText     String?
+
   /// SEO: <title> tag for this product's page.
   metaTitle String?
   /// SEO: <meta name="description"> for this product's page.
@@ -466,6 +489,8 @@ model Product {
   cartItems  CartItem[]
   favorites  Favorite[]
   scents     ProductScent[]
+  /// All categories the product appears in (includes categoryId).
+  categories ProductCategory[]
 
   // -----------------------------------------------------------------------
   // INDEX STRATEGY

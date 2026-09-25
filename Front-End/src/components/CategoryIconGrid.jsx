@@ -161,7 +161,7 @@ export default function CategoryIconGrid({
             >
               {page.map((cat) => (
                 <div key={cat.id} role="listitem">
-                  {isLoading ? <CategoryTile isLoading /> : <CategoryTile category={cat} />}
+                  {isLoading ? <CategoryTile isLoading /> : <CategoryTile category={cat} priority={pageIndex === 0} />}
                 </div>
               ))}
             </div>

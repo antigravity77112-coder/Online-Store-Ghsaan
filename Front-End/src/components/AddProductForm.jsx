@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Upload, X, Loader2, ImagePlus, AlertCircle, Cloud, CheckCircle, Sparkles, Star, Search, ChevronDown, Dices } from 'lucide-react';
+import { Upload, X, Loader2, ImagePlus, AlertCircle, Cloud, CheckCircle, Check, Sparkles, Star, Search, ChevronDown, Dices } from 'lucide-react';
+import { matchesSearch } from '../utils/arabicSearch';
 import * as api from '../services/api';
 import { OptionPicker, BooleanPicker, parseAttrOptions, adminInputClass, adminSelectClass, AdminSwitch, AdminUploadProgress } from '../pages/admin/AdminUI';
 import { formatNativePrice } from '../utils/currency';
@@ -11,26 +12,21 @@ import {
   buildOptionGroups,
 } from '../utils/variantOptions';
 
-/** Searchable single-select for product categories */
-function CategoryCombobox({ categories = [], value = '', onChange, required = false }) {
+/** Searchable multi-select for product categories. The first id drives attribute definitions. */
+function CategoryMultiSelect({ categories = [], value = [], onChange, required = false }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const containerRef = useRef(null);
   const inputRef = useRef(null);
 
   const selected = useMemo(
-    () => categories.find((c) => c.id === value) || null,
+    () => value.map((id) => categories.find((c) => c.id === id)).filter(Boolean),
     [categories, value],
   );
 
   const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return categories;
-    return categories.filter(
-      (c) =>
-        (c.name || '').toLowerCase().includes(q) ||
-        (c.slug || '').toLowerCase().includes(q),
-    );
+    if (!query.trim()) return categories;
+    return categories.filter((c) => matchesSearch(query, c.name, c.slug));
   }, [categories, query]);
 
   useEffect(() => {
@@ -52,29 +48,60 @@ function CategoryCombobox({ categories = [], value = '', onChange, required = fa
     return undefined;
   }, [open]);
 
-  const pick = (id) => {
-    onChange?.(id);
-    setOpen(false);
-    setQuery('');
+  const toggle = (id) => {
+    onChange?.(value.includes(id) ? value.filter((v) => v !== id) : [...value, id]);
   };
 
   return (
     <div ref={containerRef} className="relative">
       <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5">
-        التصنيف {required ? <span className="text-red-500">*</span> : null}
+        الأقسام {required ? <span className="text-red-500">*</span> : null}
+        <span className="font-normal text-slate-400 mr-1">— يظهر المنتج في كل قسم تختاره</span>
       </label>
-      <button
-        type="button"
+      <div
+        role="button"
+        tabIndex={0}
         onClick={() => setOpen((o) => !o)}
-        className="w-full flex items-center justify-between gap-2 px-4 py-3 border border-slate-200 dark:border-slate-600 rounded-xl text-sm bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-gold-500/40 focus:border-gold-400 text-right"
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            setOpen((o) => !o);
+          }
+        }}
+        className="w-full flex items-center justify-between gap-2 px-3 py-2 min-h-[46px] border border-slate-200 dark:border-slate-600 rounded-xl text-sm bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-gold-500/40 focus:border-gold-400 text-right cursor-pointer"
         aria-haspopup="listbox"
         aria-expanded={open}
       >
-        <span className={selected ? 'font-semibold' : 'text-slate-400'}>
-          {selected?.name || 'اختر التصنيف'}
-        </span>
+        <div className="flex flex-wrap gap-1.5 min-w-0">
+          {selected.length === 0 ? (
+            <span className="text-slate-400 px-1">اختر قسماً أو أكثر</span>
+          ) : selected.map((cat) => (
+            <span
+              key={cat.id}
+              className="inline-flex items-center gap-1 rounded-lg bg-gold-50 dark:bg-gold-900/30 text-gold-800 dark:text-gold-200 border border-gold-200 dark:border-gold-800 pr-2.5 pl-1 py-1 text-xs font-bold"
+            >
+              {cat.name}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggle(cat.id);
+                }}
+                className="inline-flex items-center justify-center w-5 h-5 rounded-md hover:bg-gold-100 dark:hover:bg-gold-800/40"
+                aria-label={`إزالة ${cat.name}`}
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </span>
+          ))}
+        </div>
         <ChevronDown className={`w-4 h-4 text-slate-400 flex-shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} />
-      </button>
+      </div>
+      {selected.length > 1 ? (
+        <p className="mt-1 text-[11px] text-slate-400">
+          خصائص المتغيرات (اللون، المقاس...) تُؤخذ من قسم «{selected[0].name}».
+        </p>
+      ) : null}
 
       {open && (
         <div className="absolute z-30 mt-1.5 w-full rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 shadow-xl overflow-hidden">
@@ -96,21 +123,22 @@ function CategoryCombobox({ categories = [], value = '', onChange, required = fa
               <li className="px-4 py-3 text-xs text-slate-400 text-center">لا توجد نتائج</li>
             ) : (
               filtered.map((cat) => {
-                const active = cat.id === value;
+                const active = value.includes(cat.id);
                 return (
                   <li key={cat.id}>
                     <button
                       type="button"
                       role="option"
                       aria-selected={active}
-                      onClick={() => pick(cat.id)}
-                      className={`w-full text-right px-4 py-2.5 text-sm transition-colors ${
+                      onClick={() => toggle(cat.id)}
+                      className={`w-full flex items-center justify-between gap-2 text-right px-4 py-2.5 text-sm transition-colors ${
                         active
                           ? 'bg-gold-50 dark:bg-gold-900/30 text-gold-800 dark:text-gold-200 font-bold'
                           : 'text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/60'
                       }`}
                     >
                       {cat.name}
+                      {active ? <Check className="w-4 h-4 flex-shrink-0" aria-hidden="true" /> : null}
                     </button>
                   </li>
                 );
@@ -206,6 +234,11 @@ const AddProductForm = ({ onSuccess, onCancel, editProduct, onDirtyChange }) => 
     return [];
   };
 
+  const extractCategoryIds = (product) => {
+    const ids = [product?.categoryId, ...(product?.categoryIds || [])].filter(Boolean);
+    return [...new Set(ids)];
+  };
+
   const extractImageAltTexts = (product) => (
     (product?.images || []).reduce((acc, img) => {
       if (img.url) acc[img.url] = img.altText || '';
@@ -221,6 +254,9 @@ const AddProductForm = ({ onSuccess, onCancel, editProduct, onDirtyChange }) => 
     condition: getInitialCondition(editProduct?.condition),
     stockQuantity: editProduct?.stockQuantity || 1,
     categoryId: editProduct?.categoryId || '',
+    categoryIds: extractCategoryIds(editProduct),
+    showStock: editProduct?.showStock !== false,
+    searchKeywords: editProduct?.searchKeywords || '',
     imageUrls: extractImageUrls(editProduct),
     isPromoted: editProduct?.isPromoted || false,
     isTrending: editProduct?.isTrending || false,
@@ -339,25 +375,58 @@ const AddProductForm = ({ onSuccess, onCancel, editProduct, onDirtyChange }) => 
     [variantAttributes],
   );
 
-  const toggleGroupValue = (attrId, value) => {
+  const [removedCombos, setRemovedCombos] = useState(() => new Set());
+
+  const selectGroupValue = (attrId, value) => {
+    const token = `${attrId}=${value}`;
+    setRemovedCombos((set) => {
+      const next = new Set([...set].filter((key) => !key.split('|').includes(token)));
+      return next.size === set.size ? set : next;
+    });
     setOptionGroupValues((prev) => {
       const current = prev[attrId] || [];
-      const has = current.includes(value);
-      return {
-        ...prev,
-        [attrId]: has ? current.filter((v) => v !== value) : [...current, value],
-      };
+      if (current.includes(value)) return prev;
+      return { ...prev, [attrId]: [...current, value] };
     });
+  };
+
+  const removeGroupValue = (attrId, value) => {
+    setOptionGroupValues((prev) => ({
+      ...prev,
+      [attrId]: (prev[attrId] || []).filter((v) => v !== value),
+    }));
+  };
+
+  const removeVariantRow = (index) => {
+    const removed = form.variants[index];
+    if (!removed) return;
+    const variants = form.variants
+      .filter((_, i) => i !== index)
+      .map((v, i) => ({ ...v, sortOrder: i }));
+    const removedAttrs = removed.attributes || {};
+
+    if (Object.keys(removedAttrs).length) {
+      setRemovedCombos((set) => new Set(set).add(selectionKey(removedAttrs)));
+      setOptionGroupValues((groups) => {
+        const next = { ...groups };
+        for (const [attrId, value] of Object.entries(removedAttrs)) {
+          const stillUsed = variants.some((v) => v.attributes?.[attrId] === value);
+          if (!stillUsed) next[attrId] = (next[attrId] || []).filter((val) => val !== value);
+        }
+        return next;
+      });
+    }
+    setForm((prev) => ({
+      ...prev,
+      variants,
+      hasVariants: variants.length > 0 ? prev.hasVariants : false,
+    }));
   };
 
   const addCustomGroupValue = (attrId) => {
     const raw = (newOptionDraft[attrId] || '').trim();
     if (!raw) return;
-    setOptionGroupValues((prev) => {
-      const current = prev[attrId] || [];
-      if (current.includes(raw)) return prev;
-      return { ...prev, [attrId]: [...current, raw] };
-    });
+    selectGroupValue(attrId, raw);
     setNewOptionDraft((prev) => ({ ...prev, [attrId]: '' }));
   };
 
@@ -375,7 +444,11 @@ const AddProductForm = ({ onSuccess, onCancel, editProduct, onDirtyChange }) => 
       return;
     }
 
-    const combos = cartesianSelections(groups);
+    const combos = cartesianSelections(groups).filter((attrs) => !removedCombos.has(selectionKey(attrs)));
+    if (!combos.length) {
+      setError('كل التركيبات محذوفة. أضف قيمة جديدة أو صفاً يدوياً.');
+      return;
+    }
     setForm((prev) => {
       const existingByKey = new Map();
       for (const v of prev.variants) {
@@ -573,6 +646,9 @@ const AddProductForm = ({ onSuccess, onCancel, editProduct, onDirtyChange }) => 
       condition: getInitialCondition(editProduct.condition),
       stockQuantity: editProduct.stockQuantity ?? prev.stockQuantity,
       categoryId: editProduct.categoryId || prev.categoryId,
+      categoryIds: extractCategoryIds(editProduct).length ? extractCategoryIds(editProduct) : prev.categoryIds,
+      showStock: editProduct.showStock !== false,
+      searchKeywords: editProduct.searchKeywords || '',
       imageUrls: extractImageUrls(editProduct),
       imageAltTexts: extractImageAltTexts(editProduct),
       isPromoted: editProduct.isPromoted || false,
@@ -646,13 +722,17 @@ const AddProductForm = ({ onSuccess, onCancel, editProduct, onDirtyChange }) => 
     setForm(prev => ({ ...prev, imageUrls: prev.imageUrls.filter((_, i) => i !== index) }));
   };
 
-  const handleSetPrimary = (index) => {
+  const handleMoveImage = (from, to) => {
     setForm(prev => {
+      if (from === to || to < 0 || to >= prev.imageUrls.length) return prev;
       const newUrls = [...prev.imageUrls];
-      const [primary] = newUrls.splice(index, 1);
-      return { ...prev, imageUrls: [primary, ...newUrls] };
+      const [moved] = newUrls.splice(from, 1);
+      newUrls.splice(to, 0, moved);
+      return { ...prev, imageUrls: newUrls };
     });
   };
+
+  const handleSetPrimary = (index) => handleMoveImage(index, 0);
 
   const handleVariantImageUpload = async (index, file) => {
     if (!file || !file.type.startsWith('image/') || file.size > 5 * 1024 * 1024) {
@@ -728,11 +808,8 @@ const AddProductForm = ({ onSuccess, onCancel, editProduct, onDirtyChange }) => 
       return;
     }
 
-    if (form.hasVariants) {
-      if (!form.variants?.length) {
-        setError('أضف متغيراً واحداً على الأقل أو عطّل المتغيرات');
-        return;
-      }
+    const hasVariants = Boolean(form.hasVariants && form.variants?.length);
+    if (hasVariants) {
       const invalid = form.variants.find((v) => !v.sku?.trim() || !v.price || v.stockQuantity === '' || v.stockQuantity == null);
       if (invalid) {
         setError('كل متغير يحتاج SKU وسعراً وكمية');
@@ -740,80 +817,54 @@ const AddProductForm = ({ onSuccess, onCancel, editProduct, onDirtyChange }) => 
       }
     }
 
-    const stockForSave = form.hasVariants
+    const stockForSave = hasVariants
       ? form.variants.reduce((sum, v) => sum + (parseInt(v.stockQuantity, 10) || 0), 0)
       : (parseInt(form.stockQuantity, 10) || 0);
 
     setLoading(true);
     setError('');
 
+    const payload = {
+      title: form.title,
+      description: form.description,
+      price: parseFloat(form.price),
+      currency: form.currency,
+      stockQuantity: stockForSave,
+      condition: parseInt(form.condition, 10) || 1,
+      categoryId: form.categoryId || editProduct?.categoryId,
+      categoryIds: form.categoryIds.length ? form.categoryIds : [form.categoryId].filter(Boolean),
+      showStock: form.showStock,
+      searchKeywords: form.searchKeywords.trim() || null,
+      images: form.imageUrls.map(url => ({ url, altText: form.imageAltTexts[url] || null })),
+      isPromoted: form.isPromoted,
+      isTrending: form.isTrending,
+      status: form.status,
+      discountPrice: form.discountPrice ? parseFloat(form.discountPrice) : null,
+      promotionLabel: form.promotionLabel || null,
+      sku: hasVariants ? null : (form.sku?.trim() || null),
+      hasVariants,
+      variants: hasVariants ? mapVariantsPayload(form.variants) : [],
+      brandId: form.brandId || null,
+      scentIds: form.scentIds || [],
+      lowStockThreshold: parseInt(form.lowStockThreshold, 10) || 5,
+      metaTitle: form.metaTitle || null,
+      metaDescription: form.metaDescription || null,
+      attributes: Object.entries(form.attributes)
+        .filter(([_, value]) => value !== undefined && value !== null && String(value).trim() !== '')
+        .map(([categoryAttributeId, value]) => ({
+          categoryAttributeId,
+          value: Array.isArray(value) ? value.join(',') : value,
+        })),
+      specs: (form.specs || [])
+        .filter((s) => s && s.name?.trim() && s.value != null && String(s.value).trim() !== '')
+        .map((s, idx) => ({ name: s.name.trim(), value: String(s.value).trim(), sortOrder: idx })),
+    };
+
     try {
       if (isEdit) {
-        await api.updateProduct(editProduct.id, {
-          title: form.title,
-          description: form.description,
-          price: parseFloat(form.price),
-          currency: form.currency,
-          stockQuantity: stockForSave,
-          condition: parseInt(form.condition, 10) || 1,
-          categoryId: form.categoryId || editProduct.categoryId,
-          images: form.imageUrls.map(url => ({ url, altText: form.imageAltTexts[url] || null })),
-          isPromoted: form.isPromoted,
-          isTrending: form.isTrending,
-          status: form.status,
-          discountPrice: form.discountPrice ? parseFloat(form.discountPrice) : null,
-          promotionLabel: form.promotionLabel || null,
-          sku: form.hasVariants ? null : (form.sku?.trim() || null),
-          hasVariants: form.hasVariants,
-          variants: form.hasVariants ? mapVariantsPayload(form.variants) : [],
-          brandId: form.brandId || null,
-          scentIds: form.scentIds || [],
-          lowStockThreshold: parseInt(form.lowStockThreshold, 10) || 5,
-          metaTitle: form.metaTitle || null,
-          metaDescription: form.metaDescription || null,
-          attributes: Object.entries(form.attributes)
-            .filter(([_, value]) => value !== undefined && value !== null && String(value).trim() !== '')
-            .map(([categoryAttributeId, value]) => ({
-              categoryAttributeId,
-              value: Array.isArray(value) ? value.join(',') : value,
-            })),
-          specs: (form.specs || [])
-            .filter((s) => s && s.name?.trim() && s.value != null && String(s.value).trim() !== '')
-            .map((s, idx) => ({ name: s.name.trim(), value: String(s.value).trim(), sortOrder: idx })),
-        });
+        await api.updateProduct(editProduct.id, payload);
       } else {
-        await api.createProduct({
-          title: form.title,
-          description: form.description,
-          price: parseFloat(form.price),
-          currency: form.currency,
-          condition: parseInt(form.condition, 10) || 1,
-          stockQuantity: stockForSave,
-          categoryId: form.categoryId,
-          images: form.imageUrls.map(url => ({ url, altText: form.imageAltTexts[url] || null })),
-          isPromoted: form.isPromoted,
-          isTrending: form.isTrending,
-          status: form.status,
-          discountPrice: form.discountPrice ? parseFloat(form.discountPrice) : null,
-          promotionLabel: form.promotionLabel || null,
-          sku: form.hasVariants ? null : (form.sku?.trim() || null),
-          hasVariants: form.hasVariants,
-          variants: form.hasVariants ? mapVariantsPayload(form.variants) : [],
-          brandId: form.brandId || null,
-          scentIds: form.scentIds || [],
-          lowStockThreshold: parseInt(form.lowStockThreshold, 10) || 5,
-          metaTitle: form.metaTitle || null,
-          metaDescription: form.metaDescription || null,
-          attributes: Object.entries(form.attributes)
-            .filter(([_, value]) => value !== undefined && value !== null && String(value).trim() !== '')
-            .map(([categoryAttributeId, value]) => ({
-              categoryAttributeId,
-              value: Array.isArray(value) ? value.join(',') : value,
-            })),
-          specs: (form.specs || [])
-            .filter((s) => s && s.name?.trim() && s.value != null && String(s.value).trim() !== '')
-            .map((s, idx) => ({ name: s.name.trim(), value: String(s.value).trim(), sortOrder: idx })),
-        });
+        await api.createProduct(payload);
       }
       onSuccess?.();
     } catch (err) {
@@ -874,6 +925,25 @@ const AddProductForm = ({ onSuccess, onCancel, editProduct, onDirtyChange }) => 
         </div>
       </div>
 
+      {/* كلمات البحث */}
+      <div>
+        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5">
+          كلمات بحث (مفصولة بفاصلة)
+        </label>
+        <input
+          type="text"
+          name="searchKeywords"
+          value={form.searchKeywords}
+          onChange={handleChange}
+          maxLength={1000}
+          placeholder="مثال: ألعاب، لعبة أطفال، toys"
+          className="w-full px-4 py-3 border border-slate-200 dark:border-slate-600 rounded-xl text-sm bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-gold-500/40 focus:border-gold-400"
+        />
+        <p className="mt-1 text-[11px] text-slate-400">
+          لا تظهر للعميل — كلمات إضافية يجد بها العميل المنتج (مرادفات، جمع، أسماء شائعة، إنجليزي).
+        </p>
+      </div>
+
       {/* السعر + العملة */}
       <div className="grid grid-cols-2 gap-3">
         <div>
@@ -914,11 +984,15 @@ const AddProductForm = ({ onSuccess, onCancel, editProduct, onDirtyChange }) => 
       ) : null}
 
       {/* التصنيف — قبل المتغيرات لأن خصائص اللون/المقاس تعتمد عليه */}
-      <CategoryCombobox
+      <CategoryMultiSelect
         categories={categories}
-        value={form.categoryId}
+        value={form.categoryIds}
         required
-        onChange={(categoryId) => setForm((prev) => ({ ...prev, categoryId }))}
+        onChange={(categoryIds) => setForm((prev) => ({
+          ...prev,
+          categoryIds,
+          categoryId: categoryIds[0] || '',
+        }))}
       />
 
       {/* ── إعدادات الظهور ── */}
@@ -1051,18 +1125,37 @@ const AddProductForm = ({ onSuccess, onCancel, editProduct, onDirtyChange }) => 
                         {allValues.map((value) => {
                           const on = selected.includes(value);
                           return (
-                            <button
+                            <span
                               key={value}
-                              type="button"
-                              onClick={() => toggleGroupValue(attr.id, value)}
-                              className={`px-2.5 py-1 rounded-md text-[11px] font-semibold border transition-colors ${
+                              className={`inline-flex items-center rounded-md text-[11px] font-semibold border transition-colors ${
                                 on
                                   ? 'bg-stone-900 text-white border-stone-900'
                                   : 'bg-white dark:bg-slate-800 text-slate-600 border-slate-200 dark:border-slate-600'
                               }`}
                             >
-                              {value}
-                            </button>
+                              <button
+                                type="button"
+                                onClick={() => selectGroupValue(attr.id, value)}
+                                className="px-2.5 py-1"
+                                aria-pressed={on}
+                              >
+                                {value}
+                              </button>
+                              {on ? (
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    removeGroupValue(attr.id, value);
+                                  }}
+                                  className="pl-1.5 pr-0.5 py-1 opacity-80 hover:opacity-100"
+                                  aria-label={`إزالة ${value}`}
+                                  title="إزالة"
+                                >
+                                  <X className="w-3 h-3" />
+                                </button>
+                              ) : null}
+                            </span>
                           );
                         })}
                       </div>
@@ -1194,12 +1287,7 @@ const AddProductForm = ({ onSuccess, onCancel, editProduct, onDirtyChange }) => 
                   <div className="flex items-end pb-0.5 justify-end">
                     <button
                       type="button"
-                      onClick={() => {
-                        setForm(prev => ({
-                          ...prev,
-                          variants: prev.variants.filter((_, i) => i !== index)
-                        }));
-                      }}
+                      onClick={() => removeVariantRow(index)}
                       className="p-1.5 bg-red-50 text-red-500 rounded-lg hover:bg-red-100 transition-colors"
                       title="حذف المتغير"
                     >
@@ -1361,6 +1449,18 @@ const AddProductForm = ({ onSuccess, onCancel, editProduct, onDirtyChange }) => 
           />
         </div>
 
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">إظهار الكمية المتبقية للعميل</label>
+            <p className="text-[11px] text-slate-400">عند الإيقاف يظهر «متوفر» بدل «متبقي N». «نفد المخزون» يظهر دائماً.</p>
+          </div>
+          <AdminSwitch
+            checked={form.showStock}
+            aria-label="إظهار الكمية المتبقية للعميل"
+            onChange={(next) => setForm((prev) => ({ ...prev, showStock: next }))}
+          />
+        </div>
+
         {/* Discount Price */}
         <div>
           <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5">سعر الخصم (اختياري)</label>
@@ -1432,13 +1532,13 @@ const AddProductForm = ({ onSuccess, onCancel, editProduct, onDirtyChange }) => 
         <p className="text-[10px] text-slate-400 mt-1">يمكن اختيار أكثر من رائحة لنفس المنتج.</p>
       </div>
 
-      {/* المواصفات الحرّة تظهر في نافذة «الوصف والمواصفات» على صفحة المنتج */}
+      {/* المواصفات الحرّة تظهر في نافذة «المواصفات» على صفحة المنتج */}
       <div className="bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200 dark:border-slate-700 p-4 space-y-4">
         <div className="flex items-center gap-2 mb-1">
           <Sparkles className="w-4 h-4 text-slate-500" />
           <div>
             <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300">مواصفات الوصف</h3>
-            <p className="text-[11px] text-slate-500">تظهر للزبون عند الضغط على «الوصف والمواصفات». لكل منتج مواصفاته الخاصة (المادة، الأبعاد…).</p>
+            <p className="text-[11px] text-slate-500">تظهر للزبون عند الضغط على «المواصفات». لكل منتج مواصفاته الخاصة (المادة، الأبعاد…).</p>
           </div>
         </div>
 
@@ -1573,16 +1673,32 @@ const AddProductForm = ({ onSuccess, onCancel, editProduct, onDirtyChange }) => 
                       <X className="w-3 h-3" /> حذف
                     </button>
                   </div>
-                  {/* Primary badge */}
+                  <div className="absolute top-1 right-1 min-w-[20px] h-5 px-1 flex items-center justify-center bg-stone-900/80 text-white text-[10px] font-extrabold rounded-md shadow pointer-events-none">
+                    {idx + 1}
+                  </div>
                   {idx === 0 && (
                     <div className="absolute bottom-1 right-1 px-1.5 py-0.5 bg-gold-500 text-white text-[9px] font-bold rounded-md shadow">
                       رئيسية
                     </div>
                   )}
                 </div>
-                <input 
-                  type="text" 
-                  placeholder="وصف الصورة (Alt)" 
+                <label className="flex items-center gap-1 text-[10px] font-bold text-slate-500 dark:text-slate-400">
+                  الترتيب
+                  <select
+                    value={idx}
+                    onChange={(e) => handleMoveImage(idx, Number(e.target.value))}
+                    className="flex-1 text-[11px] px-1 py-0.5 border border-slate-200 dark:border-slate-600 rounded bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
+                    aria-label={`ترتيب الصورة ${idx + 1}`}
+                  >
+                    {form.imageUrls.map((_, pos) => (
+                      <option key={pos} value={pos}>{pos + 1}</option>
+                    ))}
+                  </select>
+                </label>
+                <input
+                  type="text"
+                  placeholder="وصف للصورة (لجوجل)"
+                  title="لا يظهر للعميل — يساعد محركات البحث وقارئات الشاشة"
                   value={form.imageAltTexts[url] || ''}
                   onChange={(e) => setForm(prev => ({ ...prev, imageAltTexts: { ...prev.imageAltTexts, [url]: e.target.value } }))}
                   className="w-full text-[10px] px-2 py-1 border border-slate-200 dark:border-slate-600 rounded bg-white dark:bg-slate-700 text-slate-900 dark:text-white placeholder-slate-400"

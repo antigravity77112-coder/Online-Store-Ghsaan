@@ -2,6 +2,7 @@ const prisma = require('../prismaClient');
 const { ValidationError } = require('../middleware/errorMiddleware');
 const { uploadBuffer } = require('../utils/cloudinaryClient');
 const { generateUniqueCategorySlug, categorySlugFromName } = require('../utils/slugify');
+const { refreshSearchText } = require('../services/productService');
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -23,6 +24,7 @@ class CategoryController {
       let queryArgs = {
         include: {
           products: { select: { id: true } },
+          productLinks: { select: { productId: true } },
           children: true
         },
         orderBy: { sortOrder: 'asc' }
@@ -36,10 +38,12 @@ class CategoryController {
       const categories = await prisma.category.findMany(queryArgs);
       
       // Map to include productsCount for the admin dashboard
-      const mapped = categories.map(cat => ({
+      const mapped = categories.map(({ products, productLinks, ...cat }) => ({
         ...cat,
-        productsCount: cat.products?.length || 0,
-        products: undefined // Don't send the full array
+        productsCount: new Set([
+          ...(products || []).map((p) => p.id),
+          ...(productLinks || []).map((l) => l.productId),
+        ]).size,
       }));
 
       res.json(mapped);
@@ -112,7 +116,10 @@ class CategoryController {
       }
 
       const products = await prisma.product.findMany({
-        where: { categoryId, status: 'Active' },
+        where: {
+          status: 'Active',
+          OR: [{ categoryId }, { categories: { some: { categoryId } } }],
+        },
         include: {
 
           images: { orderBy: { sortOrder: 'asc' }, take: 5 },
@@ -253,6 +260,16 @@ class CategoryController {
         },
       });
 
+      if (updated.name !== existing.name) {
+        const affected = await prisma.product.findMany({
+          where: { OR: [{ categoryId: updated.id }, { categories: { some: { categoryId: updated.id } } }] },
+          select: { id: true },
+        });
+        for (const { id } of affected) {
+          await refreshSearchText(id);
+        }
+      }
+
       res.status(200).json(updated);
     } catch (error) {
       throw error;
@@ -282,18 +299,34 @@ class CategoryController {
         throw new Error('لا يمكن حذف هذا القسم لأنه يحتوي على أقسام فرعية. يرجى حذف أو نقل الأقسام الفرعية أولاً.');
       }
 
-      const productIds = existing.products.map(p => p.id);
+      // Products also listed in another category move there; the rest are deleted.
+      const primaryProducts = await prisma.product.findMany({
+        where: { categoryId: req.params.id },
+        select: {
+          id: true,
+          categories: { where: { categoryId: { not: req.params.id } }, select: { categoryId: true }, take: 1 },
+        },
+      });
+      const moved = primaryProducts.filter((p) => p.categories.length > 0);
+      const deletedIds = primaryProducts.filter((p) => p.categories.length === 0).map((p) => p.id);
 
       // Simplified cascade:
       // - OrderItem.productId → SET NULL automatically (DB-level FK)
-      // - CartItem, Favorite, ProductImage, etc. → CASCADE from product delete
-      // We only need to delete products first (Category FK is RESTRICT by default)
+      // - CartItem, Favorite, ProductImage, ProductCategory, etc. → CASCADE
+      // Product.categoryId is RESTRICT, so products must leave the category first.
       await prisma.$transaction([
-        prisma.product.deleteMany({ where: { categoryId: req.params.id } }),
+        ...moved.map((p) => prisma.product.update({
+          where: { id: p.id },
+          data: { categoryId: p.categories[0].categoryId },
+        })),
+        prisma.product.deleteMany({ where: { id: { in: deletedIds } } }),
         prisma.category.delete({ where: { id: req.params.id } }),
       ]);
+      for (const p of moved) {
+        await refreshSearchText(p.id);
+      }
 
-      res.status(200).json({ message: 'تم حذف القسم وجميع منتجاته بنجاح', deletedProducts: productIds.length });
+      res.status(200).json({ message: 'تم حذف القسم وجميع منتجاته بنجاح', deletedProducts: deletedIds.length });
     } catch (error) {
       throw error;
     }

@@ -1,12 +1,12 @@
 /**
- * CategoryTile — عنصر فئة بنمط Shein (مربع مستدير + صورة + اسم)
+ * CategoryTile — عنصر فئة بنمط Shein (دائرة + صورة + اسم)
  */
 
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { getOptimizedImageUrl, getRawCloudinaryUrl, IMAGE_WIDTHS } from '../utils/cloudinaryUrl';
+import { getOptimizedImageUrl, getRawCloudinaryUrl } from '../utils/cloudinaryUrl';
 
-const TILE_IMAGE_WIDTH = 200;
+const TILE_WIDTHS = [200, 300, 400, 600];
 
 function getCategoryHref(category) {
   const { name, slug } = category;
@@ -24,15 +24,18 @@ function CategoryTileSkeleton() {
   );
 }
 
-const CategoryTile = React.memo(({ category, isLoading = false }) => {
-  const [imgError, setImgError] = useState(false);
+const CategoryTile = React.memo(({ category, isLoading = false, priority = false }) => {
+  // 0 = optimized, 1 = raw original, 2 = give up (show initial)
+  const [imgFailures, setImgFailures] = useState(0);
 
   if (isLoading || !category) return <CategoryTileSkeleton />;
 
   const { name, iconUrl } = category;
-  const hasImage = iconUrl && !imgError;
+  const hasImage = iconUrl && imgFailures < 2;
   const initial = name?.trim()?.charAt(0) || '؟';
   const href = getCategoryHref(category);
+  const rawUrl = getRawCloudinaryUrl(iconUrl);
+  const useRaw = imgFailures === 1;
 
   return (
     <Link
@@ -43,15 +46,17 @@ const CategoryTile = React.memo(({ category, isLoading = false }) => {
       <div className="w-full aspect-square rounded-full overflow-hidden bg-stone-100 dark:bg-stone-800 border border-stone-200/90 dark:border-stone-700/80 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
         {hasImage ? (
           <img
-            src={getOptimizedImageUrl(getRawCloudinaryUrl(iconUrl), TILE_IMAGE_WIDTH)}
-            srcSet={`${getOptimizedImageUrl(getRawCloudinaryUrl(iconUrl), 160)} 160w, ${getOptimizedImageUrl(getRawCloudinaryUrl(iconUrl), TILE_IMAGE_WIDTH)} 200w, ${getOptimizedImageUrl(getRawCloudinaryUrl(iconUrl), IMAGE_WIDTHS.CATEGORY_CARD)} 400w`}
-            sizes="(max-width: 640px) 18vw, 120px"
+            src={useRaw ? rawUrl : getOptimizedImageUrl(rawUrl, 400)}
+            srcSet={useRaw ? undefined : TILE_WIDTHS.map((w) => `${getOptimizedImageUrl(rawUrl, w)} ${w}w`).join(', ')}
+            sizes={useRaw ? undefined : '(max-width: 640px) 25vw, 140px'}
             alt=""
-            loading="lazy"
-            width={200}
-            height={200}
+            loading={priority ? 'eager' : 'lazy'}
+            fetchPriority={priority ? 'high' : 'auto'}
+            decoding="async"
+            width={400}
+            height={400}
             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.03] motion-reduce:transform-none"
-            onError={() => setImgError(true)}
+            onError={() => setImgFailures((n) => n + 1)}
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-stone-200 dark:bg-stone-700 text-base font-bold text-stone-600 dark:text-stone-300">

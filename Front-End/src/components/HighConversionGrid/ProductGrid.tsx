@@ -14,6 +14,8 @@ interface ProductGridProps {
   className?: string;
   compact?: boolean;
   variant?: 'vertical' | 'listing';
+  /** Number of leading cards that load eagerly (above the fold). */
+  priorityCount?: number;
 }
 
 export const ProductGrid: React.FC<ProductGridProps> = ({
@@ -28,6 +30,7 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
   className = '',
   compact = true,
   variant = 'vertical',
+  priorityCount = 4,
 }) => {
   const gridClass = variant === 'listing' ? LISTING_PRODUCT_GRID_CLASS : VERTICAL_PRODUCT_GRID_CLASS;
 
@@ -46,11 +49,12 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
           ))
         ) : (
           <>
-            {products.map((product) => (
+            {products.map((product, index) => (
               <ProductCard
                 key={product.id}
                 product={product}
                 compact={compact}
+                priority={index < priorityCount}
                 onQuickAdd={onQuickAdd}
                 onClick={onClick}
                 onFavorite={onFavorite}

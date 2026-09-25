@@ -2,6 +2,7 @@ const prisma = require('../prismaClient');
 const AuthService = require('../services/authService');
 const backupService = require('../services/backupService');
 const { ValidationError, BadRequestError } = require('../middleware/errorMiddleware');
+const { productSearchCondition, fuzzySearchIds, refreshSearchText } = require('../services/productService');
 
 class AdminController {
   /**
@@ -233,25 +234,15 @@ class AdminController {
       
       let whereClause = {};
 
-      if (search) {
-        whereClause.OR = [
-          { title: { contains: search, mode: 'insensitive' } },
-          { sku: { contains: search, mode: 'insensitive' } },
-          { variants: { some: { sku: { contains: search, mode: 'insensitive' } } } },
-          // Prisma doesn't easily substring match UUIDs in postgres without raw query, so we do exact match if length is 36, or startsWith if supported.
-          // Wait, 'contains' on String works on UUID fields if casted? No, in Prisma Postgres, String operations on UUID require specific syntax.
-          // Let's search title and category name.
-          { category: { name: { contains: search, mode: 'insensitive' } } }
-        ];
-        
-        // If search looks like a partial UUID (at least 4 chars)
-        if (search.length >= 4) {
-          // We can't safely 'contains' a UUID field in standard prisma without throwing error if it's not a valid UUID string format.
-          // We will skip UUID searching in DB unless it's exactly 36 chars.
-          if (search.length === 36) {
-            whereClause.OR.push({ id: search });
-          }
+      const trimmedSearch = String(search).trim();
+      if (trimmedSearch) {
+        const searchCondition = productSearchCondition(trimmedSearch);
+        searchCondition.OR.push({ category: { name: { contains: trimmedSearch, mode: 'insensitive' } } });
+        // UUID columns only support exact matches in Prisma.
+        if (/^[0-9a-f-]{36}$/i.test(trimmedSearch)) {
+          searchCondition.OR.push({ id: trimmedSearch });
         }
+        whereClause.AND = [searchCondition];
       }
 
       if (status === 'active') {
@@ -280,7 +271,14 @@ class AdminController {
         queryArgs.take = pageSize;
       }
 
-      const products = await prisma.product.findMany(queryArgs);
+      let products = await prisma.product.findMany(queryArgs);
+      if (trimmedSearch && products.length === 0) {
+        const ids = await fuzzySearchIds(trimmedSearch, { activeOnly: false });
+        if (ids.length > 0) {
+          whereClause.AND = [{ id: { in: ids } }];
+          products = await prisma.product.findMany(queryArgs);
+        }
+      }
       // Add flat fields for frontend compatibility
       const mapped = products.map(p => ({
         ...p,
@@ -346,10 +344,20 @@ class AdminController {
         throw new BadRequestError('Product IDs and categoryId are required');
       }
 
-      await prisma.product.updateMany({
-        where: { id: { in: ids } },
-        data: { categoryId }
-      });
+      await prisma.$transaction([
+        prisma.product.updateMany({
+          where: { id: { in: ids } },
+          data: { categoryId }
+        }),
+        prisma.productCategory.deleteMany({ where: { productId: { in: ids } } }),
+        prisma.productCategory.createMany({
+          data: ids.map((productId) => ({ productId, categoryId })),
+          skipDuplicates: true,
+        }),
+      ]);
+      for (const id of ids) {
+        await refreshSearchText(id);
+      }
 
       res.status(200).json({ message: 'Products category updated successfully' });
     } catch (error) {

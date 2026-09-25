@@ -17,23 +17,16 @@ function uploadBuffer(buffer, folderOrOptions = 'uploads') {
     ? { folder: folderOrOptions }
     : { folder: 'uploads', ...folderOrOptions };
 
+  // Keep the original file as uploaded; the storefront requests resized f_auto/q_auto copies.
   const uploadOptions = {
     folder: options.folder,
     resource_type: 'image',
-    quality: 'auto',
   };
 
   if (options.preserveFormat || options.format === 'png') {
-    // Preserve alpha channel (logos). Prefer source format when known; else PNG.
-    if (options.format && options.format !== 'png') {
-      uploadOptions.format = options.format;
-    } else {
-      uploadOptions.format = 'png';
-    }
+    uploadOptions.format = options.format && options.format !== 'png' ? options.format : 'png';
   } else if (options.format) {
     uploadOptions.format = options.format;
-  } else {
-    uploadOptions.format = 'jpg';
   }
 
   return new Promise((resolve, reject) => {

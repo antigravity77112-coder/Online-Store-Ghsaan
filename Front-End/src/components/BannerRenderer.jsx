@@ -170,10 +170,8 @@ export default function BannerRenderer({ placement, className: classNameProp, ov
   }, [popupBanner?.id]);
 
   if (isLoading) {
-    if (placement === 'announcement') {
-      return <div className="w-full h-10 bg-gold-500/20 animate-pulse" aria-hidden="true" />;
-    }
-    if (placement === 'popup') return null;
+    // Secondary placements are usually empty; a skeleton there would flash on every page.
+    if (placement !== 'promo_home') return null;
     return (
       <div className={`${className} aspect-[2.2/1] sm:aspect-[3.5/1] rounded-lg sm:rounded-xl bg-slate-200 dark:bg-slate-800 animate-pulse`} aria-hidden="true" />
     );

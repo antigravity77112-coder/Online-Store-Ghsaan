@@ -54,9 +54,8 @@ export function getOptimizedImageUrl(url, width = 400) {
 
   const rawUrl = getRawCloudinaryUrl(url);
 
-  // Use only q_auto + w_ — avoids the 404 bug where f_auto+c_limit
-  // fails on pre-converted .webp / .png uploads in some Cloudinary accounts.
-  const transforms = `q_auto,w_${width}`;
+  // Callers keep getRawCloudinaryUrl as an onError fallback in case a delivery transform 404s.
+  const transforms = `f_auto,q_auto:good,w_${width},c_limit`;
 
   const cleanMatch = rawUrl.match(CLOUDINARY_REGEX);
   if (cleanMatch) {
@@ -86,12 +85,12 @@ export function getOptimizedImageUrl(url, width = 400) {
  *     محسوبة كـ: عرض CSS × 2 (لشاشات ريتينا).
  */
 export const IMAGE_WIDTHS = {
-  GRID_CARD: 480,      // 2-column mobile grid: ~200px × 2.5dpr ≈ 480px
-  GRID_CARD_RETINA: 640,
+  GRID_CARD: 600,      // 2-column mobile grid: ~200px × 3dpr ≈ 600px
+  GRID_CARD_RETINA: 900,
   BELT_CARD: 380,      // Belt card: ~190px × 2dpr = 380px
   THUMBNAIL: 150,      // Small thumbnail: ~75px × 2dpr = 150px
   CATEGORY_CARD: 400,  // Category full-bleed card: ~200px × 2dpr = 400px
-  DETAIL: 800,         // Product detail page: ~400px × 2dpr = 800px
+  DETAIL: 1200,        // Product detail page: ~400px × 3dpr = 1200px
   HERO_MOBILE: 800,
   HERO_DESKTOP: 1400,
   BANNER_MOBILE: 640,
@@ -145,7 +144,7 @@ export function getResponsiveCloudinarySources(url, { widths, sizes, fallbackWid
 
 export const RESPONSIVE_WIDTHS = {
   HERO: [640, 800, 1200, 1400, 1600],
-  DETAIL: [400, 640, 800, 1200],
+  DETAIL: [640, 800, 1200, 1600],
   BANNER: [640, 800, 1000, 1200, 1400],
 };
 

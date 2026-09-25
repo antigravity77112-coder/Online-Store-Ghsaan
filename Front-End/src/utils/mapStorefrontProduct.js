@@ -27,6 +27,7 @@ export function mapStorefrontProduct(p) {
       ? Number(p.remainingStock)
       : (p.stockQuantity != null ? Number(p.stockQuantity) : undefined),
     hasVariants: Boolean(p.hasVariants),
+    showStock: p.showStock !== false,
   };
 
   if (p.rating != null) mapped.rating = p.rating;

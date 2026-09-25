@@ -150,6 +150,7 @@ const HomePage = () => {
               loadingCount={SECTION_PREVIEW_COUNT}
               limit={SECTION_PREVIEW_COUNT}
               onFavorite={handleFavoriteToggle}
+              priorityCount={4}
             />
           )}
 
@@ -162,6 +163,7 @@ const HomePage = () => {
               loadingCount={SECTION_PREVIEW_COUNT}
               limit={SECTION_PREVIEW_COUNT}
               onFavorite={handleFavoriteToggle}
+              priorityCount={featuredOffers.length > 0 ? 0 : 4}
             />
           )}
 

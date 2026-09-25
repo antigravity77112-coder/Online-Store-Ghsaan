@@ -19,6 +19,7 @@ import ProductListingToolbar from '../components/ProductListingToolbar';
 import ListingSearchField from '../components/listing/ListingSearchField';
 import ListingEmptyState from '../components/listing/ListingEmptyState';
 import QuickAddFeedback from '../components/QuickAddFeedback';
+import BannerRenderer from '../components/BannerRenderer';
 import { ProductGrid } from '../components/HighConversionGrid';
 import { useCart } from '../context/CartContext';
 import { useFavorites } from '../context/FavoritesContext';
@@ -208,6 +209,8 @@ const CategoryPage = () => {
             placeholder={`ابحث في ${categoryName}...`}
           />
         </div>
+
+        <BannerRenderer placement="category" className="w-full mb-3" />
 
         <ProductListingToolbar
           productCount={filteredProducts.length}

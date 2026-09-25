@@ -20,6 +20,7 @@ export default function ProductVerticalSection({
   onFavorite,
   onQuickAdd,
   className = '',
+  priorityCount = 0,
 }) {
   const isFlash = variant === 'flash';
   const visible = limit != null ? products.slice(0, limit) : products;
@@ -64,11 +65,12 @@ export default function ProductVerticalSection({
           ? Array.from({ length: loadingCount }).map((_, i) => (
               <ProductCard key={`vertical-skel-${i}`} isLoading compact />
             ))
-          : visible.map((product) => (
+          : visible.map((product, index) => (
               <ProductCard
                 key={product.id}
                 product={product}
                 compact
+                priority={index < priorityCount}
                 onFavorite={onFavorite}
                 onQuickAdd={onQuickAdd}
               />
