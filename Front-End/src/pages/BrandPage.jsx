@@ -132,6 +132,7 @@ const BrandPage = () => {
             compact
             items={[
               { name: 'الرئيسية', url: '/' },
+              { name: 'العلامات', url: '/brands' },
               { name: brand.name },
             ]}
           />

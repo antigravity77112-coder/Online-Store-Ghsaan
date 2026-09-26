@@ -226,8 +226,53 @@ const AdminProductsTab = ({ openEditProductModal, hasProductDraft, onResumeProdu
     ? products.find((p) => p.id === selectedSingleId)
     : null;
 
+  const bulkBarInner = (
+    <>
+      <div className="flex items-center gap-2 text-white px-1 flex-shrink-0">
+        <div className="bg-gold-500 text-white text-xs font-bold w-7 h-7 rounded-full flex items-center justify-center">
+          {selectedIds.size}
+        </div>
+        <span className="text-sm font-semibold hidden xs:inline sm:inline">محددة</span>
+      </div>
+      <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide flex-1 min-w-0">
+        {showCategorySelector ? (
+          <div className="flex items-center gap-2">
+            <select
+              onChange={(e) => { if (e.target.value) handleBulkCategoryChange(e.target.value); }}
+              className="bg-slate-800 border border-slate-600 text-white text-xs rounded-xl px-3 py-2.5 min-h-[44px] outline-none min-w-[140px]"
+              defaultValue=""
+            >
+              <option value="" disabled>اختر القسم...</option>
+              {categories?.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
+            <button type="button" onClick={() => setShowCategorySelector(false)} className="p-2.5 min-w-[44px] min-h-[44px] bg-slate-800 rounded-xl text-white flex items-center justify-center"><X className="w-4 h-4" /></button>
+          </div>
+        ) : (
+          <>
+            {selectedSingleProduct && (
+              <button
+                type="button"
+                disabled={isBulkLoading}
+                onClick={() => openEditProductModal(selectedSingleProduct)}
+                className="px-3 py-2.5 min-h-[44px] bg-blue-500/20 text-blue-300 rounded-xl text-xs font-bold whitespace-nowrap"
+              >
+                <Edit3 className="w-3.5 h-3.5 inline ml-1" /> تعديل
+              </button>
+            )}
+            <button type="button" disabled={isBulkLoading} onClick={() => setShowCategorySelector(true)} className="px-3 py-2.5 min-h-[44px] bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-bold whitespace-nowrap">
+              <Tag className="w-3.5 h-3.5 inline ml-1" /> نقل
+            </button>
+            <button type="button" disabled={isBulkLoading} onClick={() => handleBulkStatus(false)} className="px-3 py-2.5 min-h-[44px] bg-emerald-500/20 text-emerald-300 rounded-xl text-xs font-bold whitespace-nowrap">تنشيط</button>
+            <button type="button" disabled={isBulkLoading} onClick={() => handleBulkStatus(true)} className="px-3 py-2.5 min-h-[44px] bg-slate-800 text-slate-300 rounded-xl text-xs font-bold whitespace-nowrap">إخفاء</button>
+            <button type="button" disabled={isBulkLoading} onClick={handleBulkDelete} className="px-3 py-2.5 min-h-[44px] bg-red-500/20 text-red-400 rounded-xl text-xs font-bold whitespace-nowrap">حذف</button>
+          </>
+        )}
+      </div>
+    </>
+  );
+
   return (
-    <div className={`relative min-h-[60vh] ${selectedIds.size > 0 ? 'pb-36' : 'pb-24'}`}>
+    <div className={`relative min-h-[60vh] ${selectedIds.size > 0 ? 'pb-8 lg:pb-36' : 'pb-24'}`}>
       <AdminToolbar
         title="إدارة المنتجات"
         subtitle={`${products.length} منتج محمّل`}
@@ -261,55 +306,33 @@ const AdminProductsTab = ({ openEditProductModal, hasProductDraft, onResumeProdu
         </div>
       </AdminToolbar>
 
+      {/* Mobile: sticky under toolbar — avoids covering row actions at viewport bottom */}
       <AnimatePresence>
         {selectedIds.size > 0 && (
           <motion.div
+            key="bulk-bar-mobile"
+            initial={{ y: -12, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: -12, opacity: 0 }}
+            className="lg:hidden sticky top-0 z-[60] mb-3 w-full bg-slate-900/95 backdrop-blur-xl shadow-2xl rounded-2xl border border-gold-500/20 p-3 flex items-center gap-3 flex-nowrap"
+          >
+            {bulkBarInner}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Desktop: fixed bottom bar */}
+      <AnimatePresence>
+        {selectedIds.size > 0 && (
+          <motion.div
+            key="bulk-bar-desktop"
             initial={{ y: 50, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 50, opacity: 0 }}
-            className="fixed left-1/2 -translate-x-1/2 z-[60] w-[min(95vw,42rem)] bg-slate-900/95 backdrop-blur-xl shadow-2xl rounded-2xl border border-gold-500/20 p-3 flex items-center gap-3 flex-nowrap"
+            className="hidden lg:flex fixed left-1/2 -translate-x-1/2 z-[60] w-[min(95vw,42rem)] bg-slate-900/95 backdrop-blur-xl shadow-2xl rounded-2xl border border-gold-500/20 p-3 items-center gap-3 flex-nowrap"
             style={{ bottom: 'max(1rem, env(safe-area-inset-bottom))' }}
           >
-            <div className="flex items-center gap-2 text-white px-1 flex-shrink-0">
-              <div className="bg-gold-500 text-white text-xs font-bold w-7 h-7 rounded-full flex items-center justify-center">
-                {selectedIds.size}
-              </div>
-              <span className="text-sm font-semibold hidden xs:inline sm:inline">محددة</span>
-            </div>
-            <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide flex-1 min-w-0">
-              {showCategorySelector ? (
-                <div className="flex items-center gap-2">
-                  <select
-                    onChange={(e) => { if (e.target.value) handleBulkCategoryChange(e.target.value); }}
-                    className="bg-slate-800 border border-slate-600 text-white text-xs rounded-xl px-3 py-2.5 min-h-[44px] outline-none min-w-[140px]"
-                    defaultValue=""
-                  >
-                    <option value="" disabled>اختر القسم...</option>
-                    {categories?.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-                  </select>
-                  <button type="button" onClick={() => setShowCategorySelector(false)} className="p-2.5 min-w-[44px] min-h-[44px] bg-slate-800 rounded-xl text-white flex items-center justify-center"><X className="w-4 h-4" /></button>
-                </div>
-              ) : (
-                <>
-                  {selectedSingleProduct && (
-                    <button
-                      type="button"
-                      disabled={isBulkLoading}
-                      onClick={() => openEditProductModal(selectedSingleProduct)}
-                      className="px-3 py-2.5 min-h-[44px] bg-blue-500/20 text-blue-300 rounded-xl text-xs font-bold whitespace-nowrap"
-                    >
-                      <Edit3 className="w-3.5 h-3.5 inline ml-1" /> تعديل
-                    </button>
-                  )}
-                  <button type="button" disabled={isBulkLoading} onClick={() => setShowCategorySelector(true)} className="px-3 py-2.5 min-h-[44px] bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-bold whitespace-nowrap">
-                    <Tag className="w-3.5 h-3.5 inline ml-1" /> نقل
-                  </button>
-                  <button type="button" disabled={isBulkLoading} onClick={() => handleBulkStatus(false)} className="px-3 py-2.5 min-h-[44px] bg-emerald-500/20 text-emerald-300 rounded-xl text-xs font-bold whitespace-nowrap">تنشيط</button>
-                  <button type="button" disabled={isBulkLoading} onClick={() => handleBulkStatus(true)} className="px-3 py-2.5 min-h-[44px] bg-slate-800 text-slate-300 rounded-xl text-xs font-bold whitespace-nowrap">إخفاء</button>
-                  <button type="button" disabled={isBulkLoading} onClick={handleBulkDelete} className="px-3 py-2.5 min-h-[44px] bg-red-500/20 text-red-400 rounded-xl text-xs font-bold whitespace-nowrap">حذف</button>
-                </>
-              )}
-            </div>
+            {bulkBarInner}
           </motion.div>
         )}
       </AnimatePresence>
@@ -404,8 +427,8 @@ const AdminProductsTab = ({ openEditProductModal, hasProductDraft, onResumeProdu
                       </div>
                     </div>
 
-                    {/* Mobile card */}
-                    <div className="lg:hidden space-y-3 relative z-10">
+                    {/* Mobile card — row actions hidden while bulk-selecting (use sticky bar) */}
+                    <div className="lg:hidden space-y-3">
                       <div className="flex items-center gap-3">
                         <button type="button" onClick={() => toggleSelection(p.id)} className="flex-shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center">
                           {isSelected ? <CheckSquare className="w-5 h-5 text-gold-500" /> : <Square className="w-5 h-5 text-slate-400" />}
@@ -422,20 +445,22 @@ const AdminProductsTab = ({ openEditProductModal, hasProductDraft, onResumeProdu
                         <div><span className="text-[10px] text-slate-400 block">السعر</span><span className="font-bold">{formatNativePrice(p.price, p.currency)}</span></div>
                         <div><span className="text-[10px] text-slate-400 block">المخزون</span><span className="font-semibold">{p.stockQuantity}</span></div>
                       </div>
-                      <div className="flex justify-end gap-1.5 pl-8 border-t border-slate-100 dark:border-slate-800 pt-2">
-                        <button type="button" onClick={() => openEditProductModal(p)} className="p-2.5 min-w-[44px] min-h-[44px] text-blue-600 bg-blue-50 dark:bg-blue-900/20 rounded-lg flex items-center justify-center" aria-label="تعديل"><Edit3 className="w-4 h-4" /></button>
-                        <button type="button" onClick={() => handleDuplicate(p)} className="p-2.5 min-w-[44px] min-h-[44px] text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg flex items-center justify-center" aria-label="تكرار"><Copy className="w-4 h-4" /></button>
-                        <button
-                          type="button"
-                          disabled={isBulkLoading}
-                          onClick={() => handleToggleVisibility(p)}
-                          className="p-2.5 min-w-[44px] min-h-[44px] text-amber-700 bg-amber-50 dark:bg-amber-900/20 rounded-lg flex items-center justify-center disabled:opacity-50"
-                          aria-label={(p.status === 'Archived' || p.isHidden) ? 'إظهار' : 'إخفاء'}
-                        >
-                          {(p.status === 'Archived' || p.isHidden) ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
-                        </button>
-                        <button type="button" onClick={() => handleDeleteProduct(p.id)} className="p-2.5 min-w-[44px] min-h-[44px] text-red-600 bg-red-50 dark:bg-red-900/20 rounded-lg flex items-center justify-center" aria-label="حذف"><Trash2 className="w-4 h-4" /></button>
-                      </div>
+                      {selectedIds.size === 0 && (
+                        <div className="flex justify-end gap-1.5 pl-8 border-t border-slate-100 dark:border-slate-800 pt-2">
+                          <button type="button" onClick={() => openEditProductModal(p)} className="p-2.5 min-w-[44px] min-h-[44px] text-blue-600 bg-blue-50 dark:bg-blue-900/20 rounded-lg flex items-center justify-center" aria-label="تعديل"><Edit3 className="w-4 h-4" /></button>
+                          <button type="button" onClick={() => handleDuplicate(p)} className="p-2.5 min-w-[44px] min-h-[44px] text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg flex items-center justify-center" aria-label="تكرار"><Copy className="w-4 h-4" /></button>
+                          <button
+                            type="button"
+                            disabled={isBulkLoading}
+                            onClick={() => handleToggleVisibility(p)}
+                            className="p-2.5 min-w-[44px] min-h-[44px] text-amber-700 bg-amber-50 dark:bg-amber-900/20 rounded-lg flex items-center justify-center disabled:opacity-50"
+                            aria-label={(p.status === 'Archived' || p.isHidden) ? 'إظهار' : 'إخفاء'}
+                          >
+                            {(p.status === 'Archived' || p.isHidden) ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                          </button>
+                          <button type="button" onClick={() => handleDeleteProduct(p.id)} className="p-2.5 min-w-[44px] min-h-[44px] text-red-600 bg-red-50 dark:bg-red-900/20 rounded-lg flex items-center justify-center" aria-label="حذف"><Trash2 className="w-4 h-4" /></button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </AdminFadeIn>

@@ -78,6 +78,36 @@ export function useCategories() {
   };
 }
 
+// ─── Brands Hook / خطاف العلامات التجارية ───
+
+/**
+ * useBrands — خطاف العلامات التجارية
+ *
+ * EN: Same caching strategy as useCategories (brands change rarely).
+ * AR: نفس استراتيجية التخزين المؤقت مثل useCategories.
+ */
+export function useBrands() {
+  const { data, error, isLoading } = useSWR(
+    'brands',
+    async () => {
+      const brands = await api.getBrands();
+      return brands || [];
+    },
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 300000,
+      revalidateOnReconnect: false,
+      errorRetryCount: 2,
+    }
+  );
+
+  return {
+    data: data || [],
+    isLoading,
+    error,
+  };
+}
+
 /**
  * useScents — خطاف الروائح
  */

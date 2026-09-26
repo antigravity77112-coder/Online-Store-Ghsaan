@@ -803,6 +803,8 @@ model Favorite {
 model SystemSetting {
   id                String   @id @default("global")
   aboutUsText       String   @default("سوق إلكتروني يمني يوفر أفضل المنتجات...")
+  /// Editable privacy policy body (storefront /privacy-policy)
+  privacyPolicyText String?
   contactEmail      String   @default("info@al-gaadi.com")
   contactPhone      String   @default("+967 77X XXX XXX")
   shippingOfferText String   @default("شحن مجاني للطلبات فوق 50$")

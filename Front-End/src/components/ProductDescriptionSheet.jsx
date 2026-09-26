@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { Link } from 'react-router-dom';
 import { X } from 'lucide-react';
 
 /**
@@ -29,17 +30,25 @@ export function buildProductSpecRows(product, { selectedVariant = null, optionGr
   const rows = [];
   const seen = new Set();
 
-  const push = (label, value) => {
+  const push = (label, value, href = null) => {
     if (!label || value == null || value === '') return;
     const key = `${label}::${value}`;
     if (seen.has(key)) return;
     seen.add(key);
-    rows.push({ label, value: String(value) });
+    const row = { label, value: String(value) };
+    if (href) row.href = href;
+    rows.push(row);
   };
 
   push('التصنيف', product.categoryName || product.category?.name);
   push('SKU', selectedVariant?.sku || product.sku);
-  push('البراند', product.brand?.name || product.brandName);
+  const brandName = product.brand?.name || product.brandName;
+  const brandSlug = product.brand?.slug;
+  push(
+    'البراند',
+    brandName,
+    brandSlug ? `/brand/${encodeURIComponent(brandSlug)}` : null,
+  );
 
   if (selectedVariant?.attributes?.length) {
     for (const attr of selectedVariant.attributes) {
@@ -144,7 +153,17 @@ export default function ProductDescriptionSheet({
                       aria-hidden="true"
                     />
                     <span className="font-medium text-stone-900 dark:text-stone-100 text-right break-words">
-                      {row.value}
+                      {row.href ? (
+                        <Link
+                          to={row.href}
+                          className="text-gold-700 dark:text-gold-400 hover:underline underline-offset-2"
+                          onClick={onClose}
+                        >
+                          {row.value}
+                        </Link>
+                      ) : (
+                        row.value
+                      )}
                     </span>
                   </li>
                 ))}

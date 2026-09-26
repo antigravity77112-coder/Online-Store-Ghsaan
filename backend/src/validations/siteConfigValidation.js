@@ -42,6 +42,7 @@ const homepageSchema = Joi.object({
 
 const siteConfigUpdateSchema = Joi.object({
   aboutUsText: optionalString(5000),
+  privacyPolicyText: optionalString(5000),
   contactEmail: optionalString(200),
   contactPhone: optionalString(50),
   shippingOfferText: optionalString(500),

@@ -399,6 +399,14 @@ const AdminCustomizationTab = ({ config, setConfig, onSave, saving }) => {
           <Field label="نص التذييل"><textarea className={`${adminInputClass} min-h-[80px]`} value={config.footerText || ''} onChange={(e) => set('footerText', e.target.value)} /></Field>
           <Field label="حقوق النشر"><input className={adminInputClass} value={config.copyrightText || ''} onChange={(e) => set('copyrightText', e.target.value)} /></Field>
           <Field label="نص «من نحن»"><textarea className={`${adminInputClass} min-h-[100px]`} value={config.aboutUsText || ''} onChange={(e) => set('aboutUsText', e.target.value)} /></Field>
+          <Field label="نص سياسة الخصوصية">
+            <textarea
+              className={`${adminInputClass} min-h-[140px]`}
+              value={config.privacyPolicyText || ''}
+              onChange={(e) => set('privacyPolicyText', e.target.value)}
+              placeholder="يظهر في صفحة /privacy-policy. اتركه فارغاً لاستخدام النص الافتراضي."
+            />
+          </Field>
           <Field label="نص العروض/الشحن"><input className={adminInputClass} value={config.shippingOfferText || ''} onChange={(e) => set('shippingOfferText', e.target.value)} /></Field>
         </AdminCard>
       )}

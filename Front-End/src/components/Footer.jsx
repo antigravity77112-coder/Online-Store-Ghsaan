@@ -24,13 +24,14 @@ import {
 } from "lucide-react";
 import { useSiteConfig } from "../context/SiteConfigContext";
 import { DEFAULT_SITE_CONFIG } from "../config/siteConfigDefaults";
-import { resolveWhatsAppBaseUrl, buildWhatsAppUrl } from "../utils/whatsappOrder";
+import { resolveWhatsAppContacts, buildWhatsAppUrl } from "../utils/whatsappOrder";
 import BrandTrio from "./BrandTrio";
 import WhatsAppGlyph from "./WhatsAppGlyph";
 
 const SHOP_LINKS = [
   { to: "/", label: "الرئيسية" },
   { to: "/categories", label: "الفئات" },
+  { to: "/brands", label: "العلامات" },
   { to: "/products", label: "جميع المنتجات" },
   { to: "/products?promoted=true", label: "العروض" },
 ];
@@ -188,13 +189,49 @@ function SocialLinks({ social, whatsappHref = "", className = "" }) {
   );
 }
 
+function WhatsAppContactList({ contacts }) {
+  if (!contacts?.length) return null;
+
+  return (
+    <div className="mb-6 w-full max-w-md mx-auto md:mx-0 md:max-w-none">
+      <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-2 text-center md:text-right">
+        تواصل واتساب
+      </p>
+      <ul className="flex flex-col gap-1.5">
+        {contacts.map((c) => {
+          const href = buildWhatsAppUrl(c.url, "");
+          const digits = String(c.url || "").replace(/\D/g, "").replace(/^967/, "");
+          const display = digits ? `+967 ${digits}` : c.label;
+          return (
+            <li key={c.url}>
+              <a
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2.5 min-h-[44px] px-3 rounded-xl border border-emerald-500/25 bg-emerald-50/60 text-emerald-800 hover:bg-emerald-50 dark:bg-emerald-950/30 dark:text-emerald-300 dark:border-emerald-500/30 dark:hover:bg-emerald-950/50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50"
+              >
+                <WhatsAppGlyph className="w-4 h-4 flex-shrink-0" />
+                <span className="flex-1 min-w-0 text-xs font-bold truncate">{c.label}</span>
+                <span className="text-[11px] font-medium opacity-80" dir="ltr">
+                  {display}
+                </span>
+              </a>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
+
 const Footer = () => {
   const { config } = useSiteConfig();
   const phone = (config.contact?.phone || "").trim();
   const phoneDigits = phone.replace(/[^\d]/g, "");
   const email = (config.contact?.email || "").trim();
-  const whatsappNumber = (config.contact?.whatsapp || "").trim();
-  const whatsappHref = whatsappNumber ? buildWhatsAppUrl(resolveWhatsAppBaseUrl(whatsappNumber), "") : "";
+  const waContacts = resolveWhatsAppContacts(config.contact || {});
+  const singleWhatsappHref =
+    waContacts.length === 1 ? buildWhatsAppUrl(waContacts[0].url, "") : "";
   const shippingOffer = (config.content?.shippingOfferText || "").trim();
   const tagline = (config.content?.footerText || config.seo?.description || DEFAULT_SITE_CONFIG.content.footerText).trim();
   const siteName = config.brand?.siteShortName || DEFAULT_SITE_CONFIG.brand.siteShortName;
@@ -222,7 +259,7 @@ const Footer = () => {
           <p className="mx-auto max-w-md text-xs leading-relaxed text-slate-600 dark:text-slate-400 line-clamp-3">
             {tagline}
           </p>
-          <SocialLinks social={config.social} whatsappHref={whatsappHref} className="mt-5 justify-center" />
+          <SocialLinks social={config.social} whatsappHref={singleWhatsappHref} className="mt-5 justify-center" />
         </div>
 
         <div className="hidden md:grid md:grid-cols-3 gap-8 lg:gap-12 mb-8">
@@ -236,6 +273,8 @@ const Footer = () => {
           <FooterAccordion title="المساعدة" links={HELP_LINKS} />
           <FooterAccordion title="عن المتجر" links={ABOUT_LINKS} />
         </div>
+
+        {waContacts.length >= 2 && <WhatsAppContactList contacts={waContacts} />}
 
         {(phoneDigits || email) && (
           <div className="flex flex-wrap items-center gap-x-5 gap-y-2 mb-6 text-xs">

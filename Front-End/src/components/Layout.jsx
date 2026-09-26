@@ -70,6 +70,7 @@ const Layout = React.memo(({ children, homeMarketplace = false, hideMobileHeader
     { to: "/", label: t("nav.home") },
     { to: "/products", label: t("nav.products") },
     { to: "/categories", label: t("nav.categories") },
+    { to: "/brands", label: t("nav.brands") },
     { to: "/products?promoted=true", label: t("nav.offers") },
     { to: "/products?trending=true", label: t("nav.trending") },
   ]), [t]);
@@ -382,6 +383,10 @@ const Layout = React.memo(({ children, homeMarketplace = false, hideMobileHeader
 
                 <Link to="/categories" onClick={() => setIsMobileMenuOpen(false)} className={mobileNavLinkClass}>
                   <LayoutGrid className="w-5 h-5 text-gold-500" /> {t('nav.categories')}
+                </Link>
+
+                <Link to="/brands" onClick={() => setIsMobileMenuOpen(false)} className={mobileNavLinkClass}>
+                  <Crown className="w-5 h-5 text-gold-500" /> {t('nav.brands')}
                 </Link>
                 
                 {/* 2. جميع المنتجات */}

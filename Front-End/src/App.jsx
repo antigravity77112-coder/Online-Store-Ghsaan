@@ -39,6 +39,7 @@ const FavoritesPage = React.lazy(() => import("./pages/FavoritesPage"));
 const ProductsPage = React.lazy(() => import("./pages/ProductsPage"));
 const CategoryPage = React.lazy(() => import("./pages/CategoryPage"));
 const CategoriesPage = React.lazy(() => import("./pages/CategoriesPage"));
+const BrandsPage = React.lazy(() => import("./pages/BrandsPage"));
 const BrandPage = React.lazy(() => import("./pages/BrandPage"));
 const ProductGridDemo = React.lazy(
   () => import("./components/HighConversionGrid/ProductGridDemo"),
@@ -130,6 +131,7 @@ const App = () => {
   // Storefront Warm-Up (Predictive Prefetching)
   React.useEffect(() => {
     preload('categories', () => api.getCategories() || []);
+    preload('brands', () => api.getBrands() || []);
     preload('siteConfig', api.getSiteConfig);
     preload('home-products-offers', () => api.getProducts({ specialOffers: true, pageSize: 8 }));
     preload('home-products-trending', () => api.getProducts({ trending: true, pageSize: 8 }));
@@ -145,6 +147,7 @@ const App = () => {
           <Route path="/" element={<HomePage />} />
           <Route path="/products" element={<ProductsPage />} />
           <Route path="/categories" element={<CategoriesPage />} />
+          <Route path="/brands" element={<BrandsPage />} />
           <Route path="/category/:slug" element={<CategoryPage />} />
           <Route path="/brand/:slug" element={<BrandPage />} />
           <Route path="/scents" element={<Navigate to="/" replace />} />

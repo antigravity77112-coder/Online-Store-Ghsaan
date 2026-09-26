@@ -69,7 +69,7 @@ async function getAdminConfig() {
 
 /** Fields writable via admin config update */
 const WRITABLE_SCALAR_FIELDS = [
-  'aboutUsText', 'contactEmail', 'contactPhone', 'shippingOfferText',
+  'aboutUsText', 'privacyPolicyText', 'contactEmail', 'contactPhone', 'shippingOfferText',
   'facebookUrl', 'twitterUrl', 'whatsappUrl', 'instagramUrl', 'tiktokUrl',
   'telegramUrl', 'linkedinUrl', 'threadsUrl',
   'seoTitle', 'seoDescription',

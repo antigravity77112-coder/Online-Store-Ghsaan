@@ -251,6 +251,7 @@ function toPublicConfig(merged, { client = 'web' } = {}) {
     },
     content: {
       aboutUsText: merged.aboutUsText,
+      privacyPolicyText: merged.privacyPolicyText || null,
       shippingOfferText: merged.shippingOfferText,
       footerText: merged.footerText,
     },

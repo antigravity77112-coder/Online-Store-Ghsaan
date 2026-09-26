@@ -19,6 +19,7 @@ export function isShopChromeRoute(pathname) {
     pathname === '/'
     || pathname.startsWith('/products')
     || pathname.startsWith('/categories')
+    || pathname.startsWith('/brands')
     || pathname.startsWith('/category/')
     || pathname.startsWith('/scents')
     || pathname.startsWith('/scent/')

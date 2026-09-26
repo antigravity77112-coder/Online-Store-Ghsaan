@@ -344,9 +344,13 @@ const AddProductForm = ({ onSuccess, onCancel, editProduct, onDirtyChange }) => 
   const [newSpecAttrOptions, setNewSpecAttrOptions] = useState('');
 
   const formRootRef = useRef(null);
+  /** Prevents deriveGroupValuesFromVariants from restoring values the admin just removed. */
+  const optionGroupsHydrateKeyRef = useRef(null);
+
   useEffect(() => {
     dirtyNotifiedRef.current = false;
     onDirtyChange?.(false);
+    optionGroupsHydrateKeyRef.current = null;
   }, [editProduct?.id]); // eslint-disable-line react-hooks/exhaustive-deps -- reset dirty when edit target changes
 
   useEffect(() => {
@@ -369,9 +373,12 @@ const AddProductForm = ({ onSuccess, onCancel, editProduct, onDirtyChange }) => 
       setCategoryAttributes([]);
       setVariantAttributes([]);
       setOptionGroupValues({});
+      optionGroupsHydrateKeyRef.current = null;
       return;
     }
-    
+
+    optionGroupsHydrateKeyRef.current = null;
+    setVariantAttributes([]);
     Promise.all([
       api.getCategoryAttributes(form.categoryId, 'PRODUCT,BOTH'),
       api.getCategoryAttributes(form.categoryId, 'VARIANT,BOTH')
@@ -379,17 +386,29 @@ const AddProductForm = ({ onSuccess, onCancel, editProduct, onDirtyChange }) => 
       .then(([prodAttrs, varAttrs]) => {
         setCategoryAttributes(prodAttrs || []);
         setVariantAttributes(varAttrs || []);
-        setOptionGroupValues(deriveGroupValuesFromVariants(form.variants, varAttrs || []));
       })
       .catch(err => console.error('Failed to load category attributes:', err));
   }, [form.categoryId]);
 
-  // Re-hydrate option groups when edit product / category attrs are ready
+  // Hydrate option groups once per product+category when variant attrs first load
   useEffect(() => {
-    if (!variantAttributes.length) return;
-    setOptionGroupValues(deriveGroupValuesFromVariants(form.variants, variantAttributes));
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- hydrate from loaded attrs + current variants snapshot
-  }, [editProduct?.id, variantAttributes]);
+    if (!variantAttributes.length || !form.categoryId) return;
+    const key = `${editProduct?.id || 'new'}::${form.categoryId}`;
+    if (optionGroupsHydrateKeyRef.current === key) return;
+    optionGroupsHydrateKeyRef.current = key;
+
+    const variantsSnapshot = editProduct?.id
+      ? (editProduct.variants || []).map((v) => ({
+          attributes: v.attributes?.reduce((acc, attr) => {
+            acc[attr.categoryAttribute?.id || attr.categoryAttributeId] = attr.value;
+            return acc;
+          }, {}) || {},
+        }))
+      : form.variants;
+
+    setOptionGroupValues(deriveGroupValuesFromVariants(variantsSnapshot, variantAttributes));
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- one-shot hydrate; do not re-run on variant edits
+  }, [editProduct?.id, form.categoryId, variantAttributes]);
 
   // A SELECT specification with one possible value is already unambiguous.
   // Preselect it so the admin does not have to click the only available choice.
@@ -433,15 +452,53 @@ const AddProductForm = ({ onSuccess, onCancel, editProduct, onDirtyChange }) => 
   };
 
   const removeGroupValue = (attrId, value) => {
+    const dependentRows = (form.variants || []).filter(
+      (v) => String(v.attributes?.[attrId] ?? '') === String(value),
+    );
+    if (dependentRows.length > 0) {
+      const msg =
+        dependentRows.length === 1
+          ? `هل أنت متأكد من حذف القيمة "${value}"؟\nسيتم حذف تركيبة واحدة من الجدول.`
+          : `هل أنت متأكد من حذف القيمة "${value}"؟\nسيتم حذف ${dependentRows.length} تركيبات من الجدول.`;
+      if (!window.confirm(msg)) return;
+    }
+
     setOptionGroupValues((prev) => ({
       ...prev,
       [attrId]: (prev[attrId] || []).filter((v) => v !== value),
+    }));
+
+    if (dependentRows.length === 0) return;
+
+    const removedKeys = new Set();
+    const variants = form.variants
+      .filter((v) => {
+        if (String(v.attributes?.[attrId] ?? '') !== String(value)) return true;
+        removedKeys.add(selectionKey(v.attributes || {}));
+        return false;
+      })
+      .map((v, i) => ({ ...v, sortOrder: i }));
+
+    if (removedKeys.size) {
+      setRemovedCombos((set) => {
+        const next = new Set(set);
+        removedKeys.forEach((k) => next.add(k));
+        return next;
+      });
+    }
+
+    setForm((prev) => ({
+      ...prev,
+      variants,
+      hasVariants: variants.length > 0 ? prev.hasVariants : false,
     }));
   };
 
   const removeVariantRow = (index) => {
     const removed = form.variants[index];
     if (!removed) return;
+    if (!window.confirm('هل أنت متأكد من حذف هذا المتغير؟')) return;
+
     const variants = form.variants
       .filter((_, i) => i !== index)
       .map((v, i) => ({ ...v, sortOrder: i }));
@@ -452,7 +509,9 @@ const AddProductForm = ({ onSuccess, onCancel, editProduct, onDirtyChange }) => 
       setOptionGroupValues((groups) => {
         const next = { ...groups };
         for (const [attrId, value] of Object.entries(removedAttrs)) {
-          const stillUsed = variants.some((v) => v.attributes?.[attrId] === value);
+          const stillUsed = variants.some(
+            (v) => String(v.attributes?.[attrId] ?? '') === String(value),
+          );
           if (!stillUsed) next[attrId] = (next[attrId] || []).filter((val) => val !== value);
         }
         return next;
@@ -538,7 +597,20 @@ const AddProductForm = ({ onSuccess, onCancel, editProduct, onDirtyChange }) => 
       });
       const varAttrs = await api.getCategoryAttributes(form.categoryId, 'VARIANT,BOTH');
       setVariantAttributes(varAttrs || []);
-      setOptionGroupValues(deriveGroupValuesFromVariants(form.variants, varAttrs || []));
+      // Keep existing chip selections; only seed the newly created attribute's catalog options
+      setOptionGroupValues((prev) => {
+        const next = { ...prev };
+        for (const attr of varAttrs || []) {
+          if (next[attr.id]?.length) continue;
+          if (attr.type === 'SELECT' || attr.type === 'MULTI_SELECT') {
+            const opts = parseAttrOptions(attr.options)
+              .map((o) => (typeof o === 'string' ? o : o.value || o.label))
+              .filter(Boolean);
+            if (opts.length) next[attr.id] = opts;
+          }
+        }
+        return next;
+      });
       setNewAttrName('');
       setNewAttrOptions('');
     } catch (err) {

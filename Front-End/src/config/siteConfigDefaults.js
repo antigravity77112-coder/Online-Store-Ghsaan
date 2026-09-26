@@ -44,6 +44,7 @@ export const DEFAULT_SITE_CONFIG = {
   },
   content: {
     aboutUsText: '',
+    privacyPolicyText: '',
     shippingOfferText: '',
     footerText: 'متجرك الإلكتروني — منتجات متنوعة بأسعار منافسة وتجربة تسوق سهلة.',
   },
