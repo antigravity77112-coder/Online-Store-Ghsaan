@@ -4,6 +4,7 @@ import SEO from '../components/SEO';
 import { useSiteConfig } from '../context/SiteConfigContext';
 import { Phone, Instagram, Mail } from 'lucide-react';
 import WhatsAppGlyph from '../components/WhatsAppGlyph';
+import { resolveWhatsAppContacts, buildWhatsAppUrl } from '../utils/whatsappOrder';
 
 const ContactPage = () => {
   const { config } = useSiteConfig();
@@ -13,9 +14,8 @@ const ContactPage = () => {
 
   const phone = useMemo(() => (contact.phone || '').trim(), [contact.phone]);
   const phoneDigits = useMemo(() => phone.replace(/[^\d]/g, ''), [phone]);
-  const phoneE164 = useMemo(() => (phoneDigits ? (phoneDigits.startsWith('967') ? phoneDigits : `967${phoneDigits}`) : ''), [phoneDigits]);
 
-  const whatsappUrl = contact.whatsapp || (phoneE164 ? `https://wa.me/${phoneE164}` : '');
+  const waContacts = useMemo(() => resolveWhatsAppContacts(contact), [contact]);
   const instagramUrl = social.instagram || '';
 
   return (
@@ -45,27 +45,38 @@ const ContactPage = () => {
                 </div>
                 <div className="min-w-0">
                   <div className="text-sm font-extrabold text-slate-900 dark:text-white">اتصل بنا</div>
-                  <div className="text-xs text-slate-500 dark:text-slate-400 truncate">{phone}</div>
+                  <div className="text-xs text-slate-500 dark:text-slate-400 truncate" dir="ltr">{phone}</div>
                 </div>
               </a>
             )}
 
-            {whatsappUrl && (
-              <a
-                href={whatsappUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="flex items-center gap-3 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-emerald-300 dark:hover:border-emerald-500/60 hover:bg-emerald-50/60 dark:hover:bg-emerald-500/10 transition-colors"
-              >
-                <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center">
-                  <WhatsAppGlyph className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-                </div>
-                <div className="min-w-0">
-                  <div className="text-sm font-extrabold text-slate-900 dark:text-white">واتساب</div>
-                  <div className="text-xs text-slate-500 dark:text-slate-400 truncate">{phone}</div>
-                </div>
-              </a>
-            )}
+            {waContacts.map((item) => {
+              const href = buildWhatsAppUrl(item.url, 'مرحباً! أود الاستفسار عن منتجاتكم.');
+              if (!href) return null;
+              const digits = String(item.url || '').replace(/\D/g, '').replace(/^967/, '');
+              const display = digits ? `+967 ${digits}` : item.label;
+              return (
+                <a
+                  key={`${item.label}-${item.url}`}
+                  href={href}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center gap-3 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-emerald-300 dark:hover:border-emerald-500/60 hover:bg-emerald-50/60 dark:hover:bg-emerald-500/10 transition-colors"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center">
+                    <WhatsAppGlyph className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-sm font-extrabold text-slate-900 dark:text-white">
+                      {waContacts.length > 1 ? item.label : 'واتساب'}
+                    </div>
+                    <div className="text-xs text-slate-500 dark:text-slate-400 truncate" dir="ltr">
+                      {display}
+                    </div>
+                  </div>
+                </a>
+              );
+            })}
 
             {instagramUrl && (
               <a

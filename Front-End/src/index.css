@@ -299,6 +299,11 @@
   will-change: transform;
 }
 
+/* One full loop then hand off to next announcement banner */
+.offer-belt-track.offer-belt-track--once {
+  animation-iteration-count: 1;
+}
+
 .offer-belt-viewport:hover .offer-belt-track {
   animation-play-state: paused;
 }

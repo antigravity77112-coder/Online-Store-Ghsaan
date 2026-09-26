@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Megaphone } from 'lucide-react';
 import * as api from '../../services/api';
 import { getTrackedSet, markTracked, BANNER_IMPRESSION_KEY } from './bannerUtils';
@@ -7,59 +7,92 @@ function bannerLabel(banner) {
   return [banner.title, banner.subtitle, banner.description].filter(Boolean).join(' — ');
 }
 
+function resolveBg(banner) {
+  const c = banner?.bgColor;
+  if (c && c !== 'transparent') return c;
+  return '#C9A227';
+}
+
+function resolveSpeed(banner) {
+  return Math.min(120, Math.max(8, Number(banner?.scrollSpeed) || 40));
+}
+
 /**
- * Scrolling announcement ticker (gisaah.com-style moving belt).
- * Multiple active banners are joined with · into one continuous RTL marquee.
+ * Scrolling announcement ticker under the header.
+ * Multiple banners play sequentially: one full loop each (own bg/text/speed), then cycle.
  */
 export default function AnnouncementBar({ banners, overlay = false }) {
-  const segments = useMemo(
-    () => (banners || []).map((b) => ({ id: b.id, label: bannerLabel(b), ctaUrl: b.ctaUrl })).filter((s) => s.label),
-    [banners],
-  );
-
-  const primary = banners?.[0];
-  const bgColor = primary?.bgColor && primary.bgColor !== 'transparent'
-    ? primary.bgColor
-    : '#C9A227';
-  const textColor = primary?.textColor || '#ffffff';
-  const scrollSpeed = Math.min(120, Math.max(8, Number(primary?.scrollSpeed) || 40));
-
-  const joinedText = useMemo(
-    () => segments.map((s) => s.label).join('  ·  '),
-    [segments],
-  );
-
-  useEffect(() => {
-    if (!banners?.length) return;
-    const tracked = getTrackedSet(BANNER_IMPRESSION_KEY);
-    for (const banner of banners) {
-      if (tracked.has(banner.id)) continue;
-      markTracked(banner.id, BANNER_IMPRESSION_KEY);
-      api.trackBannerEvent(banner.id, 'impression').catch(() => {});
-    }
+  const ordered = useMemo(() => {
+    const list = Array.isArray(banners) ? [...banners] : [];
+    list.sort((a, b) => (Number(a.priority) || 0) - (Number(b.priority) || 0));
+    return list.filter((b) => bannerLabel(b));
   }, [banners]);
 
-  const handleClick = useCallback(() => {
-    const withCta = banners?.find((b) => b.ctaUrl) || primary;
-    if (!withCta) return;
-    api.trackBannerEvent(withCta.id, 'click').catch(() => {});
-    if (withCta.ctaUrl) {
-      window.open(withCta.ctaUrl, '_blank', 'noopener,noreferrer');
+  const orderKey = useMemo(() => ordered.map((b) => b.id).join('|'), [ordered]);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [loopNonce, setLoopNonce] = useState(0);
+
+  useEffect(() => {
+    setActiveIndex(0);
+    setLoopNonce(0);
+  }, [orderKey]);
+
+  const safeIndex = ordered.length ? activeIndex % ordered.length : 0;
+  const active = ordered[safeIndex] || null;
+  const label = active ? bannerLabel(active) : '';
+  const bgColor = resolveBg(active);
+  const textColor = active?.textColor || '#ffffff';
+  const scrollSpeed = resolveSpeed(active);
+
+  useEffect(() => {
+    if (!active?.id) return;
+    const tracked = getTrackedSet(BANNER_IMPRESSION_KEY);
+    if (tracked.has(active.id)) return;
+    markTracked(active.id, BANNER_IMPRESSION_KEY);
+    api.trackBannerEvent(active.id, 'impression').catch(() => {});
+  }, [active?.id]);
+
+  const advance = useCallback(() => {
+    if (ordered.length <= 1) {
+      setLoopNonce((n) => n + 1);
+      return;
     }
-  }, [banners, primary]);
+    setActiveIndex((i) => (i + 1) % ordered.length);
+  }, [ordered.length]);
 
-  if (!segments.length || !joinedText) return null;
+  const handleClick = useCallback(() => {
+    if (!active) return;
+    api.trackBannerEvent(active.id, 'click').catch(() => {});
+    if (active.ctaUrl) {
+      window.open(active.ctaUrl, '_blank', 'noopener,noreferrer');
+    }
+  }, [active]);
 
-  const hasCta = Boolean(banners?.some((b) => b.ctaUrl));
+  if (!ordered.length || !label) return null;
+
+  const hasCta = Boolean(active?.ctaUrl);
+  const trackKey = `${active?.id || 'banner'}-${safeIndex}-${loopNonce}`;
 
   const track = (
-    <div className="offer-belt-track flex w-max max-w-none items-center gap-10 whitespace-nowrap py-2.5 sm:py-3" style={{ animationDuration: `${scrollSpeed}s` }}>
+    <div
+      key={trackKey}
+      className="offer-belt-track offer-belt-track--once flex w-max max-w-none items-center gap-10 whitespace-nowrap py-2.5 sm:py-3"
+      style={{ animationDuration: `${scrollSpeed}s` }}
+      onAnimationEnd={(e) => {
+        if (e.target !== e.currentTarget) return;
+        advance();
+      }}
+    >
       {[0, 1].map((copy) => (
-        <span key={copy} className="inline-flex items-center gap-3 text-xs sm:text-sm font-bold leading-none" style={{ color: textColor }}>
+        <span
+          key={copy}
+          className="inline-flex items-center gap-3 text-xs sm:text-sm font-bold leading-none"
+          style={{ color: textColor }}
+        >
           <Megaphone className="w-3.5 h-3.5 flex-shrink-0 opacity-90 hidden sm:block" aria-hidden="true" />
-          <span>{joinedText}</span>
+          <span>{label}</span>
           <span className="opacity-50" aria-hidden="true">·</span>
-          <span>{joinedText}</span>
+          <span>{label}</span>
         </span>
       ))}
     </div>
@@ -67,7 +100,7 @@ export default function AnnouncementBar({ banners, overlay = false }) {
 
   const inner = (
     <div
-      className={`relative w-full overflow-hidden ${overlay ? '' : ''}`}
+      className="relative w-full overflow-hidden"
       style={overlay ? undefined : { backgroundColor: bgColor }}
     >
       {overlay ? (
@@ -77,12 +110,11 @@ export default function AnnouncementBar({ banners, overlay = false }) {
         <div className="offer-belt-viewport overflow-hidden" dir="ltr">
           {track}
         </div>
-        {/* Static fallback for reduced motion (CSS hides the animated track) */}
         <p
           className="offer-belt-static hidden text-xs sm:text-sm font-bold text-center leading-snug px-4 py-2.5 line-clamp-2"
           style={{ color: textColor }}
         >
-          {joinedText}
+          {label}
         </p>
       </div>
     </div>

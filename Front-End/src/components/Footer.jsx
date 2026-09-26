@@ -10,7 +10,7 @@
  *     فاتح: خلفية بيضاء؛ داكن: خلفية داكنة.
  */
 
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   ChevronDown,
@@ -21,12 +21,15 @@ import {
   Linkedin,
   MapPin,
   Truck,
+  X,
 } from "lucide-react";
 import { useSiteConfig } from "../context/SiteConfigContext";
 import { DEFAULT_SITE_CONFIG } from "../config/siteConfigDefaults";
 import { resolveWhatsAppContacts, buildWhatsAppUrl } from "../utils/whatsappOrder";
 import BrandTrio from "./BrandTrio";
 import WhatsAppGlyph from "./WhatsAppGlyph";
+
+const FOOTER_WA_GREETING = "مرحباً! أود الاستفسار عن منتجاتكم.";
 
 const SHOP_LINKS = [
   { to: "/", label: "الرئيسية" },
@@ -156,9 +159,106 @@ function XIcon({ className }) {
   );
 }
 
-function SocialLinks({ social, whatsappHref = "", className = "" }) {
+const socialIconClass =
+  "w-9 h-9 flex items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:text-gold-600 hover:border-gold-500/40 dark:border-white/15 dark:text-slate-400 dark:hover:text-gold-400 dark:hover:border-gold-600/50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/50";
+
+function FooterWhatsAppControl({ contacts }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const wrapRef = useRef(null);
+
+  useEffect(() => {
+    if (!menuOpen) return undefined;
+    const onKey = (e) => {
+      if (e.key === "Escape") setMenuOpen(false);
+    };
+    const onPointer = (e) => {
+      if (wrapRef.current && !wrapRef.current.contains(e.target)) setMenuOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    document.addEventListener("mousedown", onPointer);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.removeEventListener("mousedown", onPointer);
+    };
+  }, [menuOpen]);
+
+  if (!contacts?.length) return null;
+
+  const openContact = (item) => {
+    const href = buildWhatsAppUrl(item.url, FOOTER_WA_GREETING);
+    if (!href) return;
+    window.open(href, "_blank", "noopener,noreferrer");
+    setMenuOpen(false);
+  };
+
+  if (contacts.length === 1) {
+    const href = buildWhatsAppUrl(contacts[0].url, FOOTER_WA_GREETING);
+    if (!href) return null;
+    return (
+      <a
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="واتساب"
+        className={socialIconClass}
+      >
+        <WhatsAppGlyph className="w-4 h-4" />
+      </a>
+    );
+  }
+
+  return (
+    <div ref={wrapRef} className="relative">
+      <button
+        type="button"
+        aria-label="اختر رقم واتساب"
+        aria-expanded={menuOpen}
+        aria-haspopup="menu"
+        onClick={() => setMenuOpen((v) => !v)}
+        className={`${socialIconClass} ${menuOpen ? "text-[#25D366] border-emerald-400/50" : ""}`}
+      >
+        <WhatsAppGlyph className="w-4 h-4" />
+      </button>
+      {menuOpen ? (
+        <div
+          role="menu"
+          aria-label="اختر رقم واتساب"
+          className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 z-30 rounded-2xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-900 shadow-xl overflow-hidden"
+        >
+          <div className="flex items-center justify-between px-3 py-2 border-b border-stone-100 dark:border-stone-800">
+            <span className="text-xs font-bold text-stone-700 dark:text-stone-200">تواصل عبر واتساب</span>
+            <button
+              type="button"
+              onClick={() => setMenuOpen(false)}
+              className="p-1 rounded-full text-stone-500 hover:bg-stone-100 dark:hover:bg-stone-800"
+              aria-label="إغلاق"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+          <ul className="py-1">
+            {contacts.map((item) => (
+              <li key={`${item.label}-${item.url}`}>
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={() => openContact(item)}
+                  className="w-full text-right px-3 py-2.5 min-h-[44px] text-sm font-semibold text-stone-800 dark:text-stone-100 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 flex items-center gap-2"
+                >
+                  <WhatsAppGlyph className="w-4 h-4 text-[#25D366] shrink-0" />
+                  <span className="truncate">{item.label}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function SocialLinks({ social, waContacts = [], className = "" }) {
   const links = [
-    whatsappHref && { href: whatsappHref, label: "واتساب", Icon: WhatsAppGlyph },
     social?.instagram && { href: social.instagram, label: "انستغرام", Icon: Instagram },
     social?.facebook && { href: social.facebook, label: "فيسبوك", Icon: Facebook },
     social?.tiktok && { href: social.tiktok, label: "تيك توك", Icon: TikTokIcon },
@@ -169,10 +269,11 @@ function SocialLinks({ social, whatsappHref = "", className = "" }) {
     social?.youtube && { href: social.youtube, label: "يوتيوب", Icon: YouTubeIcon },
   ].filter(Boolean);
 
-  if (!links.length) return null;
+  if (!links.length && !waContacts.length) return null;
 
   return (
     <div className={`flex items-center gap-2 ${className}`}>
+      <FooterWhatsAppControl contacts={waContacts} />
       {links.map(({ href, label, Icon }) => (
         <a
           key={label}
@@ -180,46 +281,11 @@ function SocialLinks({ social, whatsappHref = "", className = "" }) {
           target="_blank"
           rel="noopener noreferrer"
           aria-label={label}
-          className="w-9 h-9 flex items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:text-gold-600 hover:border-gold-500/40 dark:border-white/15 dark:text-slate-400 dark:hover:text-gold-400 dark:hover:border-gold-600/50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/50"
+          className={socialIconClass}
         >
           <Icon className="w-4 h-4" />
         </a>
       ))}
-    </div>
-  );
-}
-
-function WhatsAppContactList({ contacts }) {
-  if (!contacts?.length) return null;
-
-  return (
-    <div className="mb-6 w-full max-w-md mx-auto md:mx-0 md:max-w-none">
-      <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-2 text-center md:text-right">
-        تواصل واتساب
-      </p>
-      <ul className="flex flex-col gap-1.5">
-        {contacts.map((c) => {
-          const href = buildWhatsAppUrl(c.url, "");
-          const digits = String(c.url || "").replace(/\D/g, "").replace(/^967/, "");
-          const display = digits ? `+967 ${digits}` : c.label;
-          return (
-            <li key={c.url}>
-              <a
-                href={href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2.5 min-h-[44px] px-3 rounded-xl border border-emerald-500/25 bg-emerald-50/60 text-emerald-800 hover:bg-emerald-50 dark:bg-emerald-950/30 dark:text-emerald-300 dark:border-emerald-500/30 dark:hover:bg-emerald-950/50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50"
-              >
-                <WhatsAppGlyph className="w-4 h-4 flex-shrink-0" />
-                <span className="flex-1 min-w-0 text-xs font-bold truncate">{c.label}</span>
-                <span className="text-[11px] font-medium opacity-80" dir="ltr">
-                  {display}
-                </span>
-              </a>
-            </li>
-          );
-        })}
-      </ul>
     </div>
   );
 }
@@ -230,8 +296,6 @@ const Footer = () => {
   const phoneDigits = phone.replace(/[^\d]/g, "");
   const email = (config.contact?.email || "").trim();
   const waContacts = resolveWhatsAppContacts(config.contact || {});
-  const singleWhatsappHref =
-    waContacts.length === 1 ? buildWhatsAppUrl(waContacts[0].url, "") : "";
   const shippingOffer = (config.content?.shippingOfferText || "").trim();
   const tagline = (config.content?.footerText || config.seo?.description || DEFAULT_SITE_CONFIG.content.footerText).trim();
   const siteName = config.brand?.siteShortName || DEFAULT_SITE_CONFIG.brand.siteShortName;
@@ -259,7 +323,7 @@ const Footer = () => {
           <p className="mx-auto max-w-md text-xs leading-relaxed text-slate-600 dark:text-slate-400 line-clamp-3">
             {tagline}
           </p>
-          <SocialLinks social={config.social} whatsappHref={singleWhatsappHref} className="mt-5 justify-center" />
+          <SocialLinks social={config.social} waContacts={waContacts} className="mt-5 justify-center" />
         </div>
 
         <div className="hidden md:grid md:grid-cols-3 gap-8 lg:gap-12 mb-8">
@@ -273,8 +337,6 @@ const Footer = () => {
           <FooterAccordion title="المساعدة" links={HELP_LINKS} />
           <FooterAccordion title="عن المتجر" links={ABOUT_LINKS} />
         </div>
-
-        {waContacts.length >= 2 && <WhatsAppContactList contacts={waContacts} />}
 
         {(phoneDigits || email) && (
           <div className="flex flex-wrap items-center gap-x-5 gap-y-2 mb-6 text-xs">

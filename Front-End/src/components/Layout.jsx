@@ -151,11 +151,6 @@ const Layout = React.memo(({ children, homeMarketplace = false, hideMobileHeader
           : '0px',
       }}
     >
-      {/* الشريط الإعلاني العلوي / Announcement bar (scrolls away; header stays sticky) */}
-      <div className={hideMobileHeader ? 'max-md:hidden' : ''}>
-        <BannerRenderer placement="announcement" />
-      </div>
-
       {/* شريط التنقل / Navigation Bar */}
       <div className={`sticky top-0 z-50 isolate ${hideMobileHeader ? 'max-md:hidden' : ''}`}>
       <header
@@ -564,6 +559,11 @@ const Layout = React.memo(({ children, homeMarketplace = false, hideMobileHeader
       </header>
 
       {showShopChrome && <HomeCategoryTabs />}
+      </div>
+
+      {/* تيكَر إعلاني تحت الهيدر وفوق الهيرو / المحتوى — تدفق عادي بدون تراكب */}
+      <div className={hideMobileHeader ? 'max-md:hidden' : ''}>
+        <BannerRenderer placement="announcement" />
       </div>
 
       {/* لوحة بحث الجوال — تظهر عند النقر على أيقونة البحث */}
