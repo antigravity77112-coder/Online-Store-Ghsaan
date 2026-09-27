@@ -4,8 +4,9 @@ const zlib = require('zlib');
 const { Prisma } = require('@prisma/client');
 const prisma = require('../prismaClient');
 const exchangeRatesService = require('./exchangeRatesService');
+const siteConfigService = require('./siteConfigService');
 
-const BACKUP_APP_NAME = 'Gisaah_Store';
+const BACKUP_APP_NAME = 'GHSSAN_Store';
 const BACKUP_VERSION = '2.0';
 const LEGACY_BACKUP_VERSION = '1.0';
 
@@ -17,10 +18,12 @@ const REQUIRED_TABLES_V2 = [
   'categories',
   'categoryAttributes',
   'products',
+  'productCategories',
   'productImages',
   'productVariants',
   'variantAttributes',
   'productAttributes',
+  'productSpecs',
   'productScents',
   'reviews',
   'branches',
@@ -31,6 +34,9 @@ const REQUIRED_TABLES_V2 = [
   'cartItems',
   'favorites',
 ];
+
+/** Added after initial v2 — missing keys in older exports are treated as []. */
+const OPTIONAL_V2_TABLES = new Set(['productCategories', 'productSpecs']);
 
 /** Maps backup restore tx delegate names to Prisma model names. */
 const TX_TO_PRISMA_MODEL = {
@@ -43,10 +49,12 @@ const TX_TO_PRISMA_MODEL = {
   systemSetting: 'SystemSetting',
   banner: 'Banner',
   product: 'Product',
+  productCategory: 'ProductCategory',
   productImage: 'ProductImage',
   productVariant: 'ProductVariant',
   variantAttribute: 'VariantAttribute',
   productAttribute: 'ProductAttribute',
+  productSpec: 'ProductSpec',
   productScent: 'ProductScent',
   review: 'Review',
   order: 'Order',
@@ -151,10 +159,12 @@ async function collectBackupData() {
   const categories = await prisma.category.findMany();
   const categoryAttributes = await prisma.categoryAttribute.findMany();
   const products = await prisma.product.findMany();
+  const productCategories = await prisma.productCategory.findMany();
   const productImages = await prisma.productImage.findMany();
   const productVariants = await prisma.productVariant.findMany();
   const variantAttributes = await prisma.variantAttribute.findMany();
   const productAttributes = await prisma.productAttribute.findMany();
+  const productSpecs = await prisma.productSpec.findMany();
   const productScents = await prisma.productScent.findMany();
   const reviews = await prisma.review.findMany();
   const branches = await prisma.branch.findMany();
@@ -173,10 +183,12 @@ async function collectBackupData() {
     categories,
     categoryAttributes,
     products,
+    productCategories,
     productImages,
     productVariants,
     variantAttributes,
     productAttributes,
+    productSpecs,
     productScents,
     reviews,
     branches,
@@ -220,7 +232,7 @@ function parseBackupBuffer(buffer) {
   return JSON.parse(jsonString);
 }
 
-function validateBackupPayload(backupPayload) {
+function validateBackupPayload(backupPayload, { allowEmpty = false } = {}) {
   const { metadata, data } = backupPayload || {};
   if (!metadata || !data) {
     const err = new Error('هيكل ملف النسخ الاحتياطي غير صالح');
@@ -246,10 +258,24 @@ function validateBackupPayload(backupPayload) {
   }
   for (const table of REQUIRED_TABLES_V2) {
     if (!Array.isArray(data[table])) {
+      if (OPTIONAL_V2_TABLES.has(table) && data[table] == null) {
+        data[table] = [];
+        continue;
+      }
       const err = new Error(`الجدول المطلوب مفقود أو غير صالح: ${table}`);
       err.statusCode = 400;
       throw err;
     }
+  }
+
+  const usersEmpty = !data.users?.length;
+  const productsEmpty = !data.products?.length;
+  if (!allowEmpty && usersEmpty && productsEmpty) {
+    const err = new Error(
+      'ملف النسخ الاحتياطي فارغ (لا مستخدمين ولا منتجات). ارفض الاستعادة لتجنب مسح المتجر. للاختبار فقط أضف ?allowEmpty=1',
+    );
+    err.statusCode = 400;
+    throw err;
   }
 }
 
@@ -278,6 +304,8 @@ async function wipeStoreTables(tx) {
   await tx.productScent.deleteMany();
   await tx.variantAttribute.deleteMany();
   await tx.productAttribute.deleteMany();
+  await tx.productSpec.deleteMany();
+  await tx.productCategory.deleteMany();
   await tx.productImage.deleteMany();
   await tx.productVariant.deleteMany();
   await tx.order.deleteMany();
@@ -364,8 +392,11 @@ async function ensureOptionalRestoreColumns(tx) {
  * WARNING: Destructive. Wipes listed store tables then reloads from backup.
  * Never run against production unless you intend a full replace.
  */
-async function restoreFromPayload(backupPayload, { adminUserId = null, ipAddress = null } = {}) {
-  validateBackupPayload(backupPayload);
+async function restoreFromPayload(
+  backupPayload,
+  { adminUserId = null, ipAddress = null, allowEmpty = false } = {},
+) {
+  validateBackupPayload(backupPayload, { allowEmpty });
   const { data } = backupPayload;
 
   await writePreRestoreSnapshot();
@@ -388,10 +419,12 @@ async function restoreFromPayload(backupPayload, { adminUserId = null, ipAddress
       await insertMany(tx, 'systemSetting', data.systemSettings);
       await insertMany(tx, 'banner', data.banners);
       await insertMany(tx, 'product', data.products);
+      await insertMany(tx, 'productCategory', data.productCategories);
       await insertMany(tx, 'productImage', data.productImages);
       await insertMany(tx, 'productVariant', data.productVariants);
       await insertMany(tx, 'variantAttribute', data.variantAttributes);
       await insertMany(tx, 'productAttribute', data.productAttributes);
+      await insertMany(tx, 'productSpec', data.productSpecs);
       await insertMany(tx, 'productScent', data.productScents);
       await insertMany(tx, 'review', data.reviews);
       await insertMany(tx, 'order', data.orders);
@@ -434,6 +467,8 @@ async function restoreFromPayload(backupPayload, { adminUserId = null, ipAddress
   if (data.exchangeRates && typeof data.exchangeRates === 'object') {
     await writeExchangeRatesFromBackup(data.exchangeRates);
   }
+
+  siteConfigService.invalidateCache();
 }
 
 module.exports = {

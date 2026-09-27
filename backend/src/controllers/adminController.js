@@ -437,7 +437,9 @@ class AdminController {
       }
 
       try {
-        backupService.validateBackupPayload(backupPayload);
+        backupService.validateBackupPayload(backupPayload, {
+          allowEmpty: req.query.allowEmpty === '1' || req.query.allowEmpty === 'true',
+        });
       } catch (err) {
         throw new BadRequestError(err.message || 'ملف النسخ الاحتياطي غير صالح');
       }
@@ -445,6 +447,7 @@ class AdminController {
       await backupService.restoreFromPayload(backupPayload, {
         adminUserId: req.user?.id || null,
         ipAddress: req.ip || req.connection?.remoteAddress || null,
+        allowEmpty: req.query.allowEmpty === '1' || req.query.allowEmpty === 'true',
       });
 
       res.status(200).json({ message: 'تم استعادة قاعدة البيانات بنجاح' });
