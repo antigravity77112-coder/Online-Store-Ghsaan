@@ -52,9 +52,10 @@ const Layout = React.memo(({ children, homeMarketplace = false, hideMobileHeader
   const isProductsPage = pathname === '/products';
   const showShopChrome = isShopChromeRoute(pathname) && !hideMobileHeader;
   const isHomePage = pathname === '/' || pathname === '';
+  const isCategoriesPage = pathname === '/categories' || pathname.startsWith('/categories/');
   const showMobileBottomNav = !pathname.startsWith('/admin') && !pathname.startsWith('/checkout');
-  // Shop chrome hides footer on mobile elsewhere; home always shows it.
-  const showFooterOnMobile = isHomePage || !showShopChrome;
+  // Shop chrome hides footer on mobile elsewhere; home + categories always show it.
+  const showFooterOnMobile = isHomePage || isCategoriesPage || !showShopChrome;
   const mobileSearchTopClass = 'top-[var(--mobile-current-chrome-height)]';
   const searchFromUrl = isProductsPage ? (searchParams.get('search') || '') : '';
 

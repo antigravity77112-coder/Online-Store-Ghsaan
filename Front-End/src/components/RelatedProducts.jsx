@@ -7,6 +7,7 @@ import useSWR from 'swr';
 import { useCart } from '../context/CartContext';
 import { useFavorites } from '../context/FavoritesContext';
 import { mapStorefrontProduct } from '../utils/mapStorefrontProduct';
+import { useListingProducts } from '../hooks/useListingProducts';
 import * as api from '../services/api';
 import ProductVerticalSection from './ProductVerticalSection';
 
@@ -43,13 +44,17 @@ const RelatedProducts = React.memo(({ categoryName, categoryNames, currentId }) 
     },
   );
 
-  const related = useMemo(() => {
+  const candidates = useMemo(() => {
     if (!products?.length) return [];
-    return products
-      .filter((p) => String(p.id) !== String(currentId))
-      .slice(0, 8)
-      .map((p) => ({ ...mapStorefrontProduct(p), isFavorite: isFavorite(p.id) }));
-  }, [products, currentId, isFavorite]);
+    return products.filter((p) => String(p.id) !== String(currentId));
+  }, [products, currentId]);
+
+  const shuffled = useListingProducts(candidates, 'default');
+
+  const related = useMemo(
+    () => shuffled.slice(0, 8).map((p) => ({ ...mapStorefrontProduct(p), isFavorite: isFavorite(p.id) })),
+    [shuffled, isFavorite],
+  );
 
   const handleQuickAdd = useCallback(
     (p) => {
@@ -82,4 +87,5 @@ const RelatedProducts = React.memo(({ categoryName, categoryNames, currentId }) 
 });
 
 RelatedProducts.displayName = 'RelatedProducts';
+
 export default RelatedProducts;

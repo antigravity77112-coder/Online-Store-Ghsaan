@@ -1,8 +1,19 @@
 /**
  * Shared client-side product sort for listing pages.
  */
+
+/** Fisher–Yates shuffle (new array). */
+export function shuffleProducts(products) {
+  const result = [...(products || [])];
+  for (let i = result.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [result[i], result[j]] = [result[j], result[i]];
+  }
+  return result;
+}
+
 export function sortProducts(products, sortOrder = 'default') {
-  const result = [...products];
+  const result = [...(products || [])];
 
   if (sortOrder === 'price-asc') {
     result.sort((a, b) => (a.discountPrice || a.price) - (b.discountPrice || b.price));
@@ -23,6 +34,7 @@ export function sortProducts(products, sortOrder = 'default') {
       return 0;
     });
   } else {
+    // default: keep API order here — use useListingProducts for refresh shuffle
     result.sort((a, b) => {
       if (a.isPromoted && !b.isPromoted) return -1;
       if (!a.isPromoted && b.isPromoted) return 1;

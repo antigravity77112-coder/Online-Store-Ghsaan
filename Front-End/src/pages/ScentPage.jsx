@@ -18,7 +18,7 @@ import { useUrlSearchDraft } from '../hooks/useUrlSearchDraft';
 import { useQuickAddFeedback } from '../hooks/useQuickAddFeedback';
 import { useReducedMotion } from '../hooks/useReducedMotion';
 import { mapStorefrontProduct } from '../utils/mapStorefrontProduct';
-import { sortProducts } from '../utils/productListingSort';
+import { useListingProducts } from '../hooks/useListingProducts';
 import { getOptimizedImageUrl, IMAGE_WIDTHS } from '../utils/cloudinaryUrl';
 
 const ScentPage = () => {
@@ -49,14 +49,13 @@ const ScentPage = () => {
   const loading = scentLoading || (!!scent?.id && productsLoading && products.length === 0);
   const error = scentError?.message || '';
 
-  const filteredProducts = useMemo(() => {
-    let result = products;
-    if (committedSearch.trim()) {
-      const q = committedSearch.trim().toLowerCase();
-      result = result.filter((p) => p.title?.toLowerCase().includes(q));
-    }
-    return sortProducts(result, sortOrder);
-  }, [products, committedSearch, sortOrder]);
+  const searchedProducts = useMemo(() => {
+    if (!committedSearch.trim()) return products;
+    const q = committedSearch.trim().toLowerCase();
+    return products.filter((p) => p.title?.toLowerCase().includes(q));
+  }, [products, committedSearch]);
+
+  const filteredProducts = useListingProducts(searchedProducts, sortOrder);
 
   const mappedGridProducts = useMemo(() => (
     filteredProducts.map((p) => {

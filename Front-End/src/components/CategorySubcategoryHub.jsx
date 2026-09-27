@@ -1,12 +1,13 @@
 /**
- * CategorySubcategoryHub — fill the viewport row; show «المزيد» only when chips overflow
+ * CategorySubcategoryHub — fill the viewport; «المزيد» opens a horizontal scroll
+ * with a clear left-edge hint (RTL: more chips toward the left).
  */
 
-import React, { useLayoutEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown, ChevronLeft, ChevronUp } from 'lucide-react';
 
-const GAP_PX = 6; // Tailwind gap-1.5
+const GAP_PX = 6;
 
 const CompactCategoryPill = React.forwardRef(function CompactCategoryPill(
   { cat, isActive, to, ...rest },
@@ -58,10 +59,6 @@ function MoreButton({ expanded, hiddenCount, onClick, measure = false }) {
   );
 }
 
-/**
- * Pack chip indices into `available` width, reserving space for the more button when needed.
- * `priority` indices are placed first (e.g. الكل + active), then the rest in order.
- */
 function fitChipIndices(widths, available, moreWidth, priority = []) {
   if (!widths.length || available <= 0) return [];
 
@@ -96,6 +93,18 @@ function fitChipIndices(widths, available, moreWidth, priority = []) {
   return fitted.length ? fitted.sort((a, b) => a - b) : [0];
 }
 
+/** True when the scroller still has content toward the physical left edge. */
+function hasMoreToTheLeft(el) {
+  if (!el || el.scrollWidth <= el.clientWidth + 2) return false;
+  const children = el.querySelectorAll('[data-scroll-chip]');
+  if (!children.length) return false;
+  const last = children[children.length - 1];
+  const cRect = el.getBoundingClientRect();
+  const lRect = last.getBoundingClientRect();
+  // In RTL the later chips sit further left; if last chip's left is past container left, more to scroll
+  return lRect.left < cRect.left - 4;
+}
+
 export default function CategorySubcategoryHub({
   allHref,
   allActive,
@@ -105,7 +114,9 @@ export default function CategorySubcategoryHub({
 }) {
   const [expanded, setExpanded] = useState(false);
   const [fittedIds, setFittedIds] = useState(null);
+  const [showLeftHint, setShowLeftHint] = useState(false);
   const containerRef = useRef(null);
+  const scrollRef = useRef(null);
   const measureRef = useRef(null);
 
   const chips = useMemo(() => {
@@ -119,6 +130,15 @@ export default function CategorySubcategoryHub({
     }));
     return [allChip, ...rest];
   }, [allHref, allActive, items, activeSlug, activeName]);
+
+  const updateLeftHint = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el || !expanded) {
+      setShowLeftHint(false);
+      return;
+    }
+    setShowLeftHint(hasMoreToTheLeft(el));
+  }, [expanded]);
 
   useLayoutEffect(() => {
     if (expanded) return undefined;
@@ -154,6 +174,37 @@ export default function CategorySubcategoryHub({
     };
   }, [chips, expanded]);
 
+  useEffect(() => {
+    if (!expanded) {
+      setShowLeftHint(false);
+      return undefined;
+    }
+    const el = scrollRef.current;
+    if (!el) return undefined;
+
+    // Nudge scroll slightly so the left overflow is obvious, then sync hint
+    const nudge = () => {
+      updateLeftHint();
+      if (hasMoreToTheLeft(el)) {
+        // Gentle scroll toward the left (works across RTL scroll models)
+        el.scrollBy({ left: -48, behavior: 'smooth' });
+        setTimeout(updateLeftHint, 320);
+      }
+    };
+    const t = requestAnimationFrame(nudge);
+
+    el.addEventListener('scroll', updateLeftHint, { passive: true });
+    const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(updateLeftHint) : null;
+    if (ro) ro.observe(el);
+    window.addEventListener('resize', updateLeftHint);
+    return () => {
+      cancelAnimationFrame(t);
+      el.removeEventListener('scroll', updateLeftHint);
+      ro?.disconnect();
+      window.removeEventListener('resize', updateLeftHint);
+    };
+  }, [expanded, chips, updateLeftHint]);
+
   if (!items.length) return null;
 
   const idSet = fittedIds ? new Set(fittedIds) : null;
@@ -164,9 +215,18 @@ export default function CategorySubcategoryHub({
   const overflows = hiddenCount > 0;
   const canToggle = expanded || overflows;
 
+  const handleToggle = () => {
+    setExpanded((v) => !v);
+  };
+
+  const scrollMoreLeft = () => {
+    const el = scrollRef.current;
+    if (!el) return;
+    el.scrollBy({ left: -Math.max(120, el.clientWidth * 0.45), behavior: 'smooth' });
+  };
+
   return (
     <div className="mb-3 relative" role="navigation" aria-label="الأقسام الفرعية">
-      {/* Hidden measure row: full chip set + more button for width calc */}
       <div
         ref={measureRef}
         className="absolute flex gap-1.5 whitespace-nowrap pointer-events-none"
@@ -185,28 +245,60 @@ export default function CategorySubcategoryHub({
         <MoreButton expanded={false} hiddenCount={1} measure />
       </div>
 
-      <div
-        ref={containerRef}
-        className={`flex gap-1.5 ${
-          expanded ? 'flex-wrap' : 'flex-nowrap overflow-hidden'
-        } pb-1 -mx-1 px-1`}
-      >
-        {visibleChips.map((chip) => (
-          <CompactCategoryPill
-            key={chip.id}
-            cat={chip}
-            to={chip.href}
-            isActive={chip.isActive}
-          />
-        ))}
-        {canToggle ? (
-          <MoreButton
-            expanded={expanded}
-            hiddenCount={hiddenCount}
-            onClick={() => setExpanded((v) => !v)}
-          />
+      <div ref={containerRef} className="relative -mx-1 px-1">
+        <div
+          ref={scrollRef}
+          dir="rtl"
+          className={`flex gap-1.5 flex-nowrap pb-1 ${
+            expanded
+              ? 'overflow-x-auto scrollbar-hide overscroll-x-contain'
+              : 'overflow-hidden'
+          }`}
+          style={expanded ? { WebkitOverflowScrolling: 'touch' } : undefined}
+        >
+          {visibleChips.map((chip) => (
+            <CompactCategoryPill
+              key={chip.id}
+              cat={chip}
+              to={chip.href}
+              isActive={chip.isActive}
+              data-scroll-chip="1"
+            />
+          ))}
+          {canToggle ? (
+            <MoreButton
+              expanded={expanded}
+              hiddenCount={hiddenCount}
+              onClick={handleToggle}
+            />
+          ) : null}
+        </div>
+
+        {/* Left-edge cue: more chips that way — scroll left */}
+        {expanded && showLeftHint ? (
+          <>
+            <div
+              className="pointer-events-none absolute inset-y-0 left-0 w-14 bg-gradient-to-r from-white via-white/90 to-transparent dark:from-stone-950 dark:via-stone-950/90"
+              aria-hidden="true"
+            />
+            <button
+              type="button"
+              onClick={scrollMoreLeft}
+              className="absolute left-0 top-1/2 -translate-y-1/2 z-10 inline-flex items-center gap-0.5 min-h-[36px] pl-1.5 pr-2 rounded-full bg-stone-900/90 text-white text-[10px] font-bold shadow-md animate-pulse"
+              aria-label="مرّر لليسار لعرض المزيد من الأقسام"
+            >
+              <ChevronLeft className="w-4 h-4" aria-hidden="true" />
+              <span>المزيد</span>
+            </button>
+          </>
         ) : null}
       </div>
+
+      {expanded && showLeftHint ? (
+        <p className="mt-1 text-[10px] text-stone-400 dark:text-stone-500 text-start px-1 leading-[1.45]">
+          اسحب لليسار لعرض باقي الأقسام
+        </p>
+      ) : null}
     </div>
   );
 }

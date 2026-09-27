@@ -29,7 +29,7 @@ import { useProductsInfinite, useCategories } from '../hooks/useProducts';
 import { useUrlSearchDraft } from '../hooks/useUrlSearchDraft';
 import { useQuickAddFeedback } from '../hooks/useQuickAddFeedback';
 import { mapStorefrontProduct } from '../utils/mapStorefrontProduct';
-import { sortProducts } from '../utils/productListingSort';
+import { useListingProducts } from '../hooks/useListingProducts';
 
 const CategoryPage = () => {
   const { slug } = useParams();
@@ -107,10 +107,7 @@ const CategoryPage = () => {
   const activeProducts = productsError ? [] : (products || []);
   const showSkeleton = productsLoading && activeProducts.length === 0;
 
-  const filteredProducts = useMemo(
-    () => sortProducts(activeProducts, sortOrder),
-    [activeProducts, sortOrder],
-  );
+  const filteredProducts = useListingProducts(activeProducts, sortOrder);
 
   const mappedGridProducts = useMemo(
     () => filteredProducts.map((p) => ({ ...mapStorefrontProduct(p), isFavorite: isFavorite(p.id) })),

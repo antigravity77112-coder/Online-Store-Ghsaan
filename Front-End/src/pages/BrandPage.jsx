@@ -20,7 +20,7 @@ import { useQuickAddFeedback } from '../hooks/useQuickAddFeedback';
 import { useReducedMotion } from '../hooks/useReducedMotion';
 import { useProductsInfinite } from '../hooks/useProducts';
 import { mapStorefrontProduct } from '../utils/mapStorefrontProduct';
-import { sortProducts } from '../utils/productListingSort';
+import { useListingProducts } from '../hooks/useListingProducts';
 import { getOptimizedImageUrl, IMAGE_WIDTHS } from '../utils/cloudinaryUrl';
 
 const BrandPage = () => {
@@ -61,9 +61,7 @@ const BrandPage = () => {
   const error = brandError?.message || '';
   const productCount = brand?.productsCount ?? (products || []).length;
 
-  const filteredProducts = useMemo(() => {
-    return sortProducts(products || [], sortOrder);
-  }, [products, sortOrder]);
+  const filteredProducts = useListingProducts(products || [], sortOrder);
 
   const mappedGridProducts = useMemo(() => (
     filteredProducts.map((p) => {

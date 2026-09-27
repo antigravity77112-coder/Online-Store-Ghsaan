@@ -16,6 +16,7 @@ import { useFavorites } from '../context/FavoritesContext';
 import { useSiteConfig } from '../context/SiteConfigContext';
 import { useCategories, useProductsInfinite } from '../hooks/useProducts';
 import { useHomeProducts } from '../hooks/useHomeProducts';
+import { useListingProducts } from '../hooks/useListingProducts';
 import { mapStorefrontProduct } from '../utils/mapStorefrontProduct';
 
 const SECTION_PREVIEW_COUNT = 6;
@@ -75,9 +76,10 @@ const HomePage = () => {
     [isFavorite],
   );
 
+  const shuffledFeed = useListingProducts(feedRaw || [], 'default');
   const feedProducts = useMemo(
-    () => mapWithFavorites(feedRaw || []),
-    [feedRaw, mapWithFavorites],
+    () => mapWithFavorites(shuffledFeed),
+    [shuffledFeed, mapWithFavorites],
   );
 
   const handleFavoriteToggle = useCallback(

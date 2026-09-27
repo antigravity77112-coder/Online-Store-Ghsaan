@@ -25,7 +25,7 @@ import { useProductsListingParams } from '../hooks/useProductsListingParams';
 import { useQuickAddFeedback } from '../hooks/useQuickAddFeedback';
 import { useReducedMotion } from '../hooks/useReducedMotion';
 import { mapStorefrontProduct } from '../utils/mapStorefrontProduct';
-import { sortProducts } from '../utils/productListingSort';
+import { useListingProducts } from '../hooks/useListingProducts';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -86,10 +86,7 @@ const ProductsPage = () => {
     )]
   ), [categories, activeProducts]);
 
-  const filteredProducts = useMemo(
-    () => sortProducts(activeProducts, sortOrder),
-    [activeProducts, sortOrder],
-  );
+  const filteredProducts = useListingProducts(activeProducts, sortOrder);
 
   const mappedGridProducts = useMemo(() => (
     filteredProducts.map((p) => {

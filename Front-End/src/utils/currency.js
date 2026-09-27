@@ -1,13 +1,13 @@
 import { getCurrencySymbol } from '../services/api';
 
 export const DISPLAY_CURRENCIES = [
-  { id: 'SAR', labelKey: 'settings.currencySAR' },
-  { id: 'USD', labelKey: 'settings.currencyUSD' },
   { id: 'YER_Sanaa', labelKey: 'settings.currencyYERSanaa' },
   { id: 'YER_Aden', labelKey: 'settings.currencyYERAden' },
+  { id: 'SAR', labelKey: 'settings.currencySAR' },
+  { id: 'USD', labelKey: 'settings.currencyUSD' },
 ];
 
-export const DEFAULT_DISPLAY_CURRENCY = 'SAR';
+export const DEFAULT_DISPLAY_CURRENCY = 'YER_Sanaa';
 export const PREFERRED_CURRENCY_KEY = 'preferred_currency';
 
 export const DEFAULT_EXCHANGE_RATES = {
@@ -129,7 +129,7 @@ export function formatNativePrice(price, currency) {
 
 /**
  * Storefront display price: convert product currency → preferred display currency.
- * Uses module state set by CurrencyProvider (defaults to SAR).
+ * Uses module state set by CurrencyProvider (defaults to YER_Sanaa / ريال صنعاء).
  */
 export function formatPrice(price, fromCurrency, preferredCurrency = displayPreferred, rates = displayRates) {
   const preferred = migratePreferredCurrency(preferredCurrency);

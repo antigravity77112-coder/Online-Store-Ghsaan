@@ -5,6 +5,7 @@ import * as api from '../../services/api';
 import { ProductGrid } from '../HighConversionGrid';
 import { useFavorites } from '../../context/FavoritesContext';
 import { mapStorefrontProduct } from '../../utils/mapStorefrontProduct';
+import { useListingProducts } from '../../hooks/useListingProducts';
 
 const SUGGESTION_COUNT = 8;
 
@@ -24,9 +25,10 @@ export default function SearchSuggestions({ className = '' }) {
   });
 
   const rawProducts = useMemo(() => data || [], [data]);
+  const shuffled = useListingProducts(rawProducts, 'default');
   const products = useMemo(
-    () => rawProducts.map((p) => ({ ...mapStorefrontProduct(p), isFavorite: isFavorite(p.id) })),
-    [rawProducts, isFavorite],
+    () => shuffled.map((p) => ({ ...mapStorefrontProduct(p), isFavorite: isFavorite(p.id) })),
+    [shuffled, isFavorite],
   );
 
   const handleFavorite = useCallback((p) => {
