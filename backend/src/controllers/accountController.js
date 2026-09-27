@@ -233,6 +233,36 @@ class AccountController {
       throw error;
     }
   }
+
+  /**
+   * Delete own account (Buyers only)
+   * DELETE /api/account/me
+   */
+  async deleteAccount(req, res) {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        res.status(401);
+        throw new Error('Unauthorized');
+      }
+
+      const { password, confirmation } = req.body;
+      if (!password || !confirmation) {
+        throw new ValidationError('كلمة المرور وتأكيد الحذف مطلوبان');
+      }
+
+      await this.authService.deleteAccount(userId, password);
+
+      const { maxAge: _accessMaxAge, ...accessClearOptions } = this.getAccessCookieOptions();
+      const { maxAge: _refreshMaxAge, ...refreshClearOptions } = this.getRefreshCookieOptions();
+      res.clearCookie('auth_token', accessClearOptions);
+      res.clearCookie('refresh_token', refreshClearOptions);
+
+      res.status(200).json({ message: 'تم حذف الحساب بنجاح' });
+    } catch (error) {
+      throw error;
+    }
+  }
 }
 
 module.exports = new AccountController();

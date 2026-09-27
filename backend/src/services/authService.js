@@ -326,6 +326,47 @@ class AuthService {
     return true;
   }
 
+  /**
+   * Permanently delete the authenticated customer account.
+   * Removes orders (and line items) first because Order.buyerId has no onDelete cascade.
+   * Admins cannot use this endpoint — prevents locking out the store.
+   */
+  async deleteAccount(userId, password) {
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      throw new BadRequestError('المستخدم غير موجود');
+    }
+    if (user.role === 'Admin') {
+      throw new BadRequestError('لا يمكن حذف حساب المسؤول من هنا. اطلب من مسؤول آخر حذف الحساب إن لزم.');
+    }
+
+    const isMatch = await bcrypt.compare(password, user.passwordHash);
+    if (!isMatch) {
+      throw new UnauthorizedError('كلمة المرور غير صحيحة');
+    }
+
+    await prisma.$transaction(async (tx) => {
+      const orders = await tx.order.findMany({
+        where: { buyerId: userId },
+        select: { id: true },
+      });
+      const orderIds = orders.map((o) => o.id);
+      if (orderIds.length > 0) {
+        await tx.orderItem.deleteMany({ where: { orderId: { in: orderIds } } });
+        await tx.order.deleteMany({ where: { buyerId: userId } });
+      }
+
+      await tx.auditLog.updateMany({
+        where: { userId },
+        data: { userId: null },
+      });
+
+      await tx.user.delete({ where: { id: userId } });
+    });
+
+    return true;
+  }
+
   getAccessCookieMaxAge() {
     return this.accessExpiresMs;
   }

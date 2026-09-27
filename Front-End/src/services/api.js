@@ -282,6 +282,14 @@ export async function changePassword(currentPassword, newPassword) {
   });
 }
 
+export async function deleteAccount(password, confirmation) {
+  return request('/account/me', {
+    method: 'DELETE',
+    headers: jsonHeaders(),
+    body: JSON.stringify({ password, confirmation }),
+  });
+}
+
 // ─── Products ───
 export async function getProducts({ city, maxPriceUsd, condition, specialOffers, trending, search, categoryName, brandId, pageNumber = 1, pageSize = 20 } = {}) {
   const params = new URLSearchParams();

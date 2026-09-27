@@ -58,4 +58,21 @@ const changePasswordSchema = Joi.object({
   })
 });
 
-module.exports = { registerSchema, loginSchema, updateProfileSchema, changePasswordSchema };
+const deleteAccountSchema = Joi.object({
+  password: Joi.string().required().messages({
+    'string.empty': 'كلمة المرور مطلوبة',
+    'any.required': 'كلمة المرور مطلوبة'
+  }),
+  confirmation: Joi.string().valid('DELETE', 'حذف').required().messages({
+    'any.only': 'اكتب DELETE أو حذف للتأكيد',
+    'any.required': 'تأكيد الحذف مطلوب'
+  })
+});
+
+module.exports = {
+  registerSchema,
+  loginSchema,
+  updateProfileSchema,
+  changePasswordSchema,
+  deleteAccountSchema,
+};

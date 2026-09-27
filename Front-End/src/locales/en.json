@@ -115,7 +115,19 @@
     "passwordChanged": "Password changed successfully",
     "memberOf": "{{brand}} member",
     "roleAdmin": "Admin",
-    "roleBuyer": "Buyer"
+    "roleBuyer": "Buyer",
+    "password": "Password",
+    "cancel": "Cancel",
+    "deleteAccount": "Delete account",
+    "deleteAccountHint": "Permanently deletes your data, orders, and favorites. This cannot be undone.",
+    "deleteAccountCta": "I want to delete my account",
+    "deleteAccountConfirmText": "Type DELETE or حذف, then enter your password to confirm.",
+    "deleteConfirmLabel": "Type DELETE or حذف",
+    "deleteConfirmInvalid": "Type DELETE or حذف to confirm",
+    "deletePasswordRequired": "Enter your password",
+    "deleteFailed": "Could not delete account",
+    "deleting": "Deleting...",
+    "confirmDelete": "Confirm delete account"
   },
   "product": {
     "addToCart": "Add to cart",

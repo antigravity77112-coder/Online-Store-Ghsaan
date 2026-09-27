@@ -108,6 +108,13 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   }, []);
 
+  const deleteAccount = useCallback(async (password, confirmation) => {
+    await api.deleteAccount(password, confirmation);
+    localStorage.removeItem('user_name');
+    localStorage.removeItem('user_id');
+    setUser(null);
+  }, []);
+
   const isAuthenticated = !!user;
   const isBuyer = user?.role === 'Buyer' || user?.role === 'Admin';
   const isAdmin = user?.role === 'Admin';
@@ -119,12 +126,13 @@ export const AuthProvider = ({ children }) => {
       login,
       register,
       logout,
+      deleteAccount,
       isAuthenticated,
       isBuyer,
       isAdmin,
       checkAuthStatus,
     }),
-    [user, loading, login, register, logout, isAuthenticated, isBuyer, isAdmin, checkAuthStatus],
+    [user, loading, login, register, logout, deleteAccount, isAuthenticated, isBuyer, isAdmin, checkAuthStatus],
   );
 
   return (

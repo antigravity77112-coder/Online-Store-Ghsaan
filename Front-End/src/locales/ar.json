@@ -115,7 +115,19 @@
     "passwordChanged": "تم تغيير كلمة المرور بنجاح",
     "memberOf": "عضو {{brand}}",
     "roleAdmin": "مسؤول",
-    "roleBuyer": "مشتري"
+    "roleBuyer": "مشتري",
+    "password": "كلمة المرور",
+    "cancel": "إلغاء",
+    "deleteAccount": "حذف الحساب",
+    "deleteAccountHint": "حذف دائم لبياناتك وطلباتك ومفضلتك. لا يمكن التراجع عن هذا الإجراء.",
+    "deleteAccountCta": "أريد حذف حسابي",
+    "deleteAccountConfirmText": "للتأكيد اكتب DELETE أو حذف، ثم أدخل كلمة المرور.",
+    "deleteConfirmLabel": "اكتب DELETE أو حذف",
+    "deleteConfirmInvalid": "اكتب DELETE أو حذف للتأكيد",
+    "deletePasswordRequired": "أدخل كلمة المرور",
+    "deleteFailed": "تعذر حذف الحساب",
+    "deleting": "جاري الحذف...",
+    "confirmDelete": "تأكيد حذف الحساب"
   },
   "product": {
     "addToCart": "أضف إلى السلة",

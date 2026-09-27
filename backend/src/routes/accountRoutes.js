@@ -5,7 +5,7 @@ const asyncHandler = require('../middleware/asyncHandler');
 const { protect } = require('../middleware/authMiddleware');
 const { validate } = require('../middleware/validateMiddleware');
 const { authLimiter } = require('../middleware/rateLimitMiddleware');
-const { registerSchema, loginSchema, updateProfileSchema, changePasswordSchema } = require('../validations/accountValidation');
+const { registerSchema, loginSchema, updateProfileSchema, changePasswordSchema, deleteAccountSchema } = require('../validations/accountValidation');
 
 // Public routes
 router.post('/register', authLimiter, validate(registerSchema), asyncHandler(accountController.register.bind(accountController)));
@@ -19,5 +19,6 @@ router.use(protect);
 router.get('/profile', asyncHandler(accountController.getProfile.bind(accountController)));
 router.put('/profile', validate(updateProfileSchema), asyncHandler(accountController.updateProfile.bind(accountController)));
 router.put('/change-password', validate(changePasswordSchema), asyncHandler(accountController.changePassword.bind(accountController)));
+router.delete('/me', validate(deleteAccountSchema), asyncHandler(accountController.deleteAccount.bind(accountController)));
 
 module.exports = router;

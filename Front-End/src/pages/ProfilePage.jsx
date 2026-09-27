@@ -23,6 +23,7 @@ import {
   Crown,
   Moon,
   Sun,
+  Trash2,
 } from 'lucide-react';
 import Layout from '../components/Layout';
 import SEO from '../components/SEO';
@@ -104,7 +105,7 @@ const ProfilePage = () => {
   const { language, changeLanguage } = useLocale();
   const { preferredCurrency, setPreferredCurrency } = useCurrency();
   const { isDark, toggleTheme } = useTheme();
-  const { user, isAuthenticated, loading: authLoading, checkAuthStatus } = useAuth();
+  const { user, isAuthenticated, loading: authLoading, checkAuthStatus, deleteAccount } = useAuth();
   const navigate = useNavigate();
 
   const [activeSection, setActiveSection] = useState('profile');
@@ -118,6 +119,12 @@ const ProfilePage = () => {
   const [pwdSaving, setPwdSaving] = useState(false);
   const [pwdSaved, setPwdSaved] = useState(false);
   const [pwdError, setPwdError] = useState('');
+
+  const [showDeletePanel, setShowDeletePanel] = useState(false);
+  const [deletePassword, setDeletePassword] = useState('');
+  const [deleteConfirmation, setDeleteConfirmation] = useState('');
+  const [deleteSaving, setDeleteSaving] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
 
   const role = roleConfig[user?.role] || roleConfig.Buyer;
   const RoleIcon = role.icon;
@@ -229,6 +236,30 @@ const ProfilePage = () => {
       setPwdError(err.message || 'حدث خطأ أثناء تغيير كلمة المرور');
     } finally {
       setPwdSaving(false);
+    }
+  };
+
+  const handleDeleteAccount = async (e) => {
+    e.preventDefault();
+    const confirmOk =
+      deleteConfirmation === 'DELETE' || deleteConfirmation === 'حذف';
+    if (!confirmOk) {
+      setDeleteError(t('profile.deleteConfirmInvalid'));
+      return;
+    }
+    if (!deletePassword) {
+      setDeleteError(t('profile.deletePasswordRequired'));
+      return;
+    }
+    setDeleteSaving(true);
+    setDeleteError('');
+    try {
+      await deleteAccount(deletePassword, deleteConfirmation);
+      navigate('/', { replace: true });
+    } catch (err) {
+      setDeleteError(err.message || t('profile.deleteFailed'));
+    } finally {
+      setDeleteSaving(false);
     }
   };
 
@@ -669,6 +700,109 @@ const ProfilePage = () => {
                       </button>
                     </div>
                   </form>
+
+                  {user?.role !== 'Admin' && (
+                    <div className="border-t border-red-200/80 dark:border-red-900/40 px-6 sm:px-8 py-7 space-y-4">
+                      <div className="flex items-start gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-red-100 dark:bg-red-950/50 flex items-center justify-center shrink-0">
+                          <Trash2 className="w-5 h-5 text-red-600 dark:text-red-400" />
+                        </div>
+                        <div>
+                          <h3 className="text-base font-black text-red-700 dark:text-red-400">
+                            {t('profile.deleteAccount')}
+                          </h3>
+                          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
+                            {t('profile.deleteAccountHint')}
+                          </p>
+                        </div>
+                      </div>
+
+                      {!showDeletePanel ? (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowDeletePanel(true);
+                            setDeleteError('');
+                            setDeletePassword('');
+                            setDeleteConfirmation('');
+                          }}
+                          className="w-full min-h-[44px] inline-flex items-center justify-center gap-2 rounded-xl border-2 border-red-300 dark:border-red-800 text-red-700 dark:text-red-400 font-bold text-sm hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                          {t('profile.deleteAccountCta')}
+                        </button>
+                      ) : (
+                        <form onSubmit={handleDeleteAccount} className="space-y-4 rounded-2xl border border-red-200 dark:border-red-900/50 bg-red-50/60 dark:bg-red-950/20 p-4">
+                          <p className="text-xs text-red-700 dark:text-red-300 leading-relaxed">
+                            {t('profile.deleteAccountConfirmText')}
+                          </p>
+                          <div>
+                            <FieldLabel>{t('profile.deleteConfirmLabel')}</FieldLabel>
+                            <ProfileInput
+                              icon={AlertCircle}
+                              type="text"
+                              value={deleteConfirmation}
+                              onChange={(e) => {
+                                setDeleteConfirmation(e.target.value);
+                                setDeleteError('');
+                              }}
+                              placeholder="DELETE"
+                              dir="ltr"
+                              className="text-left"
+                              autoComplete="off"
+                              required
+                            />
+                          </div>
+                          <div>
+                            <FieldLabel>{t('profile.password')}</FieldLabel>
+                            <ProfileInput
+                              icon={Lock}
+                              type="password"
+                              value={deletePassword}
+                              onChange={(e) => {
+                                setDeletePassword(e.target.value);
+                                setDeleteError('');
+                              }}
+                              placeholder="••••••••"
+                              dir="ltr"
+                              className="text-left"
+                              autoComplete="current-password"
+                              required
+                            />
+                          </div>
+                          <AnimatePresence>
+                            {deleteError && <AlertBanner type="error" message={deleteError} />}
+                          </AnimatePresence>
+                          <div className="flex flex-col sm:flex-row gap-2">
+                            <button
+                              type="button"
+                              disabled={deleteSaving}
+                              onClick={() => {
+                                setShowDeletePanel(false);
+                                setDeleteError('');
+                                setDeletePassword('');
+                                setDeleteConfirmation('');
+                              }}
+                              className="flex-1 min-h-[44px] rounded-xl border border-slate-200 dark:border-slate-700 font-bold text-sm text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800 transition-colors"
+                            >
+                              {t('profile.cancel')}
+                            </button>
+                            <button
+                              type="submit"
+                              disabled={deleteSaving}
+                              className="flex-1 min-h-[44px] inline-flex items-center justify-center gap-2 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-sm disabled:opacity-60 transition-colors"
+                            >
+                              {deleteSaving ? (
+                                <><Loader2 className="w-4 h-4 animate-spin" /> {t('profile.deleting')}</>
+                              ) : (
+                                <><Trash2 className="w-4 h-4" /> {t('profile.confirmDelete')}</>
+                              )}
+                            </button>
+                          </div>
+                        </form>
+                      )}
+                    </div>
+                  )}
                 </FancyCard>
               )}
             </motion.div>
