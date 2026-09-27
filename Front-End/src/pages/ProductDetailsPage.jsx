@@ -714,13 +714,13 @@ const ProductDetailsPage = () => {
         </div>
       )}
 
-      {hasSpecContent ? (
+      {product ? (
         <button
           type="button"
           onClick={() => setDescSheetOpen(true)}
           className="mb-4 w-full flex items-center justify-between gap-3 border-y border-stone-100 dark:border-stone-800 py-3.5 text-right min-h-[48px]"
         >
-          <span className="inline-flex items-center gap-2 text-sm font-extrabold text-stone-900 dark:text-white">
+          <span className="inline-flex items-center gap-2 text-sm font-extrabold text-stone-900 dark:text-white leading-[1.45]">
             <FileText className="w-4 h-4 text-stone-500" aria-hidden="true" />
             المواصفات
           </span>

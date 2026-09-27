@@ -50,6 +50,13 @@ export function buildProductSpecRows(product, { selectedVariant = null, optionGr
     brandSlug ? `/brand/${encodeURIComponent(brandSlug)}` : null,
   );
 
+  // Product-level category attributes (key/value from admin)
+  if (Array.isArray(product.attributes)) {
+    for (const attr of product.attributes) {
+      push(attr.categoryAttribute?.name || attr.name, formatAttributeDisplayValue(attr));
+    }
+  }
+
   if (selectedVariant?.attributes?.length) {
     for (const attr of selectedVariant.attributes) {
       push(attr.categoryAttribute?.name, formatAttributeDisplayValue(attr));
@@ -74,7 +81,9 @@ export function buildProductSpecRows(product, { selectedVariant = null, optionGr
   // Free-form per-product specs (name/value) — not tied to the category
   if (Array.isArray(product.specs)) {
     for (const spec of product.specs) {
-      push(spec.name, spec.value);
+      const label = spec.name || spec.key || spec.label;
+      const value = spec.value ?? spec.val;
+      push(label, value);
     }
   }
 
@@ -145,14 +154,12 @@ export default function ProductDescriptionSheet({
                 {rows.map((row, idx) => (
                   <li
                     key={`${row.label}-${idx}`}
-                    className="grid grid-cols-[minmax(0,1fr)_1px_minmax(0,1.15fr)] gap-x-3 py-3.5 text-sm items-start"
+                    className="flex items-start justify-between gap-4 py-3.5 text-sm leading-[1.45]"
                   >
-                    <span className="text-stone-500 dark:text-stone-400 text-right">{row.label}</span>
-                    <span
-                      className="self-stretch w-px bg-stone-900 dark:bg-stone-100"
-                      aria-hidden="true"
-                    />
-                    <span className="font-medium text-stone-900 dark:text-stone-100 text-right break-words">
+                    <span className="shrink-0 max-w-[45%] text-stone-500 dark:text-stone-400 text-start">
+                      {row.label}
+                    </span>
+                    <span className="min-w-0 flex-1 font-medium text-stone-900 dark:text-stone-100 text-end break-words">
                       {row.href ? (
                         <Link
                           to={row.href}

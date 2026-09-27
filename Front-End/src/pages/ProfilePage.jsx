@@ -701,8 +701,7 @@ const ProfilePage = () => {
                     </div>
                   </form>
 
-                  {user?.role !== 'Admin' && (
-                    <div className="border-t border-red-200/80 dark:border-red-900/40 px-6 sm:px-8 py-7 space-y-4">
+                  <div className="border-t border-red-200/80 dark:border-red-900/40 px-6 sm:px-8 py-7 space-y-4">
                       <div className="flex items-start gap-3">
                         <div className="w-10 h-10 rounded-xl bg-red-100 dark:bg-red-950/50 flex items-center justify-center shrink-0">
                           <Trash2 className="w-5 h-5 text-red-600 dark:text-red-400" />
@@ -712,7 +711,9 @@ const ProfilePage = () => {
                             {t('profile.deleteAccount')}
                           </h3>
                           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
-                            {t('profile.deleteAccountHint')}
+                            {user?.role === 'Admin'
+                              ? t('profile.deleteAccountHintAdmin')
+                              : t('profile.deleteAccountHint')}
                           </p>
                         </div>
                       </div>
@@ -802,7 +803,6 @@ const ProfilePage = () => {
                         </form>
                       )}
                     </div>
-                  )}
                 </FancyCard>
               )}
             </motion.div>

@@ -1,16 +1,20 @@
 /**
- * HomeProductFeed — شبكة منتجات كثيفة (نمط Shein)
+ * HomeProductFeed — شبكة منتجات كثيفة مع تمرير لانهائي (نمط Shein)
  */
 
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronLeft } from 'lucide-react';
 import { ProductGrid } from './HighConversionGrid';
+import InfiniteScrollTrigger from './InfiniteScrollTrigger';
 
 export default function HomeProductFeed({
   title = 'قد يعجبك',
   products = [],
   isLoading = false,
+  isLoadingMore = false,
+  isReachingEnd = true,
+  onLoadMore,
   loadingCount = 12,
   onFavorite,
   viewAllHref = '/products',
@@ -20,7 +24,7 @@ export default function HomeProductFeed({
   return (
     <section className="pt-1" aria-label={title}>
       <div className="flex items-center justify-between mb-2 px-0.5">
-        <h2 className="text-sm sm:text-base font-extrabold text-stone-900 dark:text-white truncate">
+        <h2 className="text-sm sm:text-base font-extrabold text-stone-900 dark:text-white truncate leading-[1.45]">
           {title}
         </h2>
         {viewAllHref && (
@@ -37,11 +41,26 @@ export default function HomeProductFeed({
       <ProductGrid
         products={products}
         isLoading={isLoading}
+        isLoadingMore={isLoadingMore}
         loadingCount={loadingCount}
         variant="vertical"
         onFavorite={onFavorite}
         priorityCount={0}
       />
+
+      {typeof onLoadMore === 'function' ? (
+        <InfiniteScrollTrigger
+          onIntersect={onLoadMore}
+          isLoadingMore={isLoadingMore}
+          isReachingEnd={isReachingEnd}
+        />
+      ) : null}
+
+      {isReachingEnd && products.length > 0 && !isLoading ? (
+        <p className="text-center text-xs text-stone-400 dark:text-stone-500 py-4">
+          وصلت إلى نهاية المنتجات
+        </p>
+      ) : null}
     </section>
   );
 }

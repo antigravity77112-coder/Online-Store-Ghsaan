@@ -544,7 +544,7 @@ const Layout = React.memo(({ children, homeMarketplace = false, hideMobileHeader
                 <Link
                   key={to}
                   to={to}
-                  className={`px-4 py-2 text-sm font-semibold leading-normal rounded-lg transition-colors ${
+                  className={`px-4 py-2 text-sm font-semibold leading-[1.45] rounded-lg transition-colors ${
                     isActive
                       ? 'text-gold-700 dark:text-gold-400 bg-gold-50 dark:bg-gold-900/30'
                       : 'text-slate-600 dark:text-slate-400 hover:text-gold-600 dark:hover:text-gold-400 hover:bg-slate-50 dark:hover:bg-slate-800/50'

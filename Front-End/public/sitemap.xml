@@ -56,7 +56,19 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://online-store-ghsaan.vercel.app/category/watches</loc>
+    <lastmod>2026-09-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://online-store-ghsaan.vercel.app/category/analog-watches</loc>
+    <lastmod>2026-09-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/category/group-games</loc>
     <lastmod>2026-09-27</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
@@ -80,12 +92,6 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://online-store-ghsaan.vercel.app/category/toys-games</loc>
-    <lastmod>2026-09-27</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
     <loc>https://online-store-ghsaan.vercel.app/category/electrical-appliances</loc>
     <lastmod>2026-09-27</lastmod>
     <changefreq>weekly</changefreq>
@@ -93,6 +99,12 @@
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/category/clothing</loc>
+    <lastmod>2026-09-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/category/toys-games</loc>
     <lastmod>2026-09-27</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
@@ -147,12 +159,6 @@
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/category/chargers-cables</loc>
-    <lastmod>2026-09-27</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://online-store-ghsaan.vercel.app/category/watches</loc>
     <lastmod>2026-09-27</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
@@ -261,12 +267,6 @@
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/category/travel-trips</loc>
-    <lastmod>2026-09-27</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://online-store-ghsaan.vercel.app/category/group-games</loc>
     <lastmod>2026-09-27</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>

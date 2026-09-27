@@ -120,6 +120,7 @@
     "cancel": "Cancel",
     "deleteAccount": "Delete account",
     "deleteAccountHint": "Permanently deletes your data, orders, and favorites. This cannot be undone.",
+    "deleteAccountHintAdmin": "Deleting an admin account removes your access. The last remaining admin cannot be deleted.",
     "deleteAccountCta": "I want to delete my account",
     "deleteAccountConfirmText": "Type DELETE or حذف, then enter your password to confirm.",
     "deleteConfirmLabel": "Type DELETE or حذف",

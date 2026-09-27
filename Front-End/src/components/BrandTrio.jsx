@@ -47,14 +47,14 @@ export default function BrandTrio({
   } else {
     // Max logo inside fixed header height — do not grow the header bar.
     wordBox = 'w-auto max-w-[6.5rem] sm:max-w-[8rem] md:max-w-[9.5rem] lg:max-w-[11rem] min-w-0';
-    wordH = 'h-8 sm:h-9 md:h-10';
-    wordText = 'text-[0.65rem] leading-tight sm:text-sm md:text-base lg:text-lg';
+    wordH = 'min-h-8 sm:min-h-9 md:min-h-10 py-0.5';
+    wordText = 'text-[0.65rem] leading-[1.45] sm:text-sm md:text-base lg:text-lg';
     logoBox =
       'h-[calc(var(--mobile-header-height)-0.4rem)] w-[calc(var(--mobile-header-height)-0.4rem)] md:h-14 md:w-14 lg:h-[3.65rem] lg:w-[3.65rem]';
     trioGap = 'gap-1 sm:gap-1.5 md:gap-2';
   }
 
-  const wordClass = `inline-flex items-center ${wordBox} ${wordH} min-w-0 overflow-hidden ${
+  const wordClass = `inline-flex items-center ${wordBox} ${wordH} min-w-0 overflow-visible ${
     isFooter ? wordExtra : 'whitespace-nowrap'
   } font-display font-bold ${wordText} ${wordClassName}`;
 

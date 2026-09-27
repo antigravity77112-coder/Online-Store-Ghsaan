@@ -2,7 +2,7 @@
  * HomePage — الصفحة الرئيسية (نمط Shein — منتجات عمودية)
  */
 
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import Layout from '../components/Layout';
 import SEO from '../components/SEO';
 import BrandIntroOverlay from '../components/BrandIntroOverlay';
@@ -14,21 +14,12 @@ import HomeServiceBar from '../components/HomeServiceBar';
 import HomeProductFeed from '../components/HomeProductFeed';
 import { useFavorites } from '../context/FavoritesContext';
 import { useSiteConfig } from '../context/SiteConfigContext';
-import { useCategories } from '../hooks/useProducts';
+import { useCategories, useProductsInfinite } from '../hooks/useProducts';
 import { useHomeProducts } from '../hooks/useHomeProducts';
 import { mapStorefrontProduct } from '../utils/mapStorefrontProduct';
 
 const SECTION_PREVIEW_COUNT = 6;
-const FEED_COUNT = 24;
-
-function shuffleList(list) {
-  const next = [...list];
-  for (let i = next.length - 1; i > 0; i -= 1) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [next[i], next[j]] = [next[j], next[i]];
-  }
-  return next;
-}
+const FEED_PAGE_SIZE = 15;
 
 const HomePage = () => {
   const { isFavorite, toggleFavorite } = useFavorites();
@@ -51,7 +42,6 @@ const HomePage = () => {
   }, []);
 
   const { data: categories, isLoading: categoriesLoading } = useCategories();
-  // Scents hidden from storefront for clients — admin still manages them.
 
   const {
     featuredOffers,
@@ -64,6 +54,16 @@ const HomePage = () => {
     error: productsError,
   } = useHomeProducts(categories);
 
+  const {
+    data: feedRaw = [],
+    isLoading: feedLoading,
+    isLoadingMore: feedLoadingMore,
+    isReachingEnd: feedReachingEnd,
+    size: feedSize,
+    setSize: setFeedSize,
+    error: feedError,
+  } = useProductsInfinite({});
+
   const showSkeleton = productsLoading;
 
   const mapWithFavorites = useCallback(
@@ -75,57 +75,22 @@ const HomePage = () => {
     [isFavorite],
   );
 
+  const feedProducts = useMemo(
+    () => mapWithFavorites(feedRaw || []),
+    [feedRaw, mapWithFavorites],
+  );
+
   const handleFavoriteToggle = useCallback(
     (p) => {
-      const originalProduct = catalogProducts.find((prod) => String(prod.id) === String(p.id));
+      const fromFeed = (feedRaw || []).find((prod) => String(prod.id) === String(p.id));
+      const fromCatalog = catalogProducts.find((prod) => String(prod.id) === String(p.id));
+      const originalProduct = fromFeed || fromCatalog;
       if (originalProduct) toggleFavorite(originalProduct);
     },
-    [catalogProducts, toggleFavorite],
+    [feedRaw, catalogProducts, toggleFavorite],
   );
 
   const offersTitle = homeSections.bestSellers?.title || 'تخفيضات سريعة';
-
-  const feedOrderRef = useRef({ key: '', list: [] });
-
-  const feedProducts = useMemo(() => {
-    const usedIds = new Set();
-    const merged = [];
-
-    const pushUnique = (list) => {
-      for (const product of list || []) {
-        const id = String(product.id);
-        if (usedIds.has(id)) continue;
-        usedIds.add(id);
-        merged.push(product);
-        if (merged.length >= FEED_COUNT) return true;
-      }
-      return merged.length >= FEED_COUNT;
-    };
-
-    pushUnique(featuredOffers);
-    pushUnique(newArrivals);
-    pushUnique(featuredProducts);
-
-    for (const section of categorySections) {
-      if (pushUnique(section.products)) break;
-    }
-
-    pushUnique(catalogProducts);
-
-    const pool = merged.slice(0, FEED_COUNT);
-    const key = pool.map((p) => p.id).sort().join('|');
-    if (feedOrderRef.current.key !== key) {
-      feedOrderRef.current = { key, list: shuffleList(pool) };
-    }
-    return mapWithFavorites(feedOrderRef.current.list);
-  }, [
-    catalogProducts,
-    categorySections,
-    featuredOffers,
-    newArrivals,
-    featuredProducts,
-    mapWithFavorites,
-  ]);
 
   return (
     <Layout homeMarketplace>
@@ -151,9 +116,9 @@ const HomePage = () => {
         <div className="mx-auto max-w-7xl space-y-3 px-3 pb-4 pt-3 sm:px-4 lg:px-8 md:pb-10">
           <PromoBannerMosaic placement="promo_home" maxTiles={3} />
 
-          {productsError && (
+          {(productsError || feedError) && (
             <div className="rounded-sm border border-rose-200 bg-rose-50 px-3 py-2.5 text-sm text-rose-700 dark:border-rose-900/60 dark:bg-rose-950/40 dark:text-rose-300">
-              تعذر تحميل المنتجات حالياً: {productsError.message || 'حدث خطأ غير متوقع'}
+              تعذر تحميل المنتجات حالياً: {(productsError || feedError)?.message || 'حدث خطأ غير متوقع'}
             </div>
           )}
 
@@ -232,8 +197,11 @@ const HomePage = () => {
           <HomeProductFeed
             title="قد يعجبك"
             products={feedProducts}
-            isLoading={showSkeleton}
-            loadingCount={FEED_COUNT}
+            isLoading={feedLoading && feedProducts.length === 0}
+            isLoadingMore={feedLoadingMore}
+            isReachingEnd={feedReachingEnd}
+            onLoadMore={() => setFeedSize(feedSize + 1)}
+            loadingCount={FEED_PAGE_SIZE}
             onFavorite={handleFavoriteToggle}
             viewAllHref="/products"
           />

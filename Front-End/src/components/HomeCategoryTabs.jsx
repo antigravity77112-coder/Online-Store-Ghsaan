@@ -47,13 +47,13 @@ export default function HomeCategoryTabs() {
             <Link
               key={tab.id}
               to={tab.href}
-              className={`relative flex min-w-0 items-center justify-center px-0.5 text-center text-[10px] font-bold leading-tight transition-colors sm:text-[11px] ${
+              className={`relative flex min-w-0 items-center justify-center px-0.5 text-center text-[10px] font-bold leading-[1.45] transition-colors sm:text-[11px] ${
                 active
                   ? 'text-white'
                   : 'text-white/70 hover:text-white'
               }`}
             >
-              <span className="truncate">{tab.label}</span>
+              <span className="line-clamp-2 px-0.5">{tab.label}</span>
               {active && (
                 <span className="absolute inset-x-2 bottom-0 h-0.5 rounded-t-full bg-[#EA0001] sm:inset-x-3" aria-hidden="true" />
               )}

@@ -120,6 +120,7 @@
     "cancel": "إلغاء",
     "deleteAccount": "حذف الحساب",
     "deleteAccountHint": "حذف دائم لبياناتك وطلباتك ومفضلتك. لا يمكن التراجع عن هذا الإجراء.",
+    "deleteAccountHintAdmin": "حذف حساب المسؤول يزيل صلاحياتك. لا يمكن حذف المسؤول الوحيد في المتجر.",
     "deleteAccountCta": "أريد حذف حسابي",
     "deleteAccountConfirmText": "للتأكيد اكتب DELETE أو حذف، ثم أدخل كلمة المرور.",
     "deleteConfirmLabel": "اكتب DELETE أو حذف",

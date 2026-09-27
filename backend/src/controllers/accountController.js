@@ -235,7 +235,7 @@ class AccountController {
   }
 
   /**
-   * Delete own account (Buyers only)
+   * Delete own account (Buyer or Admin; last Admin is blocked)
    * DELETE /api/account/me
    */
   async deleteAccount(req, res) {
