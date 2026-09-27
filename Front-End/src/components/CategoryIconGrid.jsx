@@ -73,9 +73,14 @@ export default function CategoryIconGrid({
   const pageSize = cols * ROWS;
   const scrollRef = useRef(null);
 
+  const visibleCategories = useMemo(() => {
+    if (isLoading) return categories;
+    return (categories || []).filter((cat) => !cat.parentId && cat.isActive !== false);
+  }, [categories, isLoading]);
+
   const pages = useMemo(
-    () => chunkList(isLoading ? Array.from({ length: pageSize }, (_, i) => ({ id: `skel-${i}` })) : categories, pageSize),
-    [categories, isLoading, pageSize],
+    () => chunkList(isLoading ? Array.from({ length: pageSize }, (_, i) => ({ id: `skel-${i}` })) : visibleCategories, pageSize),
+    [visibleCategories, isLoading, pageSize],
   );
 
   const [activePage, setActivePage] = useState(0);
@@ -161,7 +166,15 @@ export default function CategoryIconGrid({
             >
               {page.map((cat) => (
                 <div key={cat.id} role="listitem">
-                  {isLoading ? <CategoryTile isLoading /> : <CategoryTile category={cat} priority={pageIndex === 0} />}
+                  {isLoading ? (
+                    <CategoryTile isLoading />
+                  ) : (
+                    <CategoryTile
+                      category={cat}
+                      priority={pageIndex === 0}
+                      childCount={(cat.children || []).filter((c) => c.isActive !== false).length}
+                    />
+                  )}
                 </div>
               ))}
             </div>

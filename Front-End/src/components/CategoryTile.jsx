@@ -24,7 +24,7 @@ function CategoryTileSkeleton() {
   );
 }
 
-const CategoryTile = React.memo(({ category, isLoading = false, priority = false }) => {
+const CategoryTile = React.memo(({ category, isLoading = false, priority = false, childCount = 0, subtitle = '' }) => {
   // 0 = optimized, 1 = raw original, 2 = give up (show initial)
   const [imgFailures, setImgFailures] = useState(0);
 
@@ -65,9 +65,14 @@ const CategoryTile = React.memo(({ category, isLoading = false, priority = false
         )}
       </div>
 
-      <span className="text-[10px] sm:text-[11px] font-semibold text-stone-900 dark:text-stone-100 text-center leading-tight line-clamp-2 w-full px-0.5 group-hover:text-[#e6533d] dark:group-hover:text-[#ff7a62] transition-colors">
-        {name}
+      <span className="block w-full min-h-[2.7em] px-0.5 pt-0.5 pb-0.5 text-[10px] sm:text-[11px] font-semibold text-stone-900 dark:text-stone-100 text-center leading-[1.45] line-clamp-2 group-hover:text-[#e6533d] dark:group-hover:text-[#ff7a62] transition-colors">
+        {subtitle || name}
       </span>
+      {childCount > 0 ? (
+        <span className="text-[9px] text-stone-400 dark:text-stone-500 text-center leading-[1.45]">
+          {childCount} فرعي
+        </span>
+      ) : null}
     </Link>
   );
 });

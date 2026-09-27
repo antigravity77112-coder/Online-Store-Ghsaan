@@ -34,7 +34,7 @@ const FOOTER_WA_GREETING = "مرحباً! أود الاستفسار عن منت�
 const SHOP_LINKS = [
   { to: "/", label: "الرئيسية" },
   { to: "/categories", label: "الفئات" },
-  { to: "/brands", label: "العلامات" },
+  { to: "/brands", label: "الماركات" },
   { to: "/products", label: "جميع المنتجات" },
   { to: "/products?promoted=true", label: "العروض" },
 ];

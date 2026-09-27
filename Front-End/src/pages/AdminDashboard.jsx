@@ -537,7 +537,7 @@ const AdminDashboard = () => {
       items: [
         { id: 'products', label: 'المحتوى', icon: Package },
         { id: 'categories', label: 'الأقسام', icon: Tag },
-        { id: 'brands', label: 'العلامات التجارية', icon: Crown },
+        { id: 'brands', label: '  الماركات التجارية', icon: Crown },
         { id: 'scents', label: 'عائلات الروائح', icon: Sparkles },
       ],
     },

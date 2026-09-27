@@ -1,5 +1,5 @@
 /**
- * BrandsPage — صفحة جميع العلامات التجارية
+ * BrandsPage — صفحة جميع   الماركات التجارية
  */
 
 import React, { useState, useMemo } from 'react';
@@ -11,7 +11,7 @@ import BannerRenderer from '../components/BannerRenderer';
 import { useBrands } from '../hooks/useProducts';
 import { matchesSearch } from '../utils/arabicSearch';
 
-const SKELETON_COUNT = 14;
+const SKELETON_COUNT = 8;
 
 const BrandsPage = () => {
   const { data: brands, isLoading } = useBrands();
@@ -24,12 +24,12 @@ const BrandsPage = () => {
 
   return (
     <Layout>
-      <SEO title="العلامات التجارية" description="تصفح جميع العلامات التجارية في المتسوق الذكي" />
+      <SEO title="  الماركات التجارية" description="تصفح جميع   الماركات التجارية في المتسوق الذكي" />
 
-      <div className="bg-white dark:bg-stone-950 min-h-screen">
-        <div className="sticky top-14 sm:top-16 z-30 bg-white dark:bg-stone-950 border-b border-stone-100 dark:border-stone-800 px-2 py-2.5 sm:px-4">
+      <div className="bg-stone-50 dark:bg-stone-950 min-h-screen">
+        <div className="sticky top-14 sm:top-16 z-30 bg-stone-50/95 dark:bg-stone-950/95 backdrop-blur border-b border-stone-100 dark:border-stone-800 px-3 py-2.5 sm:px-4">
           <h1 className="text-sm font-extrabold text-stone-900 dark:text-white mb-2.5 px-0.5">
-            العلامات
+            الماركات التجارية
           </h1>
 
           <div className="relative">
@@ -47,7 +47,7 @@ const BrandsPage = () => {
           </div>
         </div>
 
-        <div className="px-2 py-3 sm:px-4 pb-6 md:pb-10">
+        <div className="px-3 py-4 sm:px-4 pb-6 md:pb-10">
           <BannerRenderer placement="category" className="mb-3" />
 
           {!isLoading && brands.length > 0 && (
@@ -57,7 +57,7 @@ const BrandsPage = () => {
           )}
 
           <div
-            className="grid grid-cols-4 gap-x-2 gap-y-3 sm:grid-cols-5 sm:gap-x-2.5 sm:gap-y-3.5 lg:grid-cols-7 lg:gap-x-3"
+            className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4"
             dir="rtl"
           >
             {isLoading

@@ -4,7 +4,7 @@ import { LayoutGrid, Heart, BadgePercent, Flame, Crown } from 'lucide-react';
 
 const DISCOVERY_LINKS = [
   { to: '/categories', label: 'تصفح الفئات', icon: LayoutGrid },
-  { to: '/brands', label: 'تصفح العلامات', icon: Crown },
+  { to: '/brands', label: 'تصفح  الماركات التجارية', icon: Crown },
   { to: '/products?trending=true', label: 'ترندات', icon: Flame },
   { to: '/products?promoted=true', label: 'العروض الحصرية', icon: BadgePercent },
   { to: '/favorites', label: 'المفضلة', icon: Heart },

@@ -78,10 +78,10 @@ export function useCategories() {
   };
 }
 
-// ─── Brands Hook / خطاف العلامات التجارية ───
+// ─── Brands Hook / خطاف   الماركات التجارية ───
 
 /**
- * useBrands — خطاف العلامات التجارية
+ * useBrands — خطاف   الماركات التجارية
  *
  * EN: Same caching strategy as useCategories (brands change rarely).
  * AR: نفس استراتيجية التخزين المؤقت مثل useCategories.
@@ -137,10 +137,11 @@ export function useScents({ limit } = {}) {
 
 // ─── Products Infinite Hook / خطاف المنتجات (التمرير اللانهائي) ───
 
-export function useProductsInfinite({ city = '', condition = '', maxPriceUsd = '', specialOffers = false, trending = false, search = '', categoryName = '' } = {}) {
-  const params = { city, condition, maxPriceUsd, specialOffers, trending, search, categoryName };
+export function useProductsInfinite({ city = '', condition = '', maxPriceUsd = '', specialOffers = false, trending = false, search = '', categoryName = '', brandId = '', requireBrand = false } = {}) {
+  const params = { city, condition, maxPriceUsd, specialOffers, trending, search, categoryName, brandId, requireBrand };
 
   const getKey = (pageIndex, previousPageData) => {
+    if (params.requireBrand && !params.brandId) return null;
     // EN: Reached the end
     // AR: وصلنا إلى النهاية
     if (previousPageData && !previousPageData.length) return null;
@@ -157,6 +158,8 @@ export function useProductsInfinite({ city = '', condition = '', maxPriceUsd = '
     if (params.trending) parts.push('trending');
     if (params.search) parts.push(`search:${params.search}`);
     if (params.categoryName) parts.push(`cat:${params.categoryName}`);
+    if (params.brandId) parts.push(`brand:${params.brandId}`);
+    if (params.requireBrand) parts.push('requireBrand');
     return [parts.join('|'), pageNumber, params]; // SWR array key
   };
 
@@ -169,6 +172,7 @@ export function useProductsInfinite({ city = '', condition = '', maxPriceUsd = '
     if (p.trending) apiParams.trending = true;
     if (p.search) apiParams.search = p.search;
     if (p.categoryName) apiParams.categoryName = p.categoryName;
+    if (p.brandId) apiParams.brandId = p.brandId;
     
     const data = await api.getProducts(apiParams);
     return data || [];

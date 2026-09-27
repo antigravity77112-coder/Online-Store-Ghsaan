@@ -291,10 +291,10 @@ const AdminBrandsTab = ({ onSuccessMsg }) => {
   );
 
   return (
-    <div className={`relative min-h-[60vh] space-y-6 ${selectedIds.size > 0 ? 'pb-8 lg:pb-36' : 'pb-24'}`}>
+    <div className="relative min-h-[60vh] space-y-6 pb-24">
       <AdminToolbar
-        title="العلامات التجارية"
-        subtitle={Array.isArray(brands) ? `${logoStats.total} علامة` : 'إدارة العلامات المعروضة في المتجر'}
+        title="  الماركات التجارية"
+        subtitle={Array.isArray(brands) ? `${logoStats.total} علامة` : 'إدارة   الماركات التجارية المعروضة في المتجر'}
         icon={Crown}
         actions={
           <AdminPrimaryButton onClick={() => handleOpenModal()} disabled={isModalOpen || loading}>
@@ -316,26 +316,11 @@ const AdminBrandsTab = ({ onSuccessMsg }) => {
       <AnimatePresence>
         {selectedIds.size > 0 && (
           <motion.div
-            key="bulk-bar-mobile"
+            key="bulk-bar"
             initial={{ y: -12, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: -12, opacity: 0 }}
-            className="lg:hidden sticky top-0 z-[60] mb-3 w-full bg-slate-900/95 backdrop-blur-xl shadow-2xl rounded-2xl border border-gold-500/20 p-3 flex items-center gap-3 flex-nowrap"
-          >
-            {bulkBarInner}
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {selectedIds.size > 0 && (
-          <motion.div
-            key="bulk-bar-desktop"
-            initial={{ y: 50, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 50, opacity: 0 }}
-            className="hidden lg:flex fixed left-1/2 -translate-x-1/2 z-[60] w-[min(95vw,42rem)] bg-slate-900/95 backdrop-blur-xl shadow-2xl rounded-2xl border border-gold-500/20 p-3 items-center gap-3 flex-nowrap"
-            style={{ bottom: 'max(1rem, env(safe-area-inset-bottom))' }}
+            className="sticky top-0 z-[60] mb-3 w-full bg-slate-900/95 backdrop-blur-xl shadow-2xl rounded-2xl border border-gold-500/20 p-3 flex items-center gap-3 flex-nowrap"
           >
             {bulkBarInner}
           </motion.div>
@@ -343,7 +328,7 @@ const AdminBrandsTab = ({ onSuccessMsg }) => {
       </AnimatePresence>
 
       {isLoading ? (
-        <AdminLoading label="جاري تحميل العلامات التجارية..." />
+        <AdminLoading label="جاري تحميل   الماركات التجارية..." />
       ) : fetchError ? (
         <AdminCard className="text-center py-10">
           <AlertCircle className="w-10 h-10 mx-auto mb-2 text-red-500" />
@@ -422,9 +407,9 @@ const AdminBrandsTab = ({ onSuccessMsg }) => {
                         {isSelected ? <CheckSquare className="w-5 h-5 text-gold-500" /> : <Square className="w-5 h-5" />}
                       </button>
 
-                      <div className="w-10 h-10 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 flex items-center justify-center overflow-hidden justify-self-center">
+                      <div className="relative w-10 h-10 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 overflow-hidden flex items-center justify-center justify-self-center">
                         {brand.logoUrl ? (
-                          <img src={brand.logoUrl} alt="" className="max-w-full max-h-full object-contain p-0.5" />
+                          <img src={brand.logoUrl} alt="" className="absolute inset-0 w-full h-full object-cover" />
                         ) : (
                           <ImageIcon className="w-4 h-4 text-slate-300 dark:text-slate-600" />
                         )}
@@ -487,9 +472,9 @@ const AdminBrandsTab = ({ onSuccessMsg }) => {
                         >
                           {isSelected ? <CheckSquare className="w-5 h-5 text-gold-500" /> : <Square className="w-5 h-5 text-slate-400" />}
                         </button>
-                        <div className="w-12 h-12 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 flex items-center justify-center overflow-hidden flex-shrink-0">
+                        <div className="relative w-12 h-12 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 overflow-hidden flex items-center justify-center flex-shrink-0">
                           {brand.logoUrl ? (
-                            <img src={brand.logoUrl} alt="" className="max-w-full max-h-full object-contain p-1" />
+                            <img src={brand.logoUrl} alt="" className="absolute inset-0 w-full h-full object-cover" />
                           ) : (
                             <ImageIcon className="w-5 h-5 text-slate-300" />
                           )}
@@ -614,13 +599,15 @@ const AdminBrandsTab = ({ onSuccessMsg }) => {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-500 mb-1.5">الشعار (Logo)</label>
+                    <label className="block text-xs font-bold text-slate-500 mb-1.5">صورة الغلاف (Cover)</label>
                     <div className="flex items-center gap-4 p-3 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-900/50 relative overflow-hidden">
-                      <div className="w-16 h-16 bg-transparent flex items-center justify-center overflow-hidden shrink-0 relative">
+                      <div className="w-20 h-20 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 overflow-hidden shrink-0 relative">
                         {form.logoUrl ? (
-                          <img src={form.logoUrl} alt="Logo preview" className="w-full h-full object-contain p-1" />
+                          <img src={form.logoUrl} alt="معاينة الغلاف" className="absolute inset-0 w-full h-full object-cover" />
                         ) : (
-                          <ImageIcon className="w-6 h-6 text-slate-300 dark:text-slate-600" />
+                          <div className="w-full h-full flex items-center justify-center">
+                            <ImageIcon className="w-6 h-6 text-slate-300 dark:text-slate-600" />
+                          </div>
                         )}
                         <AdminUploadProgress active={uploading} />
                       </div>
@@ -638,9 +625,11 @@ const AdminBrandsTab = ({ onSuccessMsg }) => {
                           disabled={uploading || loading}
                           className="px-4 py-2 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-300 text-xs font-bold rounded-lg hover:bg-slate-50 dark:hover:bg-slate-600 transition-colors disabled:opacity-50"
                         >
-                          {uploading ? 'جاري الرفع...' : 'اختيار صورة الشعار'}
+                          {uploading ? 'جاري الرفع...' : 'اختيار صورة الغلاف'}
                         </button>
-                        <p className="text-[10px] text-slate-400 mt-1">يفضل أن يكون الشعار بخلفية شفافة (PNG).</p>
+                        <p className="text-[10px] text-slate-400 mt-1 leading-relaxed">
+                          المقاس الأفضل: مربع 1200×1200 بكسل (1:1). تظهر في المتجر كبطاقة مربعة بقصّ الغلاف مثل صور المنتجات.
+                        </p>
                       </div>
                     </div>
                   </div>

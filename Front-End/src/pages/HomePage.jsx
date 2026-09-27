@@ -2,7 +2,7 @@
  * HomePage — الصفحة الرئيسية (نمط Shein — منتجات عمودية)
  */
 
-import React, { useCallback, useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import Layout from '../components/Layout';
 import SEO from '../components/SEO';
 import BrandIntroOverlay from '../components/BrandIntroOverlay';
@@ -20,6 +20,15 @@ import { mapStorefrontProduct } from '../utils/mapStorefrontProduct';
 
 const SECTION_PREVIEW_COUNT = 6;
 const FEED_COUNT = 24;
+
+function shuffleList(list) {
+  const next = [...list];
+  for (let i = next.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [next[i], next[j]] = [next[j], next[i]];
+  }
+  return next;
+}
 
 const HomePage = () => {
   const { isFavorite, toggleFavorite } = useFavorites();
@@ -76,6 +85,8 @@ const HomePage = () => {
 
   const offersTitle = homeSections.bestSellers?.title || 'تخفيضات سريعة';
 
+  const feedOrderRef = useRef({ key: '', list: [] });
+
   const feedProducts = useMemo(() => {
     const usedIds = new Set();
     const merged = [];
@@ -91,16 +102,22 @@ const HomePage = () => {
       return merged.length >= FEED_COUNT;
     };
 
-    if (pushUnique(featuredOffers)) return mapWithFavorites(merged);
-    if (pushUnique(newArrivals)) return mapWithFavorites(merged);
-    if (pushUnique(featuredProducts)) return mapWithFavorites(merged);
+    pushUnique(featuredOffers);
+    pushUnique(newArrivals);
+    pushUnique(featuredProducts);
 
     for (const section of categorySections) {
-      if (pushUnique(section.products)) return mapWithFavorites(merged);
+      if (pushUnique(section.products)) break;
     }
 
     pushUnique(catalogProducts);
-    return mapWithFavorites(merged.slice(0, FEED_COUNT));
+
+    const pool = merged.slice(0, FEED_COUNT);
+    const key = pool.map((p) => p.id).sort().join('|');
+    if (feedOrderRef.current.key !== key) {
+      feedOrderRef.current = { key, list: shuffleList(pool) };
+    }
+    return mapWithFavorites(feedOrderRef.current.list);
   }, [
     catalogProducts,
     categorySections,

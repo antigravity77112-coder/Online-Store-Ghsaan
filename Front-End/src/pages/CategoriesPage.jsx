@@ -18,8 +18,24 @@ const CategoriesPage = () => {
   const [searchText, setSearchText] = useState('');
 
   const filteredCategories = useMemo(() => {
-    if (!searchText.trim()) return categories;
-    return categories.filter((cat) => matchesSearch(searchText, cat.name, cat.slug));
+    const list = categories || [];
+    const activeChildren = (cat) => (cat.children || []).filter((c) => c.isActive !== false);
+    if (!searchText.trim()) {
+      return list
+        .filter((cat) => !cat.parentId)
+        .filter((cat) => cat.isActive !== false)
+        .map((cat) => ({ ...cat, childCount: activeChildren(cat).length }));
+    }
+    return list
+      .filter((cat) => cat.isActive !== false && matchesSearch(searchText, cat.name, cat.slug))
+      .map((cat) => {
+        const parent = cat.parentId ? list.find((p) => p.id === cat.parentId) : null;
+        return {
+          ...cat,
+          childCount: activeChildren(cat).length,
+          subtitle: parent?.name ? `${parent.name} · ${cat.name}` : '',
+        };
+      });
   }, [categories, searchText]);
 
   return (
@@ -65,7 +81,12 @@ const CategoriesPage = () => {
                   <CategoryTile key={`cat-tile-skel-${i}`} isLoading />
                 ))
               : filteredCategories.map((cat) => (
-                  <CategoryTile key={cat.id} category={cat} />
+                  <CategoryTile
+                    key={cat.id}
+                    category={cat}
+                    childCount={cat.childCount || 0}
+                    subtitle={cat.subtitle || ''}
+                  />
                 ))}
           </div>
 

@@ -58,13 +58,18 @@ class BrandController {
   async getBrandBySlug(req, res) {
     try {
       const brand = await prisma.brand.findUnique({
-        where: { slug: req.params.slug }
+        where: { slug: req.params.slug },
+        include: { _count: { select: { products: true } } },
       });
       if (!brand) {
         res.status(404);
         throw new Error('العلامة التجارية غير موجودة (Brand not found)');
       }
-      res.json(brand);
+      res.json({
+        ...brand,
+        productsCount: brand._count.products,
+        _count: undefined,
+      });
     } catch (error) {
       throw error;
     }

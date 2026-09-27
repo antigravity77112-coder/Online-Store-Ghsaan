@@ -9,7 +9,7 @@
  */
 
 import React, { useState, useMemo, useCallback } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import useSWR from 'swr';
 import Layout from '../components/Layout';
 import SEO from '../components/SEO';
@@ -20,6 +20,7 @@ import ListingSearchField from '../components/listing/ListingSearchField';
 import ListingEmptyState from '../components/listing/ListingEmptyState';
 import QuickAddFeedback from '../components/QuickAddFeedback';
 import BannerRenderer from '../components/BannerRenderer';
+import CategorySubcategoryHub from '../components/CategorySubcategoryHub';
 import { ProductGrid } from '../components/HighConversionGrid';
 import { useCart } from '../context/CartContext';
 import { useFavorites } from '../context/FavoritesContext';
@@ -29,22 +30,6 @@ import { useUrlSearchDraft } from '../hooks/useUrlSearchDraft';
 import { useQuickAddFeedback } from '../hooks/useQuickAddFeedback';
 import { mapStorefrontProduct } from '../utils/mapStorefrontProduct';
 import { sortProducts } from '../utils/productListingSort';
-
-const CompactCategoryPill = ({ cat, isActive }) => (
-  <Link
-    to={`/category/${encodeURIComponent(cat.slug || cat.name)}`}
-    className={`flex-shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors ${
-      isActive
-        ? 'bg-gold-600 border-gold-600 text-white shadow-sm'
-        : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-gold-300 dark:hover:border-gold-600'
-    }`}
-  >
-    {cat.iconUrl && (
-      <img src={cat.iconUrl} alt="" className="w-4 h-4 object-contain rounded-full" />
-    )}
-    <span>{cat.name}</span>
-  </Link>
-);
 
 const CategoryPage = () => {
   const { slug } = useParams();
@@ -72,16 +57,34 @@ const CategoryPage = () => {
   const { data: allCategories = [] } = useCategories();
 
   const categoryName = categoryData?.name || slug;
-  const subcategories = categoryData?.children?.filter((c) => c.isActive) || [];
+  const subcategories = (categoryData?.children || []).filter((c) => c.isActive !== false);
+  const parentRef = categoryData?.parent || null;
+  const isChildPage = Boolean(categoryData?.parentId || parentRef);
 
   const siblingCategories = useMemo(() => {
-    if (!allCategories.length) return [];
-    const parentId = categoryData?.parentId || categoryData?.parent?.id;
-    if (parentId) {
-      return allCategories.filter((c) => c.parentId === parentId || c.parent?.id === parentId);
+    if (!isChildPage || !allCategories.length) return [];
+    const parentId = categoryData?.parentId || parentRef?.id;
+    return allCategories.filter(
+      (c) => c.isActive !== false && (c.parentId === parentId || c.parent?.id === parentId),
+    );
+  }, [allCategories, categoryData, isChildPage, parentRef]);
+
+  const hub = useMemo(() => {
+    if (subcategories.length > 0 && categoryData) {
+      return {
+        allHref: `/category/${encodeURIComponent(categoryData.slug || categoryData.name)}`,
+        allActive: true,
+        items: subcategories,
+      };
     }
-    return allCategories.filter((c) => !c.parentId && !c.parent);
-  }, [allCategories, categoryData]);
+    if (isChildPage && siblingCategories.length > 0) {
+      const parentHref = parentRef
+        ? `/category/${encodeURIComponent(parentRef.slug || parentRef.name)}`
+        : '/categories';
+      return { allHref: parentHref, allActive: false, items: siblingCategories };
+    }
+    return null;
+  }, [subcategories, categoryData, isChildPage, siblingCategories, parentRef]);
 
   const activeFilterCount = (offersOnly ? 1 : 0) + (condition ? 1 : 0);
 
@@ -182,22 +185,14 @@ const CategoryPage = () => {
           </p>
         </header>
 
-        {(siblingCategories.length > 1 || subcategories.length > 0) && (
-          <div className="mb-3 -mx-1">
-            <div className="flex gap-1.5 overflow-x-auto scrollbar-hide pb-1 px-1">
-              {siblingCategories.length > 1
-                ? siblingCategories.map((cat) => (
-                    <CompactCategoryPill
-                      key={cat.id}
-                      cat={cat}
-                      isActive={cat.slug === slug || cat.name === categoryName}
-                    />
-                  ))
-                : subcategories.map((cat) => (
-                    <CompactCategoryPill key={cat.id} cat={cat} isActive={false} />
-                  ))}
-            </div>
-          </div>
+        {hub && (
+          <CategorySubcategoryHub
+            allHref={hub.allHref}
+            allActive={hub.allActive}
+            items={hub.items}
+            activeSlug={slug}
+            activeName={categoryName}
+          />
         )}
 
         <div className="mb-3">

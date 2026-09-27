@@ -11,12 +11,14 @@ import ProductListingToolbar from '../components/ProductListingToolbar';
 import ListingSearchField from '../components/listing/ListingSearchField';
 import ListingEmptyState from '../components/listing/ListingEmptyState';
 import QuickAddFeedback from '../components/QuickAddFeedback';
+import InfiniteScrollTrigger from '../components/InfiniteScrollTrigger';
 import { ProductGrid } from '../components/HighConversionGrid';
 import { useCart } from '../context/CartContext';
 import { useFavorites } from '../context/FavoritesContext';
 import { useUrlSearchDraft } from '../hooks/useUrlSearchDraft';
 import { useQuickAddFeedback } from '../hooks/useQuickAddFeedback';
 import { useReducedMotion } from '../hooks/useReducedMotion';
+import { useProductsInfinite } from '../hooks/useProducts';
 import { mapStorefrontProduct } from '../utils/mapStorefrontProduct';
 import { sortProducts } from '../utils/productListingSort';
 import { getOptimizedImageUrl, IMAGE_WIDTHS } from '../utils/cloudinaryUrl';
@@ -41,22 +43,27 @@ const BrandPage = () => {
     () => api.getBrandBySlug(slug),
   );
 
-  const { data: products = [], isLoading: productsLoading } = useSWR(
-    brand?.id ? ['brand-products', brand.id] : null,
-    () => api.getProductsByBrand(brand.id),
-  );
+  const {
+    data: products,
+    isLoading: productsLoading,
+    isLoadingMore,
+    isReachingEnd,
+    size,
+    setSize,
+    error: productsError,
+  } = useProductsInfinite({
+    brandId: brand?.id || '',
+    search: committedSearch,
+    requireBrand: true,
+  });
 
-  const loading = brandLoading || (!!brand?.id && productsLoading && products.length === 0);
+  const loading = brandLoading || (!!brand?.id && productsLoading && (products || []).length === 0);
   const error = brandError?.message || '';
+  const productCount = brand?.productsCount ?? (products || []).length;
 
   const filteredProducts = useMemo(() => {
-    let result = products;
-    if (committedSearch.trim()) {
-      const q = committedSearch.trim().toLowerCase();
-      result = result.filter((p) => p.title?.toLowerCase().includes(q));
-    }
-    return sortProducts(result, sortOrder);
-  }, [products, committedSearch, sortOrder]);
+    return sortProducts(products || [], sortOrder);
+  }, [products, sortOrder]);
 
   const mappedGridProducts = useMemo(() => (
     filteredProducts.map((p) => {
@@ -132,7 +139,7 @@ const BrandPage = () => {
             compact
             items={[
               { name: 'الرئيسية', url: '/' },
-              { name: 'العلامات', url: '/brands' },
+              { name: 'الماركات التجارية', url: '/brands' },
               { name: brand.name },
             ]}
           />
@@ -172,7 +179,7 @@ const BrandPage = () => {
               )}
               <div className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 bg-gold-50 dark:bg-gold-900/20 border border-gold-100 dark:border-gold-800/50 text-gold-700 dark:text-gold-400 rounded-xl text-sm font-bold">
                 <Package className="w-4 h-4" aria-hidden="true" />
-                {products.length} منتجات متاحة
+                {productCount} منتجات متاحة
               </div>
             </div>
           </motion.div>
@@ -199,13 +206,32 @@ const BrandPage = () => {
           onSortChange={setSortOrder}
         />
 
+        {productsError && (
+          <div className="mb-3 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700 dark:border-rose-900/60 dark:bg-rose-950/40 dark:text-rose-300">
+            تعذر تحميل المنتجات: {productsError.message || 'حدث خطأ غير متوقع'}
+          </div>
+        )}
+
         {filteredProducts.length > 0 ? (
-          <ProductGrid
-            products={mappedGridProducts}
-            onQuickAdd={handleQuickAdd}
-            onFavorite={handleFavoriteToggle}
-            variant="listing"
-          />
+          <>
+            <ProductGrid
+              products={mappedGridProducts}
+              isLoadingMore={isLoadingMore}
+              onQuickAdd={handleQuickAdd}
+              onFavorite={handleFavoriteToggle}
+              variant="listing"
+            />
+            <InfiniteScrollTrigger
+              onIntersect={() => setSize(size + 1)}
+              isLoadingMore={isLoadingMore}
+              isReachingEnd={isReachingEnd}
+            />
+            {isReachingEnd && (products || []).length > 0 && (
+              <p className="text-center text-xs text-slate-400 dark:text-slate-500 py-6">
+                وصلت إلى نهاية منتجات هذه العلامة
+              </p>
+            )}
+          </>
         ) : (
           <ListingEmptyState
             title="لا توجد منتجات حالياً"

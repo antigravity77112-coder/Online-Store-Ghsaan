@@ -569,17 +569,50 @@ class ProductService {
 
     const and = [];
 
-    if (categoryName) {
+    // Parent categories roll up direct children so /category/:parent lists the full department.
+    // Leaf/child queries stay exact (no sibling expansion).
+    const resolveCategoryIds = async () => {
+      if (categoryId) {
+        const cat = await prisma.category.findUnique({
+          where: { id: categoryId },
+          select: {
+            id: true,
+            children: { where: { isActive: true }, select: { id: true } },
+          },
+        });
+        if (!cat) return [categoryId];
+        return [cat.id, ...(cat.children || []).map((c) => c.id)];
+      }
+      if (categoryName) {
+        const cat = await prisma.category.findFirst({
+          where: { name: { equals: categoryName } },
+          select: {
+            id: true,
+            children: { where: { isActive: true }, select: { id: true } },
+          },
+        });
+        if (!cat) return null;
+        return [cat.id, ...(cat.children || []).map((c) => c.id)];
+      }
+      return null;
+    };
+
+    const categoryIds = await resolveCategoryIds();
+    if (categoryIds && categoryIds.length > 0) {
+      and.push({
+        OR: [
+          { categoryId: { in: categoryIds } },
+          { categories: { some: { categoryId: { in: categoryIds } } } },
+        ],
+      });
+    } else if (categoryName) {
+      // Fallback if name lookup fails (legacy / slug-as-name)
       and.push({
         OR: [
           { category: { name: { equals: categoryName } } },
           { categories: { some: { category: { name: { equals: categoryName } } } } },
         ],
       });
-    }
-
-    if (categoryId) {
-      and.push({ OR: [{ categoryId }, { categories: { some: { categoryId } } }] });
     }
 
     if (brandId) {

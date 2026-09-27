@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useRef } from 'react';
 import useSWR from 'swr';
 import * as api from '../services/api';
 
@@ -69,6 +69,15 @@ function buildCategorySectionsFromCatalog(catalog, categories) {
     .slice(0, MAX_CATEGORY_SECTIONS);
 }
 
+function shuffleOnce(list) {
+  const next = [...list];
+  for (let i = next.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [next[i], next[j]] = [next[j], next[i]];
+  }
+  return next;
+}
+
 function takeUniqueProducts(candidates, count, usedIds) {
   const result = [];
   for (const p of candidates || []) {
@@ -123,6 +132,14 @@ export function useHomeProducts(categories = []) {
   );
 
   const catalog = catalogProducts || [];
+  const mountSeedRef = useRef(null);
+  if (mountSeedRef.current == null) mountSeedRef.current = Math.random();
+  const shuffleKey = `${mountSeedRef.current}|${catalog.map((p) => p.id).join('|')}`;
+  const shuffledRef = useRef({ key: '', list: [] });
+  if (shuffleKey && shuffledRef.current.key !== shuffleKey) {
+    shuffledRef.current = { key: shuffleKey, list: shuffleOnce(catalog) };
+  }
+  const shuffledCatalog = shuffleKey ? shuffledRef.current.list : catalog;
   const error = offersError || catalogError || trendingError;
 
   const {
@@ -138,32 +155,32 @@ export function useHomeProducts(categories = []) {
       ? offersProducts
       : catalog.filter((p) => p.isPromoted || p.discountPrice);
 
-    const offers = takeUniqueProducts(onOffer, SECTION_COUNT, usedIds);
+    const offers = shuffleOnce(takeUniqueProducts(onOffer, SECTION_COUNT, usedIds));
 
-    const trendingList = takeUniqueProducts(
+    const trendingList = shuffleOnce(takeUniqueProducts(
       (trendingProducts || []).length
         ? trendingProducts
         : catalog.filter((p) => p.isTrending),
       SECTION_COUNT,
       usedIds,
-    );
+    ));
 
     const sortedNew = [...catalog].sort(
       (a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime(),
     );
-    const arrivals = takeUniqueProducts(sortedNew, SECTION_COUNT, usedIds);
+    const arrivals = shuffleOnce(takeUniqueProducts(sortedNew, SECTION_COUNT, usedIds));
 
     const featuredCandidates = partitionFeaturedProducts(
-      catalog.filter((p) => !usedIds.has(String(p.id))),
+      shuffledCatalog.filter((p) => !usedIds.has(String(p.id))),
       SECTION_COUNT * 2,
     );
-    const featured = takeUniqueProducts(featuredCandidates, SECTION_COUNT, usedIds);
+    const featured = shuffleOnce(takeUniqueProducts(featuredCandidates, SECTION_COUNT, usedIds));
 
-    const rawCategorySections = buildCategorySectionsFromCatalog(catalog, categories);
+    const rawCategorySections = buildCategorySectionsFromCatalog(shuffledCatalog, categories);
     const catSections = rawCategorySections
       .map((section) => ({
         ...section,
-        products: takeUniqueProducts(section.products, CATEGORY_CAROUSEL_COUNT, usedIds),
+        products: shuffleOnce(takeUniqueProducts(section.products, CATEGORY_CAROUSEL_COUNT, usedIds)),
       }))
       .filter((s) => s.products.length >= MIN_PRODUCTS_PER_SECTION);
 
@@ -174,7 +191,7 @@ export function useHomeProducts(categories = []) {
       trending: trendingList,
       categorySections: catSections,
     };
-  }, [offersProducts, trendingProducts, catalog, categories]);
+  }, [offersProducts, trendingProducts, catalog, shuffledCatalog, categories]);
 
   const isLoading =
     (offersLoading && !offersProducts) ||
@@ -190,7 +207,7 @@ export function useHomeProducts(categories = []) {
     featuredProducts,
     trendingProducts: trending,
     categorySections,
-    catalogProducts: catalog,
+    catalogProducts: shuffledCatalog,
     isLoading,
     error,
   };
