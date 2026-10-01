@@ -1,5 +1,5 @@
 import React, { useMemo, useCallback } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigationType } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AlertCircle, Home, ChevronLeft, Package, Crown } from 'lucide-react';
 import useSWR from 'swr';
@@ -19,12 +19,15 @@ import { useUrlSearchDraft } from '../hooks/useUrlSearchDraft';
 import { useQuickAddFeedback } from '../hooks/useQuickAddFeedback';
 import { useReducedMotion } from '../hooks/useReducedMotion';
 import { useProductsInfinite } from '../hooks/useProducts';
-import { mapStorefrontProduct } from '../utils/mapStorefrontProduct';
 import { useListingProducts } from '../hooks/useListingProducts';
+import { useListingScrollMemory } from '../hooks/useListingScrollMemory';
+import { isExpectedListingReturn } from '../utils/listingSessionMemory';
+import { mapStorefrontProduct } from '../utils/mapStorefrontProduct';
 import { getOptimizedImageUrl, IMAGE_WIDTHS } from '../utils/cloudinaryUrl';
 
 const BrandPage = () => {
   const { slug } = useParams();
+  const navigationType = useNavigationType();
   const { addToCart } = useCart();
   const { isFavorite, toggleFavorite } = useFavorites();
   const reduceMotion = useReducedMotion();
@@ -43,6 +46,11 @@ const BrandPage = () => {
     () => api.getBrandBySlug(slug),
   );
 
+  const memoryKey = useMemo(
+    () => `brand:${slug}|q:${committedSearch}|sort:${sortOrder}`,
+    [slug, committedSearch, sortOrder],
+  );
+
   const {
     data: products,
     isLoading: productsLoading,
@@ -50,18 +58,31 @@ const BrandPage = () => {
     isReachingEnd,
     size,
     setSize,
+    listingKey,
+    shuffleSeed,
+    rememberedSize,
     error: productsError,
   } = useProductsInfinite({
     brandId: brand?.id || '',
     search: committedSearch,
     requireBrand: true,
+    enabled: Boolean(brand?.id),
+    memoryKey,
   });
 
   const loading = brandLoading || (!!brand?.id && productsLoading && (products || []).length === 0);
   const error = brandError?.message || '';
   const productCount = brand?.productsCount ?? (products || []).length;
 
-  const filteredProducts = useListingProducts(products || [], sortOrder);
+  const filteredProducts = useListingProducts(products || [], sortOrder, shuffleSeed);
+
+  const pagesReady = size >= rememberedSize && !isLoadingMore && filteredProducts.length > 0;
+  const skipEnterMotion = navigationType === 'POP' || isExpectedListingReturn(listingKey);
+  useListingScrollMemory({
+    listingKey,
+    ready: filteredProducts.length > 0,
+    pagesReady,
+  });
 
   const mappedGridProducts = useMemo(() => (
     filteredProducts.map((p) => {
@@ -147,8 +168,8 @@ const BrandPage = () => {
       <div className="bg-white dark:bg-slate-900 py-8 sm:py-10 border-b border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <motion.div
-            initial={reduceMotion ? false : { opacity: 0, y: 12 }}
-            animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
+            initial={reduceMotion || skipEnterMotion ? false : { opacity: 0, y: 12 }}
+            animate={reduceMotion || skipEnterMotion ? undefined : { opacity: 1, y: 0 }}
             className="flex flex-col md:flex-row items-center gap-6 text-center md:text-right"
           >
             <div className="w-24 h-24 md:w-36 md:h-36 bg-transparent p-1 shrink-0 flex items-center justify-center">

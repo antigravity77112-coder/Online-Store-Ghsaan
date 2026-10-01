@@ -28,9 +28,25 @@
  *     ويزيل أيقونات التحميل عند العودة للصفحة الرئيسية.
  */
 
+import { useEffect, useMemo } from 'react';
 import useSWR from 'swr';
 import useSWRInfinite from 'swr/infinite';
 import * as api from '../services/api';
+import { getListingMemory, setListingMemory, ensureShuffleSeed } from '../utils/listingSessionMemory';
+
+function buildProductsInfiniteListKey(params) {
+  const parts = ['products-infinite'];
+  if (params.city) parts.push(`city:${params.city}`);
+  if (params.condition) parts.push(`cond:${params.condition}`);
+  if (params.maxPriceUsd) parts.push(`max:${params.maxPriceUsd}`);
+  if (params.specialOffers) parts.push('offers');
+  if (params.trending) parts.push('trending');
+  if (params.search) parts.push(`search:${params.search}`);
+  if (params.categoryName) parts.push(`cat:${params.categoryName}`);
+  if (params.brandId) parts.push(`brand:${params.brandId}`);
+  if (params.requireBrand) parts.push('requireBrand');
+  return parts.join('|');
+}
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -137,10 +153,45 @@ export function useScents({ limit } = {}) {
 
 // ─── Products Infinite Hook / خطاف المنتجات (التمرير اللانهائي) ───
 
-export function useProductsInfinite({ city = '', condition = '', maxPriceUsd = '', specialOffers = false, trending = false, search = '', categoryName = '', brandId = '', requireBrand = false } = {}) {
+export function useProductsInfinite({
+  city = '',
+  condition = '',
+  maxPriceUsd = '',
+  specialOffers = false,
+  trending = false,
+  search = '',
+  categoryName = '',
+  brandId = '',
+  requireBrand = false,
+  /** When false, skip fetching (wait for resolved category/brand). */
+  enabled = true,
+  /** Stable SPA memory key (slug-based). Defaults to filter fingerprint. */
+  memoryKey = '',
+} = {}) {
   const params = { city, condition, maxPriceUsd, specialOffers, trending, search, categoryName, brandId, requireBrand };
+  const listingKey = useMemo(
+    () => memoryKey || buildProductsInfiniteListKey(params),
+    [
+      memoryKey,
+      params.city,
+      params.condition,
+      params.maxPriceUsd,
+      params.specialOffers,
+      params.trending,
+      params.search,
+      params.categoryName,
+      params.brandId,
+      params.requireBrand,
+    ],
+  );
+
+  // Seed is remembered by listingKey — not part of the identity itself.
+  const shuffleSeed = useMemo(() => ensureShuffleSeed(listingKey), [listingKey]);
+  const rememberedSize = getListingMemory(listingKey)?.size;
+  const initialSize = typeof rememberedSize === 'number' && rememberedSize >= 1 ? rememberedSize : 1;
 
   const getKey = (pageIndex, previousPageData) => {
+    if (!enabled) return null;
     if (params.requireBrand && !params.brandId) return null;
     // EN: Reached the end
     // AR: وصلنا إلى النهاية
@@ -187,8 +238,25 @@ export function useProductsInfinite({ city = '', condition = '', maxPriceUsd = '
       dedupingInterval: 60000,
       keepPreviousData: true,
       errorRetryCount: 3,
+      initialSize,
     }
   );
+
+  useEffect(() => {
+    // Only persist meaningful page counts — avoid clobbering a restored size with 1
+    // while SWR is still hydrating cached pages.
+    if (size > 1 || (size === 1 && !getListingMemory(listingKey)?.size)) {
+      setListingMemory(listingKey, { size });
+    }
+  }, [listingKey, size]);
+
+  // If memory says we had more pages, force SWR Infinite to that size after remount.
+  useEffect(() => {
+    const remembered = getListingMemory(listingKey)?.size;
+    if (typeof remembered === 'number' && remembered > size) {
+      setSize(remembered);
+    }
+  }, [listingKey, size, setSize]);
 
   const products = data ? [].concat(...data) : [];
   const isLoadingMore =
@@ -205,6 +273,11 @@ export function useProductsInfinite({ city = '', condition = '', maxPriceUsd = '
     isReachingEnd,
     size,
     setSize,
+    listingKey,
+    /** @deprecated use listingKey */
+    listKey: listingKey,
+    shuffleSeed,
+    rememberedSize: typeof rememberedSize === 'number' && rememberedSize >= 1 ? rememberedSize : 1,
     error,
     mutate,
   };

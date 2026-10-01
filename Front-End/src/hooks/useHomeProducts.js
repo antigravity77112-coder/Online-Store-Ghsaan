@@ -1,12 +1,15 @@
-import { useMemo, useRef } from 'react';
+import { useMemo } from 'react';
 import useSWR from 'swr';
 import * as api from '../services/api';
+import { createSeededRandom, shuffleProducts } from '../utils/productListingSort';
+import { ensureShuffleSeed } from '../utils/listingSessionMemory';
 
 const SECTION_COUNT = 8;
 const CATEGORY_CAROUSEL_COUNT = 10;
 const MIN_PRODUCTS_PER_SECTION = 3;
 const MAX_CATEGORY_SECTIONS = 5;
 const CATALOG_POOL_SIZE = SECTION_COUNT * 4;
+const HOME_SECTIONS_SEED_KEY = 'home-sections';
 
 function partitionFeaturedProducts(products, sectionCount = SECTION_COUNT) {
   const pools = new Map();
@@ -69,15 +72,6 @@ function buildCategorySectionsFromCatalog(catalog, categories) {
     .slice(0, MAX_CATEGORY_SECTIONS);
 }
 
-function shuffleOnce(list) {
-  const next = [...list];
-  for (let i = next.length - 1; i > 0; i -= 1) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [next[i], next[j]] = [next[j], next[i]];
-  }
-  return next;
-}
-
 function takeUniqueProducts(candidates, count, usedIds) {
   const result = [];
   for (const p of candidates || []) {
@@ -93,6 +87,7 @@ function takeUniqueProducts(candidates, count, usedIds) {
 /**
  * Targeted parallel product fetches for the homepage sections.
  * Cross-section deduplication prevents the same SKU appearing in multiple rails.
+ * Shuffle seed lives in session memory so rails stay stable until F5.
  */
 export function useHomeProducts(categories = []) {
   const {
@@ -132,14 +127,14 @@ export function useHomeProducts(categories = []) {
   );
 
   const catalog = catalogProducts || [];
-  const mountSeedRef = useRef(null);
-  if (mountSeedRef.current == null) mountSeedRef.current = Math.random();
-  const shuffleKey = `${mountSeedRef.current}|${catalog.map((p) => p.id).join('|')}`;
-  const shuffledRef = useRef({ key: '', list: [] });
-  if (shuffleKey && shuffledRef.current.key !== shuffleKey) {
-    shuffledRef.current = { key: shuffleKey, list: shuffleOnce(catalog) };
-  }
-  const shuffledCatalog = shuffleKey ? shuffledRef.current.list : catalog;
+  const sessionSeed = ensureShuffleSeed(HOME_SECTIONS_SEED_KEY);
+  const catalogIdKey = catalog.map((p) => p.id).join('|');
+
+  const shuffledCatalog = useMemo(() => {
+    if (!catalog.length) return [];
+    return shuffleProducts(catalog, createSeededRandom(sessionSeed));
+  }, [catalog, catalogIdKey, sessionSeed]);
+
   const error = offersError || catalogError || trendingError;
 
   const {
@@ -149,6 +144,8 @@ export function useHomeProducts(categories = []) {
     trending,
     categorySections,
   } = useMemo(() => {
+    const random = createSeededRandom(sessionSeed);
+    const shuffleOnce = (list) => shuffleProducts(list, random);
     const usedIds = new Set();
 
     const onOffer = (offersProducts || []).length
@@ -191,7 +188,7 @@ export function useHomeProducts(categories = []) {
       trending: trendingList,
       categorySections: catSections,
     };
-  }, [offersProducts, trendingProducts, catalog, shuffledCatalog, categories]);
+  }, [offersProducts, trendingProducts, catalog, shuffledCatalog, categories, sessionSeed]);
 
   const isLoading =
     (offersLoading && !offersProducts) ||

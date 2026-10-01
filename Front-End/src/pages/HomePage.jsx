@@ -17,6 +17,7 @@ import { useSiteConfig } from '../context/SiteConfigContext';
 import { useCategories, useProductsInfinite } from '../hooks/useProducts';
 import { useHomeProducts } from '../hooks/useHomeProducts';
 import { useListingProducts } from '../hooks/useListingProducts';
+import { useListingScrollMemory } from '../hooks/useListingScrollMemory';
 import { mapStorefrontProduct } from '../utils/mapStorefrontProduct';
 
 const SECTION_PREVIEW_COUNT = 6;
@@ -62,6 +63,9 @@ const HomePage = () => {
     isReachingEnd: feedReachingEnd,
     size: feedSize,
     setSize: setFeedSize,
+    listingKey: feedListingKey,
+    shuffleSeed: feedShuffleSeed,
+    rememberedSize: feedRememberedSize,
     error: feedError,
   } = useProductsInfinite({});
 
@@ -76,11 +80,18 @@ const HomePage = () => {
     [isFavorite],
   );
 
-  const shuffledFeed = useListingProducts(feedRaw || [], 'default');
+  const shuffledFeed = useListingProducts(feedRaw || [], 'default', feedShuffleSeed);
   const feedProducts = useMemo(
     () => mapWithFavorites(shuffledFeed),
     [shuffledFeed, mapWithFavorites],
   );
+
+  const feedPagesReady = feedSize >= feedRememberedSize && !feedLoadingMore && feedProducts.length > 0;
+  useListingScrollMemory({
+    listingKey: feedListingKey,
+    ready: feedProducts.length > 0,
+    pagesReady: feedPagesReady,
+  });
 
   const handleFavoriteToggle = useCallback(
     (p) => {

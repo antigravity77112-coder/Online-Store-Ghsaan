@@ -2,11 +2,21 @@
  * Shared client-side product sort for listing pages.
  */
 
-/** Fisher–Yates shuffle (new array). */
-export function shuffleProducts(products) {
+/** Deterministic PRNG from a float seed in [0, 1). */
+export function createSeededRandom(seed) {
+  let s = Math.floor((Number(seed) || Math.random()) * 1e9) || 1;
+  return () => {
+    s = (Math.imul(s, 1664525) + 1013904223) >>> 0;
+    return s / 4294967296;
+  };
+}
+
+/** Fisher–Yates shuffle (new array). Optional random() for seeded shuffles. */
+export function shuffleProducts(products, random = Math.random) {
   const result = [...(products || [])];
+  const rand = typeof random === 'function' ? random : Math.random;
   for (let i = result.length - 1; i > 0; i -= 1) {
-    const j = Math.floor(Math.random() * (i + 1));
+    const j = Math.floor(rand() * (i + 1));
     [result[i], result[j]] = [result[j], result[i]];
   }
   return result;

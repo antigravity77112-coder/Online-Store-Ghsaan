@@ -3,7 +3,7 @@
  */
 
 import React, { useMemo, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useNavigationType } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowRight, ShoppingBag,
@@ -24,8 +24,10 @@ import { useProductsInfinite, useCategories } from '../hooks/useProducts';
 import { useProductsListingParams } from '../hooks/useProductsListingParams';
 import { useQuickAddFeedback } from '../hooks/useQuickAddFeedback';
 import { useReducedMotion } from '../hooks/useReducedMotion';
-import { mapStorefrontProduct } from '../utils/mapStorefrontProduct';
 import { useListingProducts } from '../hooks/useListingProducts';
+import { useListingScrollMemory } from '../hooks/useListingScrollMemory';
+import { isExpectedListingReturn } from '../utils/listingSessionMemory';
+import { mapStorefrontProduct } from '../utils/mapStorefrontProduct';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -34,6 +36,7 @@ const containerVariants = {
 
 const ProductsPage = () => {
   const navigate = useNavigate();
+  const navigationType = useNavigationType();
   const { addToCart } = useCart();
   const { isFavorite, toggleFavorite } = useFavorites();
   const {
@@ -65,6 +68,9 @@ const ProductsPage = () => {
     isReachingEnd,
     size,
     setSize,
+    listingKey,
+    shuffleSeed,
+    rememberedSize,
     error: productsError,
   } = useProductsInfinite({
     specialOffers: offersOnly,
@@ -86,7 +92,15 @@ const ProductsPage = () => {
     )]
   ), [categories, activeProducts]);
 
-  const filteredProducts = useListingProducts(activeProducts, sortOrder);
+  const filteredProducts = useListingProducts(activeProducts, sortOrder, shuffleSeed);
+
+  const pagesReady = size >= rememberedSize && !isLoadingMore && filteredProducts.length > 0;
+  const skipEnterMotion = navigationType === 'POP' || isExpectedListingReturn(listingKey);
+  useListingScrollMemory({
+    listingKey,
+    ready: filteredProducts.length > 0,
+    pagesReady,
+  });
 
   const mappedGridProducts = useMemo(() => (
     filteredProducts.map((p) => {
@@ -251,9 +265,9 @@ const ProductsPage = () => {
             {filteredProducts.length > 0 ? (
               <motion.div
                 className="w-full"
-                variants={reduceMotion ? undefined : containerVariants}
-                initial={reduceMotion ? false : 'hidden'}
-                animate={reduceMotion ? undefined : 'visible'}
+                variants={reduceMotion || skipEnterMotion ? undefined : containerVariants}
+                initial={reduceMotion || skipEnterMotion ? false : 'hidden'}
+                animate={reduceMotion || skipEnterMotion ? undefined : 'visible'}
                 exit={reduceMotion ? undefined : { opacity: 0 }}
                 key={`${activeCategory}-${committedSearch}-${sortOrder}-${trendingOnly ? 'trending' : 'all'}`}
               >

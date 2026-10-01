@@ -1,5 +1,5 @@
 import React, { useMemo, useCallback } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigationType } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { AlertCircle, Package, Sparkles } from 'lucide-react';
 import useSWR from 'swr';
@@ -17,12 +17,15 @@ import { useFavorites } from '../context/FavoritesContext';
 import { useUrlSearchDraft } from '../hooks/useUrlSearchDraft';
 import { useQuickAddFeedback } from '../hooks/useQuickAddFeedback';
 import { useReducedMotion } from '../hooks/useReducedMotion';
-import { mapStorefrontProduct } from '../utils/mapStorefrontProduct';
 import { useListingProducts } from '../hooks/useListingProducts';
+import { useListingScrollMemory } from '../hooks/useListingScrollMemory';
+import { ensureShuffleSeed, isExpectedListingReturn } from '../utils/listingSessionMemory';
+import { mapStorefrontProduct } from '../utils/mapStorefrontProduct';
 import { getOptimizedImageUrl, IMAGE_WIDTHS } from '../utils/cloudinaryUrl';
 
 const ScentPage = () => {
   const { slug } = useParams();
+  const navigationType = useNavigationType();
   const { addToCart } = useCart();
   const { isFavorite, toggleFavorite } = useFavorites();
   const reduceMotion = useReducedMotion();
@@ -55,7 +58,20 @@ const ScentPage = () => {
     return products.filter((p) => p.title?.toLowerCase().includes(q));
   }, [products, committedSearch]);
 
-  const filteredProducts = useListingProducts(searchedProducts, sortOrder);
+  const listingKey = useMemo(
+    () => `scent|${scent?.id || slug || ''}|search:${committedSearch.trim()}`,
+    [scent?.id, slug, committedSearch],
+  );
+  const shuffleSeed = useMemo(() => ensureShuffleSeed(listingKey), [listingKey]);
+  const filteredProducts = useListingProducts(searchedProducts, sortOrder, shuffleSeed);
+
+  useListingScrollMemory({
+    listingKey,
+    ready: filteredProducts.length > 0,
+    pagesReady: filteredProducts.length > 0 && !loading,
+  });
+
+  const skipEnterMotion = navigationType === 'POP' || isExpectedListingReturn(listingKey);
 
   const mappedGridProducts = useMemo(() => (
     filteredProducts.map((p) => {
@@ -141,8 +157,8 @@ const ScentPage = () => {
       <div className="bg-white dark:bg-slate-900 py-8 sm:py-10 border-b border-slate-200 dark:border-slate-800 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
-            initial={reduceMotion ? false : { opacity: 0, y: 12 }}
-            animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
+            initial={reduceMotion || skipEnterMotion ? false : { opacity: 0, y: 12 }}
+            animate={reduceMotion || skipEnterMotion ? undefined : { opacity: 1, y: 0 }}
             className="flex flex-col md:flex-row items-center gap-6 text-center md:text-right"
           >
             <div className="w-24 h-24 md:w-36 md:h-36 bg-white dark:bg-slate-800 rounded-2xl shadow-md border border-slate-100 dark:border-slate-700 p-3 shrink-0 flex items-center justify-center">

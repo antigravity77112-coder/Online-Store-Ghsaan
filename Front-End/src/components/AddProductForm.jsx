@@ -292,7 +292,7 @@ const AddProductForm = ({ onSuccess, onCancel, editProduct, onDirtyChange }) => 
     title: editProduct?.title || '',
     description: editProduct?.description || '',
     price: editProduct?.price?.toString() || '',
-    currency: editProduct?.currency || 'USD',
+    currency: editProduct?.currency || 'YER_Sanaa',
     condition: getInitialCondition(editProduct?.condition),
     stockQuantity: editProduct?.stockQuantity || 1,
     categoryId: editProduct?.categoryId || '',
@@ -756,7 +756,7 @@ const AddProductForm = ({ onSuccess, onCancel, editProduct, onDirtyChange }) => 
       title: editProduct.title || '',
       description: editProduct.description || '',
       price: editProduct.price != null ? String(editProduct.price) : '',
-      currency: editProduct.currency || 'USD',
+      currency: editProduct.currency || 'YER_Sanaa',
       condition: getInitialCondition(editProduct.condition),
       stockQuantity: editProduct.stockQuantity ?? 1,
       categoryId: editProduct.categoryId || '',
@@ -1103,10 +1103,10 @@ const AddProductForm = ({ onSuccess, onCancel, editProduct, onDirtyChange }) => 
             onChange={handleChange}
             className="w-full px-4 py-3 border border-slate-200 dark:border-slate-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gold-500/40 focus:border-gold-400 appearance-none cursor-pointer bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
           >
-            <option value="USD">دولار ($)</option>
-            <option value="SAR">ريال سعودي (SAR)</option>
             <option value="YER_Sanaa">ريال (صنعاء)</option>
             <option value="YER_Aden">ريال (عدن)</option>
+            <option value="USD">دولار ($)</option>
+            <option value="SAR">ريال سعودي (SAR)</option>
           </select>
         </div>
       </div>

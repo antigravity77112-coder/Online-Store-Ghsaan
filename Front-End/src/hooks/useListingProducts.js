@@ -1,38 +1,46 @@
 import { useMemo, useRef } from 'react';
 import { shuffleProducts, sortProducts } from '../utils/productListingSort';
 
+/** Stable rank from product id + session shuffle seed (order survives remount / Back). */
+function seededRank(id, seed) {
+  const str = `${seed}:${id}`;
+  let h = 2166136261;
+  for (let i = 0; i < str.length; i += 1) {
+    h ^= str.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
+}
+
 /**
- * Listing order that reshuffles on full remount (page refresh / navigation remount),
- * while keeping already-shown items stable when infinite-scroll pages append.
+ * Client-side listing order. With shuffleSeed, default order is deterministic until F5.
+ *
+ * @param {Array} products
+ * @param {string} sortOrder
+ * @param {string|number} [shuffleSeed] - from useProductsInfinite session memory
  */
-export function useListingProducts(products, sortOrder = 'default') {
-  const orderRef = useRef([]);
+export function useListingProducts(products, sortOrder = 'default', shuffleSeed = '') {
+  const seedRef = useRef(shuffleSeed);
+  if (shuffleSeed) seedRef.current = shuffleSeed;
 
   return useMemo(() => {
     const list = products || [];
 
     if (sortOrder !== 'default') {
-      orderRef.current = [];
       return sortProducts(list, sortOrder);
     }
 
-    const byId = new Map(list.map((p) => [String(p.id), p]));
-    const idSet = new Set(byId.keys());
-
-    let ordered = orderRef.current.filter((id) => idSet.has(id));
-    const overlap = ordered.length;
-    // Filter/search swap: almost nothing overlaps → reshuffle from scratch
-    if (idSet.size > 0 && overlap / idSet.size < 0.2) {
-      ordered = [];
+    const seed = seedRef.current || shuffleSeed;
+    if (!seed) {
+      return shuffleProducts(list);
     }
 
-    const known = new Set(ordered);
-    const newcomers = [...idSet].filter((id) => !known.has(id));
-    if (newcomers.length) {
-      ordered = [...ordered, ...shuffleProducts(newcomers)];
-    }
-
-    orderRef.current = ordered;
-    return ordered.map((id) => byId.get(id)).filter(Boolean);
-  }, [products, sortOrder]);
+    // Rank by seed+id so infinite-scroll appends keep relative order of prior items.
+    return [...list].sort((a, b) => {
+      const ra = seededRank(String(a.id), seed);
+      const rb = seededRank(String(b.id), seed);
+      if (ra !== rb) return ra - rb;
+      return String(a.id).localeCompare(String(b.id));
+    });
+  }, [products, sortOrder, shuffleSeed]);
 }

@@ -28,8 +28,9 @@ import * as api from '../services/api';
 import { useProductsInfinite, useCategories } from '../hooks/useProducts';
 import { useUrlSearchDraft } from '../hooks/useUrlSearchDraft';
 import { useQuickAddFeedback } from '../hooks/useQuickAddFeedback';
-import { mapStorefrontProduct } from '../utils/mapStorefrontProduct';
 import { useListingProducts } from '../hooks/useListingProducts';
+import { useListingScrollMemory } from '../hooks/useListingScrollMemory';
+import { mapStorefrontProduct } from '../utils/mapStorefrontProduct';
 
 const CategoryPage = () => {
   const { slug } = useParams();
@@ -56,7 +57,7 @@ const CategoryPage = () => {
 
   const { data: allCategories = [] } = useCategories();
 
-  const categoryName = categoryData?.name || slug;
+  const categoryName = categoryData?.name || '';
   const subcategories = (categoryData?.children || []).filter((c) => c.isActive !== false);
   const parentRef = categoryData?.parent || null;
   const isChildPage = Boolean(categoryData?.parentId || parentRef);
@@ -88,6 +89,11 @@ const CategoryPage = () => {
 
   const activeFilterCount = (offersOnly ? 1 : 0) + (condition ? 1 : 0);
 
+  const memoryKey = useMemo(
+    () => `category:${slug}|q:${committedSearch}|o:${offersOnly ? 1 : 0}|c:${condition}|sort:${sortOrder}`,
+    [slug, committedSearch, offersOnly, condition, sortOrder],
+  );
+
   const {
     data: products,
     isLoading: productsLoading,
@@ -96,18 +102,30 @@ const CategoryPage = () => {
     isReachingEnd,
     size,
     setSize,
+    listingKey,
+    shuffleSeed,
+    rememberedSize,
     error: productsError
   } = useProductsInfinite({
     categoryName,
     search: committedSearch,
     specialOffers: offersOnly,
     condition,
+    enabled: Boolean(categoryName),
+    memoryKey,
   });
 
   const activeProducts = productsError ? [] : (products || []);
-  const showSkeleton = productsLoading && activeProducts.length === 0;
+  const showSkeleton = (categoryLoading || productsLoading) && activeProducts.length === 0;
 
-  const filteredProducts = useListingProducts(activeProducts, sortOrder);
+  const filteredProducts = useListingProducts(activeProducts, sortOrder, shuffleSeed);
+
+  const pagesReady = size >= rememberedSize && !isLoadingMore && filteredProducts.length > 0;
+  useListingScrollMemory({
+    listingKey,
+    ready: filteredProducts.length > 0,
+    pagesReady,
+  });
 
   const mappedGridProducts = useMemo(
     () => filteredProducts.map((p) => ({ ...mapStorefrontProduct(p), isFavorite: isFavorite(p.id) })),
