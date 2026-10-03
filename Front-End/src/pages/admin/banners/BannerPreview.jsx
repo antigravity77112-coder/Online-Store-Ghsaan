@@ -87,7 +87,8 @@ export default function BannerPreview({
   }
 
   const ratioClass = compact ? 'aspect-[16/5]' : (PLACEMENT_RATIOS[resolvedPlacement] || 'aspect-[4/1]');
-  const alignClass = ALIGN_CLASSES[textAlign] || ALIGN_CLASSES.right;
+  const forceRtl = resolvedPlacement === 'product' || resolvedPlacement === 'sidebar';
+  const alignClass = ALIGN_CLASSES[forceRtl ? 'right' : textAlign] || ALIGN_CLASSES.right;
   const overlayAlpha = Math.round((overlayOpacity / 100) * 255).toString(16).padStart(2, '0');
   const displayImageRaw = isMobile && mobileImageUrl ? mobileImageUrl : imageUrl;
   const displayImageSources = getBannerResponsiveSources(displayImageRaw, {
@@ -101,6 +102,7 @@ export default function BannerPreview({
 
   return (
     <div
+      dir={forceRtl ? 'rtl' : undefined}
       className={`relative w-full ${ratioClass} ${rounded ? 'rounded-2xl' : ''} overflow-hidden flex flex-col justify-end select-none`}
       style={{ background: resolvedBg }}
     >

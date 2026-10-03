@@ -215,9 +215,12 @@ export default function BannerRenderer({ placement, className: classNameProp, ov
       api.trackBannerEvent(banner.id, 'click').catch(() => {});
     };
 
+    const singleRtl = placement === 'product' || placement === 'sidebar';
+
     return (
       <motion.div
         className={className}
+        dir={singleRtl ? 'rtl' : undefined}
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}

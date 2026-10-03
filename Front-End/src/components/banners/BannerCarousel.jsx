@@ -16,9 +16,11 @@ export default function BannerCarousel({
   showDots = true,
   rounded = true,
 }) {
+  const isRtlPlacement = placement === 'product' || placement === 'sidebar';
   const { index, goTo, hasMultiple, swipeHandlers } = useBannerCarousel({
     itemCount: banners.length,
     autoPlayMs,
+    rtl: isRtlPlacement,
   });
 
   const banner = banners[index];
@@ -38,6 +40,10 @@ export default function BannerCarousel({
 
   if (!banner) return null;
 
+  const slidePx = isMobile ? 24 : 40;
+  // RTL: enter from the inline-start side (right)
+  const enterX = isRtlPlacement ? slidePx : -slidePx;
+  const exitX = isRtlPlacement ? -slidePx : slidePx;
   const wrapClass = `${className} relative touch-pan-y select-none`.trim();
 
   const content = (
@@ -45,9 +51,9 @@ export default function BannerCarousel({
       <motion.div
         key={banner.id}
         className="gisaah-motion-carousel"
-        initial={{ opacity: 0, x: isMobile ? 24 : 40 }}
+        initial={{ opacity: 0, x: enterX }}
         animate={{ opacity: 1, x: 0 }}
-        exit={{ opacity: 0, x: isMobile ? -24 : -40 }}
+        exit={{ opacity: 0, x: exitX }}
         transition={{ duration: 0.4, ease: 'easeInOut' }}
       >
         <BannerPreview banner={banner} placement={placement} isMobile={isMobile} rounded={rounded} />
@@ -56,7 +62,12 @@ export default function BannerCarousel({
   );
 
   return (
-    <div className={wrapClass} aria-roledescription="carousel" {...swipeHandlers}>
+    <div
+      className={wrapClass}
+      dir={isRtlPlacement ? 'rtl' : undefined}
+      aria-roledescription="carousel"
+      {...swipeHandlers}
+    >
       {banner.ctaUrl ? (
         <a
           href={banner.ctaUrl}
@@ -73,18 +84,28 @@ export default function BannerCarousel({
       )}
 
       {hasMultiple && showDots && (
-        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1.5 px-2 py-1 rounded-full bg-black/30 backdrop-blur-sm">
+        <div
+          className="mt-1.5 flex items-center justify-center gap-0.5"
+          role="tablist"
+          aria-label="تنقل البانرات"
+        >
           {banners.map((b, i) => (
             <button
               key={b.id}
               type="button"
+              role="tab"
               aria-label={`البانر ${i + 1}`}
+              aria-selected={i === index}
               aria-current={i === index ? 'true' : undefined}
               onClick={() => goTo(i)}
-              className="min-w-[44px] min-h-[44px] flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60 rounded-full"
+              className="p-1 flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-400/70 rounded-full"
             >
               <span
-                className={`rounded-full transition-all ${i === index ? 'w-4 h-1 bg-gold-400' : 'w-1 h-1 bg-white/60'}`}
+                className={`block rounded-full transition-all ${
+                  i === index
+                    ? 'w-2.5 h-0.5 bg-gold-500'
+                    : 'w-1 h-0.5 bg-stone-300 dark:bg-stone-600'
+                }`}
                 aria-hidden="true"
               />
             </button>

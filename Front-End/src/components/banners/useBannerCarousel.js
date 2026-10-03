@@ -6,7 +6,7 @@ const SWIPE_THRESHOLD = 50;
  * Auto-rotating carousel with touch swipe + mouse drag navigation.
  * Resets the autoplay timer after manual navigation.
  */
-export function useBannerCarousel({ itemCount = 0, autoPlayMs = 5500, autoPlay = true }) {
+export function useBannerCarousel({ itemCount = 0, autoPlayMs = 5500, autoPlay = true, rtl = false }) {
   const [index, setIndex] = useState(0);
   const pointerStart = useRef(null);
   const [autoplayEpoch, setAutoplayEpoch] = useState(0);
@@ -66,11 +66,13 @@ export function useBannerCarousel({ itemCount = 0, autoPlayMs = 5500, autoPlay =
       const dx = endX - startX;
       const dy = endY - startY;
       if (Math.abs(dx) < SWIPE_THRESHOLD || Math.abs(dx) < Math.abs(dy)) return false;
-      if (dx < 0) goNext();
+      // In RTL, swipe toward the start edge (right→left visually is positive dx) advances.
+      const forward = rtl ? dx > 0 : dx < 0;
+      if (forward) goNext();
       else goPrev();
       return true;
     },
-    [hasMultiple, goNext, goPrev]
+    [hasMultiple, goNext, goPrev, rtl]
   );
 
   const swipeHandlers = {
