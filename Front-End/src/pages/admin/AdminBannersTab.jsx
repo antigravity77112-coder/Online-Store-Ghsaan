@@ -43,9 +43,12 @@ const STATUSES = [
   { value: 'archived',  label: 'مؤرشف',   color: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300' },
 ];
 
+const DEFAULT_BG = '#FFFFFF';
+const DEFAULT_TEXT = '#111827';
+
 const EMPTY_FORM = {
   title: '', subtitle: '', description: '', ctaText: '', ctaUrl: '',
-  imageUrl: '', mobileImageUrl: '', bgColor: '#C9A227', textColor: '#ffffff',
+  imageUrl: '', mobileImageUrl: '', bgColor: DEFAULT_BG, textColor: DEFAULT_TEXT,
   scrollSpeed: 40,
   textAlign: 'right', overlayOpacity: 30,
   placement: 'promo_home', status: 'active',
@@ -154,9 +157,9 @@ function EditorPanel({ banner, allBanners = [], visible, onSoftClose, onHardClos
   const [form, setForm] = useState(isEdit ? {
     ...EMPTY_FORM,
     ...banner,
-    textColor: banner.textColor || '#ffffff',
+    textColor: banner.textColor || DEFAULT_TEXT,
     scrollSpeed: banner.scrollSpeed ?? 40,
-    bgColor: banner.bgColor || (banner.placement === 'announcement' ? '#C9A227' : '#1A0A0A'),
+    bgColor: banner.bgColor || DEFAULT_BG,
     peekProductIds: Array.isArray(banner.peekProductIds) ? banner.peekProductIds : [],
     scheduledAt: banner.scheduledAt ? banner.scheduledAt.slice(0, 16) : '',
     expiresAt:   banner.expiresAt   ? banner.expiresAt.slice(0, 16)   : '',
@@ -223,7 +226,8 @@ function EditorPanel({ banner, allBanners = [], visible, onSoftClose, onHardClos
         overlayOpacity: Number(form.overlayOpacity),
         priority:       Number(form.priority),
         scrollSpeed:    Math.min(120, Math.max(8, Number(form.scrollSpeed) || 40)),
-        textColor:      form.textColor || null,
+        bgColor:        form.bgColor || DEFAULT_BG,
+        textColor:      form.textColor || DEFAULT_TEXT,
         peekProductIds: Array.isArray(form.peekProductIds)
           ? form.peekProductIds.filter(Boolean).slice(0, 2)
           : [],
@@ -326,15 +330,15 @@ function EditorPanel({ banner, allBanners = [], visible, onSoftClose, onHardClos
           <div className={`grid gap-4 ${form.placement === 'announcement' ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-2'}`}>
             <Field label="لون الخلفية">
               <div className="flex items-center gap-3">
-                <input type="color" value={form.bgColor || '#C9A227'} onChange={e => set('bgColor', e.target.value)} className="w-10 h-10 rounded-lg border border-slate-200 dark:border-slate-700 cursor-pointer" />
-                <input className={inputCls} dir="ltr" value={form.bgColor} onChange={e => set('bgColor', e.target.value)} placeholder="#C9A227" />
+                <input type="color" value={form.bgColor || DEFAULT_BG} onChange={e => set('bgColor', e.target.value)} className="w-10 h-10 rounded-lg border border-slate-200 dark:border-slate-700 cursor-pointer" />
+                <input className={inputCls} dir="ltr" value={form.bgColor} onChange={e => set('bgColor', e.target.value)} placeholder={DEFAULT_BG} />
               </div>
             </Field>
             {form.placement === 'announcement' ? (
               <Field label="لون النص">
                 <div className="flex items-center gap-3">
-                  <input type="color" value={form.textColor || '#ffffff'} onChange={e => set('textColor', e.target.value)} className="w-10 h-10 rounded-lg border border-slate-200 dark:border-slate-700 cursor-pointer" />
-                  <input className={inputCls} dir="ltr" value={form.textColor || ''} onChange={e => set('textColor', e.target.value)} placeholder="#ffffff" />
+                  <input type="color" value={form.textColor || DEFAULT_TEXT} onChange={e => set('textColor', e.target.value)} className="w-10 h-10 rounded-lg border border-slate-200 dark:border-slate-700 cursor-pointer" />
+                  <input className={inputCls} dir="ltr" value={form.textColor || ''} onChange={e => set('textColor', e.target.value)} placeholder={DEFAULT_TEXT} />
                 </div>
               </Field>
             ) : (
@@ -585,7 +589,7 @@ function AdminBannersTab({ showSuccess, setError }) {
                       <div className="flex-shrink-0 w-full sm:w-32 h-20 rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800">
                         {b.imageUrl
                           ? <img src={b.imageUrl} className="w-full h-full object-cover" alt={b.title} />
-                          : <div className="w-full h-full flex items-center justify-center" style={{ background: b.bgColor || '#1A0A0A' }}>
+                          : <div className="w-full h-full flex items-center justify-center" style={{ background: b.bgColor || DEFAULT_BG }}>
                               <ImageIcon className="w-6 h-6 text-white/40" />
                             </div>
                         }

@@ -10,7 +10,7 @@ function bannerLabel(banner) {
 function resolveBg(banner) {
   const c = banner?.bgColor;
   if (c && c !== 'transparent') return c;
-  return '#C9A227';
+  return '#FFFFFF'; // matches admin “new banner” default
 }
 
 function resolveSpeed(banner) {
@@ -41,7 +41,7 @@ export default function AnnouncementBar({ banners, overlay = false }) {
   const active = ordered[safeIndex] || null;
   const label = active ? bannerLabel(active) : '';
   const bgColor = resolveBg(active);
-  const textColor = active?.textColor || '#ffffff';
+  const textColor = active?.textColor || '#111827';
   const scrollSpeed = resolveSpeed(active);
 
   useEffect(() => {

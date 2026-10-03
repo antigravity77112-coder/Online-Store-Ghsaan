@@ -41,8 +41,8 @@ export default function BannerPreview({
     description = '',
     imageUrl = '',
     mobileImageUrl = '',
-    bgColor = '#1A0A0A',
-    textColor = '#ffffff',
+    bgColor = '',
+    textColor = '',
     scrollSpeed = 40,
     textAlign = 'right',
     overlayOpacity = 30,
@@ -52,6 +52,8 @@ export default function BannerPreview({
 
   const resolvedPlacement = placementProp || placement;
   const isAnnouncement = resolvedPlacement === 'announcement';
+  const resolvedBg = bgColor || (isAnnouncement ? '#FFFFFF' : '#1A0A0A');
+  const resolvedText = textColor || (isAnnouncement ? '#111827' : '#ffffff');
 
   if (isAnnouncement) {
     const label = [title, subtitle, description].filter(Boolean).join(' — ') || 'نص الشريط المتحرك...';
@@ -59,7 +61,7 @@ export default function BannerPreview({
     return (
       <div
         className={`relative w-full overflow-hidden ${rounded ? 'rounded-xl' : ''} ${compact ? '' : 'min-h-[44px]'}`}
-        style={{ backgroundColor: bgColor || '#C9A227' }}
+        style={{ backgroundColor: resolvedBg }}
       >
         <div className="offer-belt-viewport overflow-hidden" dir="ltr">
           <div
@@ -70,7 +72,7 @@ export default function BannerPreview({
               <span
                 key={copy}
                 className="inline-flex items-center gap-2 text-xs font-bold"
-                style={{ color: textColor || '#ffffff' }}
+                style={{ color: resolvedText }}
               >
                 <Megaphone className="w-3.5 h-3.5 opacity-90" aria-hidden="true" />
                 <span>{label}</span>
@@ -93,12 +95,16 @@ export default function BannerPreview({
     isMobile,
   });
 
+  const hasImage = Boolean(displayImageSources.src);
+  // Image banners keep light text over the photo; color banners use the chosen text color.
+  const copyColor = hasImage ? '#ffffff' : resolvedText;
+
   return (
     <div
       className={`relative w-full ${ratioClass} ${rounded ? 'rounded-2xl' : ''} overflow-hidden flex flex-col justify-end select-none`}
-      style={{ background: bgColor || '#1A0A0A' }}
+      style={{ background: resolvedBg }}
     >
-      {displayImageSources.src && (
+      {hasImage && (
         <img
           src={displayImageSources.src}
           srcSet={displayImageSources.srcSet}
@@ -111,7 +117,7 @@ export default function BannerPreview({
         />
       )}
 
-      {overlayOpacity > 0 && displayImageSources.src && (
+      {overlayOpacity > 0 && hasImage && (
         <div
           className="absolute inset-0"
           style={{ backgroundColor: `#000000${overlayAlpha}` }}
@@ -121,17 +127,26 @@ export default function BannerPreview({
       {(title || subtitle || description || ctaText) && (
         <div className={`relative z-10 p-3 sm:p-4 flex flex-col gap-0.5 ${alignClass}`}>
           {title && (
-            <h2 className="text-white font-extrabold text-xs sm:text-sm lg:text-base leading-tight drop-shadow-lg">
+            <h2
+              className="font-extrabold text-xs sm:text-sm lg:text-base leading-tight drop-shadow-lg"
+              style={{ color: copyColor }}
+            >
               {title}
             </h2>
           )}
           {subtitle && (
-            <p className="text-white/85 font-semibold text-[10px] sm:text-xs leading-snug drop-shadow">
+            <p
+              className="font-semibold text-[10px] sm:text-xs leading-snug drop-shadow"
+              style={{ color: copyColor, opacity: 0.9 }}
+            >
               {subtitle}
             </p>
           )}
           {description && (
-            <p className="text-white/70 text-[10px] sm:text-xs leading-relaxed mt-0.5 line-clamp-2">
+            <p
+              className="text-[10px] sm:text-xs leading-relaxed mt-0.5 line-clamp-2"
+              style={{ color: copyColor, opacity: 0.75 }}
+            >
               {description}
             </p>
           )}
