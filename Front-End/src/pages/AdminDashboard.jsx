@@ -506,9 +506,18 @@ const AdminDashboard = () => {
     setStoreInfoSaving(true);
     try {
       const {
-        public: _pub, updatedAt, id, ...payload
+        public: _pub,
+        publicMobile: _pubMobile,
+        updatedAt,
+        createdAt,
+        id,
+        ...payload
       } = siteConfig;
-      await api.updateSiteConfig(payload);
+      const saved = await api.updateSiteConfig(payload);
+      // Prefer server row so media URLs (esp. ogImageUrl) match the database.
+      if (saved && typeof saved === 'object') {
+        setSiteConfig(saved);
+      }
       mutateAdminConfig();
       const freshConfig = await api.getSiteConfig();
       mutate('siteConfig', freshConfig, { revalidate: false });

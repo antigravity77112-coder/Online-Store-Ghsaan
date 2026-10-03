@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import useSWR from 'swr';
 import * as api from '../services/api';
-import { createSeededRandom, shuffleProducts } from '../utils/productListingSort';
+import { rankProductsBySeed } from '../utils/productListingSort';
 import { ensureShuffleSeed } from '../utils/listingSessionMemory';
 
 const SECTION_COUNT = 8;
@@ -130,9 +130,10 @@ export function useHomeProducts(categories = []) {
   const sessionSeed = ensureShuffleSeed(HOME_SECTIONS_SEED_KEY);
   const catalogIdKey = catalog.map((p) => p.id).join('|');
 
+  // Id-rank order (not Fisher–Yates on API order) — stable across Back / SWR revalidate.
   const shuffledCatalog = useMemo(() => {
     if (!catalog.length) return [];
-    return shuffleProducts(catalog, createSeededRandom(sessionSeed));
+    return rankProductsBySeed(catalog, sessionSeed);
   }, [catalog, catalogIdKey, sessionSeed]);
 
   const error = offersError || catalogError || trendingError;
@@ -144,40 +145,42 @@ export function useHomeProducts(categories = []) {
     trending,
     categorySections,
   } = useMemo(() => {
-    const random = createSeededRandom(sessionSeed);
-    const shuffleOnce = (list) => shuffleProducts(list, random);
+    const rank = (list) => rankProductsBySeed(list, sessionSeed);
     const usedIds = new Set();
 
     const onOffer = (offersProducts || []).length
       ? offersProducts
       : catalog.filter((p) => p.isPromoted || p.discountPrice);
 
-    const offers = shuffleOnce(takeUniqueProducts(onOffer, SECTION_COUNT, usedIds));
+    const offers = takeUniqueProducts(rank(onOffer), SECTION_COUNT, usedIds);
 
-    const trendingList = shuffleOnce(takeUniqueProducts(
-      (trendingProducts || []).length
-        ? trendingProducts
-        : catalog.filter((p) => p.isTrending),
+    const trendingList = takeUniqueProducts(
+      rank(
+        (trendingProducts || []).length
+          ? trendingProducts
+          : catalog.filter((p) => p.isTrending),
+      ),
       SECTION_COUNT,
       usedIds,
-    ));
+    );
 
     const sortedNew = [...catalog].sort(
       (a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime(),
     );
-    const arrivals = shuffleOnce(takeUniqueProducts(sortedNew, SECTION_COUNT, usedIds));
+    // Keep newest-first window, then stable rank within that window.
+    const arrivals = takeUniqueProducts(rank(sortedNew.slice(0, SECTION_COUNT * 3)), SECTION_COUNT, usedIds);
 
     const featuredCandidates = partitionFeaturedProducts(
       shuffledCatalog.filter((p) => !usedIds.has(String(p.id))),
       SECTION_COUNT * 2,
     );
-    const featured = shuffleOnce(takeUniqueProducts(featuredCandidates, SECTION_COUNT, usedIds));
+    const featured = takeUniqueProducts(rank(featuredCandidates), SECTION_COUNT, usedIds);
 
     const rawCategorySections = buildCategorySectionsFromCatalog(shuffledCatalog, categories);
     const catSections = rawCategorySections
       .map((section) => ({
         ...section,
-        products: shuffleOnce(takeUniqueProducts(section.products, CATEGORY_CAROUSEL_COUNT, usedIds)),
+        products: takeUniqueProducts(rank(section.products), CATEGORY_CAROUSEL_COUNT, usedIds),
       }))
       .filter((s) => s.products.length >= MIN_PRODUCTS_PER_SECTION);
 

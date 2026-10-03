@@ -88,6 +88,16 @@ function Field({ label, children }) {
   );
 }
 
+function resolveAssetPreviewUrl(config, field) {
+  const direct = config?.[field];
+  if (typeof direct === 'string' && direct.trim()) return direct.trim();
+  const fromMedia = config?.public?.media?.[field];
+  if (typeof fromMedia === 'string' && fromMedia.trim()) return fromMedia.trim();
+  const fromSeo = config?.public?.seo?.[field];
+  if (typeof fromSeo === 'string' && fromSeo.trim()) return fromSeo.trim();
+  return '';
+}
+
 function AssetUpload({ field, label, sizeHint, url, onUploaded, uploading, setUploading }) {
   const inputRef = useRef(null);
   const handleFile = async (e) => {
@@ -96,7 +106,7 @@ function AssetUpload({ field, label, sizeHint, url, onUploaded, uploading, setUp
     setUploading(field);
     try {
       const res = await api.uploadConfigAsset(file, field);
-      onUploaded(field, res.url);
+      onUploaded(field, res.url, res.config);
     } catch (err) {
       alert(err.message);
     } finally {
@@ -104,10 +114,17 @@ function AssetUpload({ field, label, sizeHint, url, onUploaded, uploading, setUp
       e.target.value = '';
     }
   };
+  const previewSrc = url && !url.startsWith('http') && typeof window !== 'undefined'
+    ? `${window.location.origin}${url.startsWith('/') ? url : `/${url}`}`
+    : url;
   return (
     <div className="flex items-center gap-3 p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/30 relative overflow-hidden">
       <div className="w-14 h-14 overflow-hidden bg-transparent flex items-center justify-center flex-shrink-0 relative">
-        {url ? <img src={url} alt="" className="w-full h-full object-contain" /> : <Image className="w-6 h-6 text-slate-300" />}
+        {previewSrc ? (
+          <img src={previewSrc} alt="" className="w-full h-full object-contain" referrerPolicy="no-referrer" />
+        ) : (
+          <Image className="w-6 h-6 text-slate-300" />
+        )}
         <AdminUploadProgress active={uploading === field} />
       </div>
       <div className="flex-1 min-w-0">
@@ -173,8 +190,14 @@ const AdminCustomizationTab = ({ config, setConfig, onSave, saving }) => {
     setConfig((prev) => ({ ...prev, themeConfig: { ...DEFAULT_SITE_CONFIG.theme } }));
   };
 
-  const onAssetUploaded = (field, url) => {
-    setConfig((prev) => ({ ...prev, [field]: url }));
+  const onAssetUploaded = (field, url, fullConfig) => {
+    setConfig((prev) => {
+      if (fullConfig && typeof fullConfig === 'object') {
+        const { public: _p, publicMobile: _pm, ...rest } = fullConfig;
+        return { ...prev, ...rest, [field]: url || rest[field] || prev[field] };
+      }
+      return { ...prev, [field]: url };
+    });
   };
 
   const theme = config.themeConfig || DEFAULT_SITE_CONFIG.theme;
@@ -214,7 +237,16 @@ const AdminCustomizationTab = ({ config, setConfig, onSave, saving }) => {
           </p>
           <div className="space-y-3">
             {WEB_ASSET_FIELDS.map((a) => (
-              <AssetUpload key={a.key} field={a.key} label={a.label} sizeHint={a.sizeHint} url={config[a.key]} onUploaded={onAssetUploaded} uploading={uploading} setUploading={setUploading} />
+              <AssetUpload
+                key={a.key}
+                field={a.key}
+                label={a.label}
+                sizeHint={a.sizeHint}
+                url={resolveAssetPreviewUrl(config, a.key)}
+                onUploaded={onAssetUploaded}
+                uploading={uploading}
+                setUploading={setUploading}
+              />
             ))}
           </div>
         </AdminCard>

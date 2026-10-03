@@ -38,10 +38,10 @@ class SiteConfigController {
     const isLogoField = [
       'logoUrl', 'logoDarkUrl', 'logoMobileUrl', 'logoMobileDarkUrl', 'faviconUrl',
     ].includes(field);
+    // Logos/favicons keep alpha; OG share images stay as uploaded (readable from DB URL).
     const url = await uploadBuffer(req.file.buffer, {
       folder: 'site-assets',
-      // Logos/favicons must keep alpha; forcing jpg painted transparent areas white.
-      preserveFormat: isLogoField,
+      preserveFormat: isLogoField || field === 'ogImageUrl',
     });
     const config = await siteConfigService.updateConfig({ [field]: url });
     res.json({ url, field, config });

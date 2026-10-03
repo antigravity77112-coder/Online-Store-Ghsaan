@@ -2,13 +2,42 @@
  * Shared client-side product sort for listing pages.
  */
 
-/** Deterministic PRNG from a float seed in [0, 1). */
+/** FNV-1a hash — works for UUID/string seeds (Number(uuid) is NaN). */
+export function hashSeed(seed) {
+  const str = seed == null ? '' : String(seed);
+  if (!str) return (Math.random() * 0xffffffff) >>> 0 || 1;
+  let h = 2166136261;
+  for (let i = 0; i < str.length; i += 1) {
+    h ^= str.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return (h >>> 0) || 1;
+}
+
+/** Stable rank from product id + session shuffle seed. */
+export function seededRank(id, seed) {
+  return hashSeed(`${seed}:${id}`);
+}
+
+/** Deterministic PRNG from any seed (string UUID, number, or float). */
 export function createSeededRandom(seed) {
-  let s = Math.floor((Number(seed) || Math.random()) * 1e9) || 1;
+  let s = hashSeed(seed);
   return () => {
     s = (Math.imul(s, 1664525) + 1013904223) >>> 0;
     return s / 4294967296;
   };
+}
+
+/** Sort products by seed+id so order survives remount / API reorder / Back. */
+export function rankProductsBySeed(products, seed) {
+  const list = products || [];
+  if (!seed) return [...list];
+  return [...list].sort((a, b) => {
+    const ra = seededRank(String(a.id), seed);
+    const rb = seededRank(String(b.id), seed);
+    if (ra !== rb) return ra - rb;
+    return String(a.id).localeCompare(String(b.id));
+  });
 }
 
 /** Fisher–Yates shuffle (new array). Optional random() for seeded shuffles. */

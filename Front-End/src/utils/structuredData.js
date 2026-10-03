@@ -124,7 +124,9 @@ export function buildOrganizationSchema(siteConfig = {}) {
 
   const logoUrl = media.logoUrl || '/Logo_192.png';
   const ogImageRaw = media.ogImageUrl || seo.ogImageUrl || '/og-share.png';
-  const ogImage = isLegacyStorefrontHost(ogImageRaw) ? '/og-share.png' : ogImageRaw;
+  const ogImage = isLegacyStorefrontHost(ogImageRaw)
+    ? '/og-share.png'
+    : (typeof ogImageRaw === 'string' && ogImageRaw.trim() ? ogImageRaw.trim() : '/og-share.png');
   const abs = (url) => (url?.startsWith('http') ? url : `${BASE_URL}${url.startsWith('/') ? url : `/${url}`}`);
 
   const schema = {

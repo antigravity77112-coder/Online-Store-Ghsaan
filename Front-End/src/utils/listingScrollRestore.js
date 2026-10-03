@@ -1,6 +1,7 @@
 /**
  * Module-level listing scroll restore.
  * Survives React remounts / effect cleanups. No localStorage.
+ * Wait for pagesReady / height, then one instant jump (no crawl).
  */
 
 import {
@@ -12,6 +13,8 @@ import {
 
 const THRESHOLD = 48;
 const MAX_MS = 6000;
+/** After pagesReady, briefly retry if images still growing height. */
+const POST_READY_RETRY_MS = 400;
 
 let activeKey = null;
 /** Frozen Y for the active restore — never re-read from live scroll persist. */
@@ -19,7 +22,8 @@ let frozenTargetY = null;
 let rafId = 0;
 let startedAt = 0;
 let pagesReadyFlag = false;
-const timeouts = [];
+let safetyTimer = 0;
+let postReadyTimer = 0;
 
 function readScrollY() {
   return window.scrollY || document.documentElement.scrollTop || 0;
@@ -42,8 +46,13 @@ function clearTimers() {
     cancelAnimationFrame(rafId);
     rafId = 0;
   }
-  while (timeouts.length) {
-    window.clearTimeout(timeouts.pop());
+  if (safetyTimer) {
+    window.clearTimeout(safetyTimer);
+    safetyTimer = 0;
+  }
+  if (postReadyTimer) {
+    window.clearTimeout(postReadyTimer);
+    postReadyTimer = 0;
   }
 }
 
@@ -63,14 +72,37 @@ export function stopListingScrollRestore() {
   clearTimers();
 }
 
+function finish(listingKey) {
+  stopListingScrollRestore();
+  clearExpectedListingReturn(listingKey);
+}
+
+function jumpToTarget(listingKey, y) {
+  if (rafId) {
+    cancelAnimationFrame(rafId);
+    rafId = 0;
+  }
+  if (safetyTimer) {
+    window.clearTimeout(safetyTimer);
+    safetyTimer = 0;
+  }
+  applyY(y);
+  // One short correction if layout grows right after jump (images).
+  if (postReadyTimer) window.clearTimeout(postReadyTimer);
+  postReadyTimer = window.setTimeout(() => {
+    if (activeKey !== listingKey) return;
+    applyY(y);
+    finish(listingKey);
+  }, POST_READY_RETRY_MS);
+}
+
 function tick() {
   const listingKey = activeKey;
   if (!listingKey) return;
 
   const y = frozenTargetY;
   if (typeof y !== 'number' || y <= 8) {
-    stopListingScrollRestore();
-    clearExpectedListingReturn(listingKey);
+    finish(listingKey);
     return;
   }
 
@@ -78,27 +110,27 @@ function tick() {
   const elapsed = Date.now() - startedAt;
   const tallEnough = maxY >= y - THRESHOLD;
 
-  // Wait until the document can reach the saved place (pages still loading).
+  // Wait — do NOT applyY while short (that caused the slow crawl UX).
   if (!tallEnough && !pagesReadyFlag && elapsed < MAX_MS) {
-    // Do NOT applyY(maxY) here — that fires scroll events and used to corrupt saved Y.
-    // Just wait for layout to grow.
     rafId = requestAnimationFrame(tick);
     return;
   }
 
-  applyY(tallEnough ? y : Math.min(y, maxY));
-
-  const current = readScrollY();
-  const gap = Math.abs(current - (tallEnough ? y : Math.min(y, maxY)));
-
-  if ((tallEnough && gap <= THRESHOLD) || elapsed >= MAX_MS) {
-    if (tallEnough) applyY(y);
-    stopListingScrollRestore();
-    clearExpectedListingReturn(listingKey);
+  // pagesReady but still short: clamp once and stop (best effort).
+  if (!tallEnough && pagesReadyFlag) {
+    applyY(Math.min(y, maxY));
+    finish(listingKey);
     return;
   }
 
-  rafId = requestAnimationFrame(tick);
+  if (tallEnough) {
+    jumpToTarget(listingKey, y);
+    return;
+  }
+
+  // Timed out still short
+  applyY(Math.min(y, maxY));
+  finish(listingKey);
 }
 
 /**
@@ -116,7 +148,12 @@ export function startListingScrollRestore(listingKey, { pagesReady = false } = {
   if (pagesReady) pagesReadyFlag = true;
 
   if (activeKey === listingKey) {
-    if (!rafId) rafId = requestAnimationFrame(tick);
+    if (pagesReadyFlag) {
+      clearTimers();
+      tick();
+    } else if (!rafId) {
+      rafId = requestAnimationFrame(tick);
+    }
     return;
   }
 
@@ -127,13 +164,11 @@ export function startListingScrollRestore(listingKey, { pagesReady = false } = {
   startedAt = Date.now();
 
   tick();
-  [40, 100, 200, 400, 700, 1100, 1600, 2200, 3000, 4000, 5000].forEach((ms) => {
-    timeouts.push(
-      window.setTimeout(() => {
-        if (activeKey === listingKey) tick();
-      }, ms),
-    );
-  });
+
+  // Single safety timeout if pagesReady never arrives.
+  safetyTimer = window.setTimeout(() => {
+    if (activeKey === listingKey) tick();
+  }, MAX_MS);
 }
 
 export function shouldRestoreListing(listingKey, navigationType) {

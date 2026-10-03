@@ -37,9 +37,16 @@ const SEO = ({
   const finalImage = isLegacyStorefrontHost(rawImage)
     ? DEFAULT_SITE_CONFIG.media.ogImageUrl
     : rawImage;
-  const absoluteImage = finalImage.startsWith('http')
-    ? finalImage
-    : storefrontUrl(finalImage);
+  // Absolute URL for crawlers: keep Cloudinary/http as stored in DB; resolve relative paths.
+  const absoluteImage = (() => {
+    if (!finalImage || typeof finalImage !== 'string') {
+      return storefrontUrl(DEFAULT_SITE_CONFIG.media.ogImageUrl);
+    }
+    const trimmed = finalImage.trim();
+    if (trimmed.startsWith('//')) return `https:${trimmed}`;
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) return trimmed;
+    return storefrontUrl(trimmed.startsWith('/') ? trimmed : `/${trimmed}`);
+  })();
   const ogTitle = config.seo?.ogTitle || finalTitle;
   const ogDescription = config.seo?.ogDescription || finalDescription;
 

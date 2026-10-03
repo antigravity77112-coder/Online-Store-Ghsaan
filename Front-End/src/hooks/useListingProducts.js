@@ -1,16 +1,5 @@
 import { useMemo, useRef } from 'react';
-import { shuffleProducts, sortProducts } from '../utils/productListingSort';
-
-/** Stable rank from product id + session shuffle seed (order survives remount / Back). */
-function seededRank(id, seed) {
-  const str = `${seed}:${id}`;
-  let h = 2166136261;
-  for (let i = 0; i < str.length; i += 1) {
-    h ^= str.charCodeAt(i);
-    h = Math.imul(h, 16777619);
-  }
-  return h >>> 0;
-}
+import { rankProductsBySeed, shuffleProducts, sortProducts } from '../utils/productListingSort';
 
 /**
  * Client-side listing order. With shuffleSeed, default order is deterministic until F5.
@@ -36,11 +25,6 @@ export function useListingProducts(products, sortOrder = 'default', shuffleSeed 
     }
 
     // Rank by seed+id so infinite-scroll appends keep relative order of prior items.
-    return [...list].sort((a, b) => {
-      const ra = seededRank(String(a.id), seed);
-      const rb = seededRank(String(b.id), seed);
-      if (ra !== rb) return ra - rb;
-      return String(a.id).localeCompare(String(b.id));
-    });
+    return rankProductsBySeed(list, seed);
   }, [products, sortOrder, shuffleSeed]);
 }
