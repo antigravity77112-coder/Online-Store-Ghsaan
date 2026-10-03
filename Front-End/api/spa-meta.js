@@ -113,8 +113,20 @@ export default async function handler(req, res) {
       // Serve SPA shell even if config is temporarily unavailable.
     }
 
+    // Prefer path from Edge Middleware (?__path=) or header; never use /api/spa-meta as og:url
+    const headerPath = req.headers['x-original-pathname'] || req.headers['x-middleware-request-x-original-pathname'];
+    let queryPath = null;
+    try {
+      const rawUrl = typeof req.url === 'string' ? req.url : '/';
+      const q = new URL(rawUrl, SITE_ORIGIN).searchParams.get('__path');
+      if (q) queryPath = q;
+    } catch {
+      // ignore
+    }
     const pathOnly = typeof req.url === 'string' ? req.url.split('?')[0] : '/';
-    const pagePath = !pathOnly || pathOnly === '/api/spa-meta' ? '/' : pathOnly;
+    let pagePath = headerPath || queryPath || pathOnly || '/';
+    if (!pagePath || pagePath === '/api/spa-meta') pagePath = '/';
+    if (!pagePath.startsWith('/')) pagePath = `/${pagePath}`;
     const requestUrl = `${SITE_ORIGIN.replace(/\/$/, '')}${pagePath}`;
 
     html = replaceMetaContent(html, 'property', 'og:title', ogTitle);
