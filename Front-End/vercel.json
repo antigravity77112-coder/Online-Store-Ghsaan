@@ -72,6 +72,10 @@
   ],
   "rewrites": [
     {
+      "source": "/api/spa-meta",
+      "destination": "/api/spa-meta"
+    },
+    {
       "source": "/api/:path*",
       "destination": "https://online-store-ghsaan-66wk.vercel.app/api/:path*"
     },
@@ -113,7 +117,7 @@
     },
     {
       "source": "/((?!.*\\.[a-zA-Z0-9]+$).*)",
-      "destination": "/index.html"
+      "destination": "/api/spa-meta"
     }
   ]
 }
