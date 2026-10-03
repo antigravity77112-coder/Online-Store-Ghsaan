@@ -74,7 +74,8 @@ const AuthPage = () => {
   const { isDark } = useTheme();
   const navigate = useNavigate();
   const { config } = useSiteConfig();
-  const logo = resolveMediaUrl(resolveSiteLogo(config.media, { dark: isDark })) || '/Logo_192.png';
+  const logo = resolveMediaUrl(resolveSiteLogo(config.media, { dark: isDark }))
+    || resolveMediaUrl('/Logo_light_192.png');
   const brandName = config.brand?.siteShortName || 'Smart Shopper';
   const tagline = config.brand?.tagline || 'تجربة تسوق فاخرة';
 

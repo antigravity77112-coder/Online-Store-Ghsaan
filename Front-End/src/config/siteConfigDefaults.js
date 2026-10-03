@@ -211,20 +211,47 @@ export function resolveAbsoluteMediaUrl(url) {
   return url;
 }
 
-/** Pick light or dark logo for the website (logoUrl / logoDarkUrl only). */
-export function resolveSiteLogo(media, { dark = false } = {}) {
-  const m = { ...DEFAULT_SITE_CONFIG.media, ...media };
-  if (dark && m.logoDarkUrl) return m.logoDarkUrl;
-  return m.logoUrl || DEFAULT_SITE_CONFIG.media.logoUrl;
+function pickMediaUrl(value, fallback) {
+  if (typeof value === 'string' && value.trim()) return value.trim();
+  return fallback || null;
 }
 
-/** Mobile logo — prefers app assets, falls back to website logos. */
-export function resolveMobileLogo(media, { dark = false } = {}) {
-  const m = { ...DEFAULT_SITE_CONFIG.media, ...media };
+function guessImageMime(url) {
+  const lower = String(url || '').toLowerCase();
+  if (lower.includes('.svg')) return 'image/svg+xml';
+  if (lower.includes('.webp')) return 'image/webp';
+  if (lower.includes('.jpg') || lower.includes('.jpeg')) return 'image/jpeg';
+  if (lower.includes('.ico')) return 'image/x-icon';
+  return 'image/png';
+}
+
+/** Pick light or dark logo for the website (logoUrl / logoDarkUrl only). Prefer DB over local defaults. */
+export function resolveSiteLogo(media, { dark = false } = {}) {
+  const m = media || {};
   if (dark) {
-    return m.logoMobileDarkUrl || m.logoDarkUrl || DEFAULT_SITE_CONFIG.media.logoDarkUrl;
+    return pickMediaUrl(m.logoDarkUrl, null)
+      || pickMediaUrl(m.logoUrl, null)
+      || DEFAULT_SITE_CONFIG.media.logoDarkUrl
+      || DEFAULT_SITE_CONFIG.media.logoUrl;
   }
-  return m.logoMobileUrl || m.logoUrl || DEFAULT_SITE_CONFIG.media.logoUrl;
+  return pickMediaUrl(m.logoUrl, null)
+    || pickMediaUrl(m.logoDarkUrl, null)
+    || DEFAULT_SITE_CONFIG.media.logoUrl;
+}
+
+/** Mobile logo — prefers app assets, falls back to website logos / local defaults. */
+export function resolveMobileLogo(media, { dark = false } = {}) {
+  const m = media || {};
+  if (dark) {
+    return pickMediaUrl(m.logoMobileDarkUrl, null)
+      || pickMediaUrl(m.logoDarkUrl, null)
+      || pickMediaUrl(m.logoMobileUrl, null)
+      || pickMediaUrl(m.logoUrl, null)
+      || DEFAULT_SITE_CONFIG.media.logoDarkUrl;
+  }
+  return pickMediaUrl(m.logoMobileUrl, null)
+    || pickMediaUrl(m.logoUrl, null)
+    || DEFAULT_SITE_CONFIG.media.logoUrl;
 }
 
 let manifestObjectUrl = null;
@@ -254,23 +281,27 @@ function upsertMeta(name, content) {
   meta.content = content;
 }
 
-/** Sync favicon, apple-touch-icon, theme-color, and PWA manifest from site config */
+/** Sync favicon, apple-touch-icon, theme-color, and PWA manifest from site config (DB first). */
 export function applySiteMediaToDocument(config) {
   if (typeof document === 'undefined') return;
 
-  const media = config?.media || DEFAULT_SITE_CONFIG.media;
+  const media = config?.media || {};
   const brand = config?.brand || DEFAULT_SITE_CONFIG.brand;
   const theme = config?.theme || DEFAULT_SITE_CONFIG.theme;
 
-  const favicon = media.faviconUrl || DEFAULT_SITE_CONFIG.media.faviconUrl;
+  const favicon = pickMediaUrl(media.faviconUrl, DEFAULT_SITE_CONFIG.media.faviconUrl);
+  const logoLight = pickMediaUrl(media.logoUrl, DEFAULT_SITE_CONFIG.media.logoUrl);
   const appleIcon = favicon;
   const icon192 = resolveAbsoluteMediaUrl(favicon);
-  const icon512 = resolveAbsoluteMediaUrl(media.logoUrl || favicon);
+  const icon512 = resolveAbsoluteMediaUrl(logoLight || favicon);
+  const iconType = guessImageMime(icon192);
 
   if (icon192) {
-    upsertLink('icon', icon192, { type: 'image/png' });
-    upsertLink('shortcut icon', icon192, { type: 'image/png' });
-    upsertLink('apple-touch-icon', resolveAbsoluteMediaUrl(appleIcon) || icon192);
+    // Bust browser favicon cache when Admin uploads a new URL
+    const cacheBusted = icon192.includes('?') ? icon192 : `${icon192}?v=${encodeURIComponent(icon192.slice(-24))}`;
+    upsertLink('icon', cacheBusted, { type: iconType });
+    upsertLink('shortcut icon', cacheBusted, { type: iconType });
+    upsertLink('apple-touch-icon', resolveAbsoluteMediaUrl(appleIcon) || cacheBusted);
   }
 
   upsertMeta('theme-color', theme.primary || DEFAULT_SITE_CONFIG.theme.primary);
@@ -289,13 +320,16 @@ export function applySiteMediaToDocument(config) {
     background_color: theme.background || DEFAULT_SITE_CONFIG.theme.background,
     theme_color: theme.primary || DEFAULT_SITE_CONFIG.theme.primary,
     icons: [
-      icon192 && { src: icon192, sizes: '192x192', type: 'image/png', purpose: 'any' },
-      icon512 && { src: icon512, sizes: '512x512', type: 'image/png', purpose: 'any maskable' },
+      icon192 && { src: icon192, sizes: '192x192', type: iconType, purpose: 'any' },
+      icon512 && { src: icon512, sizes: '512x512', type: guessImageMime(icon512), purpose: 'any maskable' },
     ].filter(Boolean),
   };
 
+  // Backend manifest is DB-backed (/api/config/manifest.webmanifest).
+  upsertLink('manifest', '/api/config/manifest.webmanifest');
+
+  // Also keep an in-memory manifest for environments without the API proxy.
   manifestObjectUrl = URL.createObjectURL(
     new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' }),
   );
-  upsertLink('manifest', manifestObjectUrl);
 }

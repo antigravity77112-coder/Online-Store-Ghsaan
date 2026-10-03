@@ -17,7 +17,8 @@ export default function BrandTrio({
 }) {
   const { config } = useSiteConfig();
   const { isDark } = useTheme();
-  const logo = resolveMediaUrl(resolveSiteLogo(config.media, { dark: isDark })) || '/Logo_light_192.png';
+  const logo = resolveMediaUrl(resolveSiteLogo(config.media, { dark: isDark }))
+    || resolveMediaUrl(DEFAULT_SITE_CONFIG.media.logoUrl);
   const brandShort = config.brand?.siteShortName || DEFAULT_SITE_CONFIG.brand.siteShortName;
   const brandAr = config.brand?.siteNameAr || DEFAULT_SITE_CONFIG.brand.siteNameAr;
 

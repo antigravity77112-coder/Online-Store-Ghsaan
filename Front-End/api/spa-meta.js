@@ -1,6 +1,8 @@
 /**
- * Server-inject Open Graph / Twitter image from DB (SystemSetting.ogImageUrl).
- * Facebook / WhatsApp / View Source never run React Helmet — they need HTML tags here.
+ * Server-inject store media from DB (SystemSetting) into HTML.
+ * Bots / View Source / tab favicon never wait for React.
+ *
+ * Fields: logoUrl, logoDarkUrl, faviconUrl, ogImageUrl
  */
 import { existsSync, readFileSync } from 'fs';
 import { join } from 'path';
@@ -15,7 +17,8 @@ const SITE_ORIGIN =
   process.env.PUBLIC_URL ||
   'https://online-store-ghsaan.vercel.app';
 
-const MARKER = '<!--OG_SHARE_META-->';
+const OG_MARKER = '<!--OG_SHARE_META-->';
+const FAVICON_MARKER = '<!--SITE_FAVICON-->';
 
 function loadIndexHtmlFromDisk() {
   const candidates = [
@@ -39,7 +42,7 @@ async function loadIndexHtml(req) {
       });
       if (res.ok) {
         const text = await res.text();
-        if (text.includes('<div id="root"') || text.includes(MARKER) || text.includes('og:title')) {
+        if (text.includes('<div id="root"') || text.includes(OG_MARKER) || text.includes('og:title')) {
           return text;
         }
       }
@@ -58,7 +61,13 @@ function escapeAttr(value) {
     .replace(/>/g, '&gt;');
 }
 
-function toAbsoluteImage(url) {
+function escapeJson(value) {
+  return String(value)
+    .replace(/\\/g, '\\\\')
+    .replace(/"/g, '\\"');
+}
+
+function toAbsoluteUrl(url) {
   if (!url || typeof url !== 'string') return null;
   const trimmed = url.trim();
   if (!trimmed) return null;
@@ -70,11 +79,20 @@ function toAbsoluteImage(url) {
 
 /** Telegram/WhatsApp prefer ~1200×630; DB uploads are often square. */
 function toShareImage(url) {
-  const abs = toAbsoluteImage(url);
+  const abs = toAbsoluteUrl(url);
   if (!abs) return null;
   if (!abs.includes('res.cloudinary.com/') || !abs.includes('/upload/')) return abs;
   if (/\/upload\/[^/]*w_1200/.test(abs)) return abs;
   return abs.replace('/upload/', '/upload/w_1200,h_630,c_fill,f_jpg,q_auto/');
+}
+
+function guessImageType(url) {
+  const lower = String(url || '').toLowerCase();
+  if (lower.includes('.svg')) return 'image/svg+xml';
+  if (lower.includes('.webp')) return 'image/webp';
+  if (lower.includes('.jpg') || lower.includes('.jpeg')) return 'image/jpeg';
+  if (lower.includes('.ico')) return 'image/x-icon';
+  return 'image/png';
 }
 
 function replaceMetaContent(html, attrName, attrValue, content) {
@@ -87,6 +105,14 @@ function replaceMetaContent(html, attrName, attrValue, content) {
     return html.replace(re, `$1${escapeAttr(content)}$3`);
   }
   return html;
+}
+
+function replaceJsonLdLogo(html, logoUrl) {
+  if (!logoUrl) return html;
+  return html.replace(
+    /("logo"\s*:\s*")[^"]*(")/,
+    `$1${escapeJson(logoUrl)}$2`,
+  );
 }
 
 async function fetchSiteConfig() {
@@ -111,6 +137,8 @@ export default async function handler(req, res) {
     let ogTitle = null;
     let ogDescription = null;
     let siteName = null;
+    let faviconUrl = null;
+    let logoUrl = null;
 
     try {
       const config = await fetchSiteConfig();
@@ -118,11 +146,12 @@ export default async function handler(req, res) {
       ogTitle = config?.seo?.ogTitle || config?.seo?.title || config?.brand?.siteName || null;
       ogDescription = config?.seo?.ogDescription || config?.seo?.description || null;
       siteName = config?.brand?.siteName || config?.seo?.title || null;
+      faviconUrl = toAbsoluteUrl(config?.media?.faviconUrl);
+      logoUrl = toAbsoluteUrl(config?.media?.logoUrl);
     } catch {
       // Serve SPA shell even if config is temporarily unavailable.
     }
 
-    // Prefer path from Edge Middleware (?__path=) or header; never use /api/spa-meta as og:url
     const headerPath = req.headers['x-original-pathname'] || req.headers['x-middleware-request-x-original-pathname'];
     let queryPath = null;
     try {
@@ -146,7 +175,28 @@ export default async function handler(req, res) {
     html = replaceMetaContent(html, 'name', 'twitter:description', ogDescription);
     html = replaceMetaContent(html, 'name', 'description', ogDescription);
 
-    // Drop static twitter:card so we do not emit duplicates (breaks some scrapers).
+    // Favicon from DB (tab / link icon) — strip hard-coded local icon links first
+    html = html.replace(/<link[^>]+rel=["'](?:icon|shortcut icon|apple-touch-icon)["'][^>]*>\s*/gi, '');
+    const faviconHref = faviconUrl || `${SITE_ORIGIN.replace(/\/$/, '')}/favicon.png`;
+    const faviconType = guessImageType(faviconHref);
+    const faviconBlock = [
+      `<link rel="icon" type="${escapeAttr(faviconType)}" href="${escapeAttr(faviconHref)}" />`,
+      `<link rel="shortcut icon" href="${escapeAttr(faviconHref)}" />`,
+      `<link rel="apple-touch-icon" href="${escapeAttr(faviconHref)}" />`,
+    ].join('\n  ');
+
+    if (html.includes(FAVICON_MARKER)) {
+      html = html.replace(FAVICON_MARKER, faviconBlock);
+    } else {
+      html = html.replace('</head>', `  ${faviconBlock}\n</head>`);
+    }
+
+    // Organization logo in JSON-LD from DB
+    if (logoUrl) {
+      html = replaceJsonLdLogo(html, logoUrl);
+    }
+
+    // Drop static twitter:card so we do not emit duplicates
     html = html.replace(/<meta\s+name=["']twitter:card["'][^>]*>\s*/gi, '');
 
     const ogBlock = ogImage
@@ -165,8 +215,8 @@ export default async function handler(req, res) {
           `<meta name="twitter:card" content="summary" />`,
         ].join('\n  ');
 
-    if (html.includes(MARKER)) {
-      html = html.replace(MARKER, ogBlock);
+    if (html.includes(OG_MARKER)) {
+      html = html.replace(OG_MARKER, ogBlock);
     } else {
       html = html.replace('</head>', `  ${ogBlock}\n</head>`);
     }
