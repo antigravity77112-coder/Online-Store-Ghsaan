@@ -41,7 +41,7 @@ const DEFAULT_MEDIA = {
   logoMobileUrl: '/Logo_light_192.png',
   logoMobileDarkUrl: '/Logo_dark_192.png',
   faviconUrl: '/favicon.png',
-  ogImageUrl: '/og-share.png',
+  ogImageUrl: null,
 };
 
 const DEFAULT_SEO = {
@@ -55,35 +55,10 @@ const DEFAULT_FOOTER = {
   footerText: 'متجرك الإلكتروني — منتجات متنوعة بأسعار منافسة وتجربة تسوق سهلة.',
 };
 
-/** Legacy GISAAH / قصة values still stored in DB — remap to Smart Shopper */
-const LEGACY_BRAND_MAP = {
-  siteName: new Set(['GISAAH | قصة', 'GISAAH|قصة', 'GISAAH']),
-  siteShortName: new Set(['GISAAH', 'Gisaah', 'GISAah']),
-  appName: new Set(['GISAAH | قصة', 'GISAAH|قصة', 'GISAAH']),
-  tagline: new Set(['في زمن الكوبي خليك مع قصة']),
-  siteDescription: new Set([
-    'في زمن الكوبي خليك مع قصة — متجر العطور الفاخرة الأصلية',
-  ]),
-  copyrightText: new Set(['© GISAAH قصة. جميع الحقوق محفوظة.']),
-  seoTitle: new Set(['GISAAH | قصة', 'GISAAH']),
-  seoDescription: new Set([
-    'في زمن الكوبي خليك مع قصة — متجر العطور الفاخرة الأصلية',
-  ]),
-  ogTitle: new Set(['GISAAH | قصة', 'GISAAH']),
-  ogDescription: new Set([
-    'في زمن الكوبي خليك مع قصة — متجر العطور الفاخرة الأصلية',
-  ]),
-};
-
-function replaceLegacyBrandValue(field, value, fallback) {
+function pickText(value, fallback) {
   if (value == null || typeof value !== 'string') return fallback;
   const trimmed = value.trim();
-  if (!trimmed) return fallback;
-  const legacy = LEGACY_BRAND_MAP[field];
-  if (legacy && legacy.has(trimmed)) return fallback;
-  // Any remaining GISAAH brand string from older DB rows
-  if (/GISAAH|Gisaah|GISAah/i.test(trimmed)) return fallback;
-  return trimmed;
+  return trimmed || fallback;
 }
 
 const HEX_COLOR = /^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/;
@@ -122,11 +97,7 @@ function mergeHomepage(stored) {
 
 function pickUrl(value, fallback) {
   if (value && typeof value === 'string' && value.trim()) {
-    const trimmed = value.trim();
-    if (/6eeb\.com|gisaah\.com|gisaah-store\.vercel\.app/i.test(trimmed)) {
-      return fallback;
-    }
-    return trimmed;
+    return value.trim();
   }
   return fallback;
 }
@@ -172,22 +143,22 @@ function mergeRecord(record) {
 
   return {
     ...r,
-    siteName: replaceLegacyBrandValue('siteName', r.siteName, DEFAULT_BRAND.siteName),
-    siteShortName: replaceLegacyBrandValue('siteShortName', r.siteShortName, DEFAULT_BRAND.siteShortName),
-    appName: replaceLegacyBrandValue('appName', r.appName, DEFAULT_BRAND.appName),
-    tagline: replaceLegacyBrandValue('tagline', r.tagline, DEFAULT_BRAND.tagline),
-    siteDescription: replaceLegacyBrandValue('siteDescription', r.siteDescription, DEFAULT_SEO.seoDescription),
-    copyrightText: replaceLegacyBrandValue('copyrightText', r.copyrightText, DEFAULT_BRAND.copyrightText),
+    siteName: pickText(r.siteName, DEFAULT_BRAND.siteName),
+    siteShortName: pickText(r.siteShortName, DEFAULT_BRAND.siteShortName),
+    appName: pickText(r.appName, DEFAULT_BRAND.appName),
+    tagline: pickText(r.tagline, DEFAULT_BRAND.tagline),
+    siteDescription: pickText(r.siteDescription, DEFAULT_SEO.seoDescription),
+    copyrightText: pickText(r.copyrightText, DEFAULT_BRAND.copyrightText),
     logoUrl: pickUrl(r.logoUrl, DEFAULT_MEDIA.logoUrl),
     logoDarkUrl: pickUrl(r.logoDarkUrl, DEFAULT_MEDIA.logoDarkUrl),
     logoMobileUrl: pickUrl(r.logoMobileUrl, DEFAULT_MEDIA.logoMobileUrl),
     logoMobileDarkUrl: pickUrl(r.logoMobileDarkUrl, DEFAULT_MEDIA.logoMobileDarkUrl),
     faviconUrl: pickUrl(r.faviconUrl, DEFAULT_MEDIA.faviconUrl),
-    ogImageUrl: pickUrl(r.ogImageUrl, DEFAULT_MEDIA.ogImageUrl),
-    ogTitle: replaceLegacyBrandValue('ogTitle', r.ogTitle || r.seoTitle, DEFAULT_SEO.ogTitle),
-    ogDescription: replaceLegacyBrandValue('ogDescription', r.ogDescription || r.seoDescription, DEFAULT_SEO.ogDescription),
-    seoTitle: replaceLegacyBrandValue('seoTitle', r.seoTitle, DEFAULT_SEO.seoTitle),
-    seoDescription: replaceLegacyBrandValue('seoDescription', r.seoDescription, DEFAULT_SEO.seoDescription),
+    ogImageUrl: pickUrl(r.ogImageUrl, null),
+    ogTitle: pickText(r.ogTitle || r.seoTitle, DEFAULT_SEO.ogTitle),
+    ogDescription: pickText(r.ogDescription || r.seoDescription, DEFAULT_SEO.ogDescription),
+    seoTitle: pickText(r.seoTitle, DEFAULT_SEO.seoTitle),
+    seoDescription: pickText(r.seoDescription, DEFAULT_SEO.seoDescription),
     footerText: r.footerText || DEFAULT_FOOTER.footerText,
     themeConfig: theme,
     homepageConfig: homepage,
@@ -264,11 +235,6 @@ function toAbsoluteAssetUrl(url, baseUrl = process.env.PUBLIC_SITE_URL || proces
   if (!url || typeof url !== 'string') return null;
   const trimmed = url.trim();
   if (!trimmed) return null;
-  if (/6eeb\.com|gisaah\.com|gisaah-store\.vercel\.app/i.test(trimmed)) {
-    const path = trimmed.replace(/^https?:\/\/[^/]+/i, '') || '/og-share.png';
-    const base = String(baseUrl).replace(/\/$/, '');
-    return `${base}${path.startsWith('/') ? path : `/${path}`}`;
-  }
   if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) return trimmed;
   const base = String(baseUrl).replace(/\/$/, '');
   return `${base}${trimmed.startsWith('/') ? trimmed : `/${trimmed}`}`;

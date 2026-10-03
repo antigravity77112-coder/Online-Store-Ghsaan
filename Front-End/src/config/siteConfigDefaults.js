@@ -1,7 +1,5 @@
 /** Client-side fallbacks — must match backend siteConfigDefaults */
 
-import { isLegacyStorefrontHost } from './storefrontOrigin';
-
 export const DEFAULT_SITE_CONFIG = {
   brand: {
     siteName: 'Smart Shopper | المتسوق الذكي',
@@ -18,7 +16,7 @@ export const DEFAULT_SITE_CONFIG = {
     logoMobileUrl: '/Logo_light_192.png',
     logoMobileDarkUrl: '/Logo_dark_192.png',
     faviconUrl: '/favicon.png',
-    ogImageUrl: '/og-share.png',
+    ogImageUrl: null,
   },
   theme: {
     primary: '#EA0001',
@@ -40,7 +38,7 @@ export const DEFAULT_SITE_CONFIG = {
     description: 'المتسوق الذكي — متجرك الإلكتروني لمنتجات متنوعة بأسعار منافسة وتجربة تسوق سهلة',
     ogTitle: 'Smart Shopper | المتسوق الذكي',
     ogDescription: 'المتسوق الذكي — متجرك الإلكتروني لمنتجات متنوعة بأسعار منافسة وتجربة تسوق سهلة',
-    ogImageUrl: '/og-share.png',
+    ogImageUrl: null,
   },
   content: {
     aboutUsText: '',
@@ -71,54 +69,42 @@ function mergeHomepageSections(defaults, fromApi) {
   return merged;
 }
 
-/** Replace legacy GISAAH / قصة brand strings still returned by the API */
+function pickText(value, fallback) {
+  if (value == null || typeof value !== 'string') return fallback;
+  const trimmed = value.trim();
+  return trimmed || fallback;
+}
+
+function pickOgImageUrl(value) {
+  if (typeof value !== 'string') return null;
+  const trimmed = value.trim();
+  return trimmed || null;
+}
+
 function sanitizeBrand(brand = {}) {
   const base = { ...DEFAULT_SITE_CONFIG.brand, ...brand };
-  const looksLegacy = (value) => {
-    if (typeof value !== 'string' || !value.trim()) return true;
-    const v = value.trim();
-    if (/GISAAH|Gisaah|GISAah/i.test(v)) return true;
-    if (v === 'قصة' || v === 'قــصـــــة' || v === 'GISAAH | قصة') return true;
-    return false;
-  };
-
   return {
     ...base,
-    siteName: looksLegacy(base.siteName) ? DEFAULT_SITE_CONFIG.brand.siteName : base.siteName,
-    siteShortName: looksLegacy(base.siteShortName) ? DEFAULT_SITE_CONFIG.brand.siteShortName : base.siteShortName,
-    siteNameAr: looksLegacy(base.siteNameAr) ? DEFAULT_SITE_CONFIG.brand.siteNameAr : (base.siteNameAr || DEFAULT_SITE_CONFIG.brand.siteNameAr),
-    appName: looksLegacy(base.appName) ? DEFAULT_SITE_CONFIG.brand.appName : base.appName,
-    tagline: looksLegacy(base.tagline) || (typeof base.tagline === 'string' && base.tagline.includes('خليك مع قصة'))
-      ? DEFAULT_SITE_CONFIG.brand.tagline
-      : (base.tagline || DEFAULT_SITE_CONFIG.brand.tagline),
-    description: looksLegacy(base.description) || (typeof base.description === 'string' && (base.description.includes('خليك مع قصة') || base.description.includes('متجر العطور')))
-      ? DEFAULT_SITE_CONFIG.brand.description
-      : (base.description || DEFAULT_SITE_CONFIG.brand.description),
-    copyrightText: looksLegacy(base.copyrightText)
-      ? DEFAULT_SITE_CONFIG.brand.copyrightText
-      : (base.copyrightText || DEFAULT_SITE_CONFIG.brand.copyrightText),
+    siteName: pickText(base.siteName, DEFAULT_SITE_CONFIG.brand.siteName),
+    siteShortName: pickText(base.siteShortName, DEFAULT_SITE_CONFIG.brand.siteShortName),
+    siteNameAr: pickText(base.siteNameAr, DEFAULT_SITE_CONFIG.brand.siteNameAr),
+    appName: pickText(base.appName, DEFAULT_SITE_CONFIG.brand.appName),
+    tagline: pickText(base.tagline, DEFAULT_SITE_CONFIG.brand.tagline),
+    description: pickText(base.description, DEFAULT_SITE_CONFIG.brand.description),
+    copyrightText: pickText(base.copyrightText, DEFAULT_SITE_CONFIG.brand.copyrightText),
   };
 }
 
 function sanitizeSeo(seo = {}) {
   const base = { ...DEFAULT_SITE_CONFIG.seo, ...seo };
-  const looksLegacy = (value) => {
-    if (typeof value !== 'string' || !value.trim()) return true;
-    const v = value.trim();
-    if (/GISAAH|Gisaah|GISAah/i.test(v)) return true;
-    if (v.includes('خليك مع قصة') || v.includes('متجر العطور')) return true;
-    return false;
-  };
-
   return {
     ...base,
-    title: looksLegacy(base.title) ? DEFAULT_SITE_CONFIG.seo.title : base.title,
-    description: looksLegacy(base.description) ? DEFAULT_SITE_CONFIG.seo.description : base.description,
-    ogTitle: looksLegacy(base.ogTitle) ? DEFAULT_SITE_CONFIG.seo.ogTitle : base.ogTitle,
-    ogDescription: looksLegacy(base.ogDescription) ? DEFAULT_SITE_CONFIG.seo.ogDescription : base.ogDescription,
-    ogImageUrl: isLegacyStorefrontHost(base.ogImageUrl)
-      ? DEFAULT_SITE_CONFIG.seo.ogImageUrl
-      : (base.ogImageUrl || DEFAULT_SITE_CONFIG.seo.ogImageUrl),
+    title: pickText(base.title, DEFAULT_SITE_CONFIG.seo.title),
+    description: pickText(base.description, DEFAULT_SITE_CONFIG.seo.description),
+    ogTitle: pickText(base.ogTitle, DEFAULT_SITE_CONFIG.seo.ogTitle),
+    ogDescription: pickText(base.ogDescription, DEFAULT_SITE_CONFIG.seo.ogDescription),
+    // OG image: DB only — never invent a default file.
+    ogImageUrl: pickOgImageUrl(base.ogImageUrl),
   };
 }
 
@@ -126,9 +112,7 @@ function sanitizeMedia(media = {}) {
   const base = { ...DEFAULT_SITE_CONFIG.media, ...media };
   return {
     ...base,
-    ogImageUrl: isLegacyStorefrontHost(base.ogImageUrl)
-      ? DEFAULT_SITE_CONFIG.media.ogImageUrl
-      : (base.ogImageUrl || DEFAULT_SITE_CONFIG.media.ogImageUrl),
+    ogImageUrl: pickOgImageUrl(base.ogImageUrl),
   };
 }
 

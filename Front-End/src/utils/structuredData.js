@@ -9,7 +9,7 @@
  *     كل دالة ترجع كائن جاهز للتسلسل كـ JSON وحقنه عبر <script>.
  */
 
-import { STOREFRONT_ORIGIN, isLegacyStorefrontHost } from '../config/storefrontOrigin';
+import { STOREFRONT_ORIGIN } from '../config/storefrontOrigin';
 
 const BASE_URL = STOREFRONT_ORIGIN;
 
@@ -123,11 +123,12 @@ export function buildOrganizationSchema(siteConfig = {}) {
   const social = siteConfig.social || {};
 
   const logoUrl = media.logoUrl || '/Logo_192.png';
-  const ogImageRaw = media.ogImageUrl || seo.ogImageUrl || '/og-share.png';
-  const ogImage = isLegacyStorefrontHost(ogImageRaw)
-    ? '/og-share.png'
-    : (typeof ogImageRaw === 'string' && ogImageRaw.trim() ? ogImageRaw.trim() : '/og-share.png');
-  const abs = (url) => (url?.startsWith('http') ? url : `${BASE_URL}${url.startsWith('/') ? url : `/${url}`}`);
+  const ogImageRaw = media.ogImageUrl || seo.ogImageUrl || null;
+  const ogImage = typeof ogImageRaw === 'string' && ogImageRaw.trim() ? ogImageRaw.trim() : null;
+  const abs = (url) => {
+    if (!url || typeof url !== 'string') return null;
+    return url.startsWith('http') ? url : `${BASE_URL}${url.startsWith('/') ? url : `/${url}`}`;
+  };
 
   const schema = {
     '@context': 'https://schema.org',
@@ -135,7 +136,6 @@ export function buildOrganizationSchema(siteConfig = {}) {
     name: brand.siteName || 'Smart Shopper | المتسوق الذكي',
     url: BASE_URL,
     logo: abs(logoUrl),
-    image: abs(ogImage),
     description: seo.description || brand.description || 'المتسوق الذكي — متجرك الإلكتروني لمنتجات متنوعة بأسعار منافسة وتجربة تسوق سهلة',
     contactPoint: {
       '@type': 'ContactPoint',
@@ -144,6 +144,7 @@ export function buildOrganizationSchema(siteConfig = {}) {
     },
     sameAs: [],
   };
+  if (ogImage) schema.image = abs(ogImage);
 
   if (contact.phone) {
     schema.contactPoint.telephone = contact.phone;

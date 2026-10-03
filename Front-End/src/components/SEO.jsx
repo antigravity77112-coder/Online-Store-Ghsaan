@@ -8,8 +8,18 @@ import { useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useSiteConfig } from '../context/SiteConfigContext';
 import { DEFAULT_SITE_CONFIG } from '../config/siteConfigDefaults';
-import { isLegacyStorefrontHost, storefrontUrl } from '../config/storefrontOrigin';
+import { storefrontUrl } from '../config/storefrontOrigin';
 import { normalizeLocale } from '../i18n/localeUtils';
+
+function resolveOgImageUrl(image, config) {
+  const raw = image || config.seo?.ogImageUrl || config.media?.ogImageUrl || null;
+  if (!raw || typeof raw !== 'string') return null;
+  const trimmed = raw.trim();
+  if (!trimmed) return null;
+  if (trimmed.startsWith('//')) return `https:${trimmed}`;
+  if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) return trimmed;
+  return storefrontUrl(trimmed.startsWith('/') ? trimmed : `/${trimmed}`);
+}
 
 const SEO = ({
   title,
@@ -33,20 +43,8 @@ const SEO = ({
   const siteName = config.seo?.title || DEFAULT_SITE_CONFIG.seo.title;
   const finalTitle = title ? `${title} | ${siteName}` : siteName;
   const finalDescription = description || config.seo?.description || DEFAULT_SITE_CONFIG.seo.description;
-  const rawImage = image || config.seo?.ogImageUrl || config.media?.ogImageUrl || DEFAULT_SITE_CONFIG.media.ogImageUrl;
-  const finalImage = isLegacyStorefrontHost(rawImage)
-    ? DEFAULT_SITE_CONFIG.media.ogImageUrl
-    : rawImage;
-  // Absolute URL for crawlers: keep Cloudinary/http as stored in DB; resolve relative paths.
-  const absoluteImage = (() => {
-    if (!finalImage || typeof finalImage !== 'string') {
-      return storefrontUrl(DEFAULT_SITE_CONFIG.media.ogImageUrl);
-    }
-    const trimmed = finalImage.trim();
-    if (trimmed.startsWith('//')) return `https:${trimmed}`;
-    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) return trimmed;
-    return storefrontUrl(trimmed.startsWith('/') ? trimmed : `/${trimmed}`);
-  })();
+  // OG image from DB / page prop only — no /og-share.png default.
+  const absoluteImage = resolveOgImageUrl(image, config);
   const ogTitle = config.seo?.ogTitle || finalTitle;
   const ogDescription = config.seo?.ogDescription || finalDescription;
 
@@ -69,17 +67,17 @@ const SEO = ({
       <meta property="og:url" content={canonical} />
       <meta property="og:title" content={ogTitle} />
       <meta property="og:description" content={ogDescription} />
-      <meta property="og:image" content={absoluteImage} />
-      <meta property="og:image:width" content="1200" />
-      <meta property="og:image:height" content="630" />
-      <meta property="og:image:alt" content={ogTitle} />
+      {absoluteImage && <meta property="og:image" content={absoluteImage} />}
+      {absoluteImage && <meta property="og:image:width" content="1200" />}
+      {absoluteImage && <meta property="og:image:height" content="630" />}
+      {absoluteImage && <meta property="og:image:alt" content={ogTitle} />}
       <meta property="og:locale" content={lang === 'en' ? 'en_US' : 'ar_YE'} />
       <meta property="og:site_name" content={config.brand?.siteName || siteName} />
 
-      <meta name="twitter:card" content="summary_large_image" />
+      <meta name="twitter:card" content={absoluteImage ? 'summary_large_image' : 'summary'} />
       <meta name="twitter:title" content={ogTitle} />
       <meta name="twitter:description" content={ogDescription} />
-      <meta name="twitter:image" content={absoluteImage} />
+      {absoluteImage && <meta name="twitter:image" content={absoluteImage} />}
 
       {schemas.map((schema, i) => (
         <script key={i} type="application/ld+json">{JSON.stringify(schema)}</script>
