@@ -68,6 +68,15 @@ function toAbsoluteImage(url) {
   return `${base}${trimmed.startsWith('/') ? trimmed : `/${trimmed}`}`;
 }
 
+/** Telegram/WhatsApp prefer ~1200×630; DB uploads are often square. */
+function toShareImage(url) {
+  const abs = toAbsoluteImage(url);
+  if (!abs) return null;
+  if (!abs.includes('res.cloudinary.com/') || !abs.includes('/upload/')) return abs;
+  if (/\/upload\/[^/]*w_1200/.test(abs)) return abs;
+  return abs.replace('/upload/', '/upload/w_1200,h_630,c_fill,f_jpg,q_auto/');
+}
+
 function replaceMetaContent(html, attrName, attrValue, content) {
   if (!content) return html;
   const re = new RegExp(
@@ -105,7 +114,7 @@ export default async function handler(req, res) {
 
     try {
       const config = await fetchSiteConfig();
-      ogImage = toAbsoluteImage(config?.seo?.ogImageUrl || config?.media?.ogImageUrl);
+      ogImage = toShareImage(config?.seo?.ogImageUrl || config?.media?.ogImageUrl);
       ogTitle = config?.seo?.ogTitle || config?.seo?.title || config?.brand?.siteName || null;
       ogDescription = config?.seo?.ogDescription || config?.seo?.description || null;
       siteName = config?.brand?.siteName || config?.seo?.title || null;
@@ -137,26 +146,34 @@ export default async function handler(req, res) {
     html = replaceMetaContent(html, 'name', 'twitter:description', ogDescription);
     html = replaceMetaContent(html, 'name', 'description', ogDescription);
 
+    // Drop static twitter:card so we do not emit duplicates (breaks some scrapers).
+    html = html.replace(/<meta\s+name=["']twitter:card["'][^>]*>\s*/gi, '');
+
     const ogBlock = ogImage
       ? [
           `<meta property="og:image" content="${escapeAttr(ogImage)}" />`,
+          `<meta property="og:image:secure_url" content="${escapeAttr(ogImage)}" />`,
+          `<meta property="og:image:type" content="image/jpeg" />`,
           `<meta property="og:image:alt" content="${escapeAttr(ogTitle || siteName || 'Share')}" />`,
           `<meta property="og:image:width" content="1200" />`,
           `<meta property="og:image:height" content="630" />`,
           `<meta name="twitter:card" content="summary_large_image" />`,
           `<meta name="twitter:image" content="${escapeAttr(ogImage)}" />`,
         ].join('\n  ')
-      : '<!-- OG image: none in database (SystemSetting.ogImageUrl) -->';
+      : [
+          '<!-- OG image: none in database (SystemSetting.ogImageUrl) -->',
+          `<meta name="twitter:card" content="summary" />`,
+        ].join('\n  ');
 
     if (html.includes(MARKER)) {
       html = html.replace(MARKER, ogBlock);
-    } else if (ogImage) {
+    } else {
       html = html.replace('</head>', `  ${ogBlock}\n</head>`);
     }
 
     res.statusCode = 200;
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
-    res.setHeader('Cache-Control', 'public, max-age=60, stale-while-revalidate=300');
+    res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate');
     res.end(html);
   } catch (err) {
     res.statusCode = 500;
