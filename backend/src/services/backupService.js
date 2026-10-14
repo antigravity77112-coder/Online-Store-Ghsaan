@@ -7,9 +7,14 @@ const exchangeRatesService = require('./exchangeRatesService');
 const siteConfigService = require('./siteConfigService');
 
 const BACKUP_APP_NAME = 'SmartShoperStore';
-/** Current export format. Restores also accept 2.0 (pre-notification tables). */
-const BACKUP_VERSION = '2.1';
-const SUPPORTED_BACKUP_VERSIONS = new Set(['2.0', '2.1']);
+/**
+ * Current export format.
+ * 2.0 — catalog + orders (pre-notifications)
+ * 2.1 — + push notification tables
+ * 2.2 — + coupons (percent / fixed-amount) + redemptions
+ */
+const BACKUP_VERSION = '2.2';
+const SUPPORTED_BACKUP_VERSIONS = new Set(['2.0', '2.1', '2.2']);
 const LEGACY_BACKUP_VERSION = '1.0';
 
 /** Tables required in a v2+ backup payload (excluding sidecar exchangeRates). */
@@ -46,7 +51,8 @@ const REQUIRED_TABLES_V2 = [
 
 /**
  * Missing keys in older exports are treated as [].
- * Includes catalog tables added mid-v2, push-notification tables (v2.1), coupons.
+ * Includes catalog tables added mid-v2, push-notification tables (v2.1),
+ * and coupons / redemptions (v2.2 — also tolerated on 2.0/2.1 restores).
  */
 const OPTIONAL_V2_TABLES = new Set([
   'productCategories',
@@ -289,7 +295,7 @@ function validateBackupPayload(backupPayload, { allowEmpty = false } = {}) {
   }
   if (metadata.version === LEGACY_BACKUP_VERSION) {
     const err = new Error(
-      'هذه نسخة قديمة (v1.0) ناقصة جداول الكتالوج. صدّر نسخة جديدة v2.1 أو استعد عبر pg_dump.',
+      'هذه نسخة قديمة (v1.0) ناقصة جداول الكتالوج. صدّر نسخة جديدة v2.2 أو استعد عبر pg_dump.',
     );
     err.statusCode = 400;
     throw err;
@@ -407,11 +413,135 @@ async function dropLegacyProductSellerIdIfPresent(tx) {
   `);
 }
 
+/** Create Postgres enum if missing (safe to re-run). */
+async function ensureEnumType(tx, typeName, valuesSql) {
+  await tx.$executeRawUnsafe(`
+    DO $$ BEGIN
+      CREATE TYPE "${typeName}" AS ENUM (${valuesSql});
+    EXCEPTION
+      WHEN duplicate_object THEN NULL;
+    END $$;
+  `);
+}
+
+/**
+ * Ensure coupon enums/tables/columns exist before wipe+restore.
+ * Covers DBs that never ran the coupon migrations, and upgrades
+ * early Coupon rows that only had discountPercent.
+ */
+async function ensureCouponSchema(tx) {
+  await ensureEnumType(tx, 'CouponAdminStatus', "'Draft', 'Active', 'Disabled'");
+  await ensureEnumType(tx, 'CouponDiscountType', "'Percent', 'Amount'");
+
+  await tx.$executeRawUnsafe(`
+    CREATE TABLE IF NOT EXISTS "Coupon" (
+      "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+      "name" TEXT NOT NULL,
+      "code" TEXT NOT NULL,
+      "discountType" "CouponDiscountType" NOT NULL DEFAULT 'Percent',
+      "discountPercent" INTEGER,
+      "discountFixedAmount" DECIMAL(18,2),
+      "validityDays" INTEGER NOT NULL,
+      "usageLimit" INTEGER NOT NULL DEFAULT 1,
+      "usageCount" INTEGER NOT NULL DEFAULT 0,
+      "adminStatus" "CouponAdminStatus" NOT NULL DEFAULT 'Draft',
+      "activatedAt" TIMESTAMP(3),
+      "expiresAt" TIMESTAMP(3),
+      "internalNotes" TEXT,
+      "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      CONSTRAINT "Coupon_pkey" PRIMARY KEY ("id")
+    );
+  `);
+
+  await tx.$executeRawUnsafe(`
+    CREATE TABLE IF NOT EXISTS "CouponRedemption" (
+      "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+      "couponId" UUID NOT NULL,
+      "orderId" UUID NOT NULL,
+      "discountAmount" DECIMAL(18,2) NOT NULL,
+      "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      CONSTRAINT "CouponRedemption_pkey" PRIMARY KEY ("id")
+    );
+  `);
+
+  await tx.$executeRawUnsafe(`CREATE UNIQUE INDEX IF NOT EXISTS "Coupon_code_key" ON "Coupon"("code")`);
+  await tx.$executeRawUnsafe(
+    `CREATE INDEX IF NOT EXISTS "Coupon_adminStatus_expiresAt_idx" ON "Coupon"("adminStatus", "expiresAt")`,
+  );
+  await tx.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "Coupon_code_idx" ON "Coupon"("code")`);
+  await tx.$executeRawUnsafe(
+    `CREATE UNIQUE INDEX IF NOT EXISTS "CouponRedemption_orderId_key" ON "CouponRedemption"("orderId")`,
+  );
+  await tx.$executeRawUnsafe(
+    `CREATE INDEX IF NOT EXISTS "CouponRedemption_couponId_idx" ON "CouponRedemption"("couponId")`,
+  );
+  await tx.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "Order_couponId_idx" ON "Order"("couponId")`);
+
+  // Upgrade Coupon rows created before fixed-amount support.
+  await tx.$executeRawUnsafe(`
+    ALTER TABLE "Coupon" ADD COLUMN IF NOT EXISTS "discountType" "CouponDiscountType" NOT NULL DEFAULT 'Percent'
+  `);
+  await tx.$executeRawUnsafe(`
+    ALTER TABLE "Coupon" ADD COLUMN IF NOT EXISTS "discountFixedAmount" DECIMAL(18,2)
+  `);
+  // Percent may be null for Amount coupons; ignore if already nullable.
+  await tx.$executeRawUnsafe(`
+    DO $$ BEGIN
+      ALTER TABLE "Coupon" ALTER COLUMN "discountPercent" DROP NOT NULL;
+    EXCEPTION
+      WHEN others THEN NULL;
+    END $$;
+  `);
+
+  // Order coupon snapshot columns (incl. discountType enum).
+  await tx.$executeRawUnsafe(`ALTER TABLE "Order" ADD COLUMN IF NOT EXISTS "couponId" UUID`);
+  await tx.$executeRawUnsafe(`ALTER TABLE "Order" ADD COLUMN IF NOT EXISTS "couponCode" TEXT`);
+  await tx.$executeRawUnsafe(
+    `ALTER TABLE "Order" ADD COLUMN IF NOT EXISTS "discountType" "CouponDiscountType"`,
+  );
+  await tx.$executeRawUnsafe(`ALTER TABLE "Order" ADD COLUMN IF NOT EXISTS "discountPercent" INTEGER`);
+  await tx.$executeRawUnsafe(
+    `ALTER TABLE "Order" ADD COLUMN IF NOT EXISTS "discountAmount" DECIMAL(18,2)`,
+  );
+  await tx.$executeRawUnsafe(
+    `ALTER TABLE "Order" ADD COLUMN IF NOT EXISTS "subtotalBeforeDiscount" DECIMAL(18,2)`,
+  );
+
+  // FKs — ignore if already present.
+  await tx.$executeRawUnsafe(`
+    DO $$ BEGIN
+      ALTER TABLE "CouponRedemption"
+        ADD CONSTRAINT "CouponRedemption_couponId_fkey"
+        FOREIGN KEY ("couponId") REFERENCES "Coupon"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+    EXCEPTION WHEN duplicate_object THEN NULL;
+    END $$;
+  `);
+  await tx.$executeRawUnsafe(`
+    DO $$ BEGIN
+      ALTER TABLE "CouponRedemption"
+        ADD CONSTRAINT "CouponRedemption_orderId_fkey"
+        FOREIGN KEY ("orderId") REFERENCES "Order"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+    EXCEPTION WHEN duplicate_object THEN NULL;
+    END $$;
+  `);
+  await tx.$executeRawUnsafe(`
+    DO $$ BEGIN
+      ALTER TABLE "Order"
+        ADD CONSTRAINT "Order_couponId_fkey"
+        FOREIGN KEY ("couponId") REFERENCES "Coupon"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+    EXCEPTION WHEN duplicate_object THEN NULL;
+    END $$;
+  `);
+}
+
 /**
  * Add newer catalog / settings columns when the DB was created from older migrations.
  * Safe to run on every restore; uses IF NOT EXISTS.
  */
 async function ensureOptionalRestoreColumns(tx) {
+  await ensureCouponSchema(tx);
+
   const optionalColumns = [
     { table: 'CategoryAttribute', column: 'options', ddl: 'TEXT' },
     { table: 'ProductVariant', column: 'imageUrl', ddl: 'TEXT' },
@@ -424,12 +554,6 @@ async function ensureOptionalRestoreColumns(tx) {
     { table: 'Banner', column: 'scrollSpeed', ddl: 'INTEGER NOT NULL DEFAULT 40' },
     { table: 'Brand', column: 'isActive', ddl: 'BOOLEAN NOT NULL DEFAULT true' },
     { table: 'Order', column: 'idempotencyKey', ddl: 'TEXT' },
-    { table: 'Order', column: 'couponId', ddl: 'UUID' },
-    { table: 'Order', column: 'couponCode', ddl: 'TEXT' },
-    { table: 'Order', column: 'discountType', ddl: 'TEXT' },
-    { table: 'Order', column: 'discountPercent', ddl: 'INTEGER' },
-    { table: 'Order', column: 'discountAmount', ddl: 'DECIMAL(18,2)' },
-    { table: 'Order', column: 'subtotalBeforeDiscount', ddl: 'DECIMAL(18,2)' },
     { table: 'SystemSetting', column: 'telegramUrl', ddl: 'TEXT' },
     { table: 'SystemSetting', column: 'linkedinUrl', ddl: 'TEXT' },
     { table: 'SystemSetting', column: 'threadsUrl', ddl: 'TEXT' },
@@ -457,6 +581,27 @@ async function ensureOptionalRestoreColumns(tx) {
   }
 }
 
+/** Normalize coupon rows from older backups (percent-only) for current schema. */
+function normalizeCouponRows(rows) {
+  return (rows || []).map((row) => {
+    const discountType = row.discountType === 'Amount' ? 'Amount' : 'Percent';
+    if (discountType === 'Amount') {
+      return {
+        ...row,
+        discountType,
+        discountFixedAmount: row.discountFixedAmount != null ? row.discountFixedAmount : null,
+        discountPercent: row.discountPercent != null ? row.discountPercent : null,
+      };
+    }
+    return {
+      ...row,
+      discountType: 'Percent',
+      discountPercent: row.discountPercent != null ? row.discountPercent : 1,
+      discountFixedAmount: null,
+    };
+  });
+}
+
 /**
  * WARNING: Destructive. Wipes listed store tables then reloads from backup.
  * Never run against production unless you intend a full replace.
@@ -475,6 +620,8 @@ async function restoreFromPayload(
 
   await prisma.$transaction(
     async (tx) => {
+      // Coupon tables/enums must exist before wipe (deleteMany) and reload.
+      await ensureCouponSchema(tx);
       await wipeStoreTables(tx);
       await ensureOptionalRestoreColumns(tx);
       await dropLegacyProductSellerIdIfPresent(tx);
@@ -487,7 +634,7 @@ async function restoreFromPayload(
       await insertMany(tx, 'branch', data.branches);
       await insertMany(tx, 'systemSetting', data.systemSettings);
       await insertMany(tx, 'banner', data.banners);
-      const coupons = data.coupons || [];
+      const coupons = normalizeCouponRows(data.coupons);
       const validCouponIds = new Set(coupons.map((c) => c.id));
       await insertMany(tx, 'coupon', coupons);
       await insertMany(tx, 'product', data.products);
@@ -503,6 +650,10 @@ async function restoreFromPayload(
       const orders = (data.orders || []).map((row) => ({
         ...row,
         couponId: row.couponId && validCouponIds.has(row.couponId) ? row.couponId : null,
+        discountType:
+          row.discountType === 'Amount' || row.discountType === 'Percent'
+            ? row.discountType
+            : null,
       }));
       await insertMany(tx, 'order', orders);
       await insertMany(tx, 'orderItem', data.orderItems);
@@ -568,7 +719,7 @@ async function restoreFromPayload(
         data: {
           action: 'DATABASE_RESTORED',
           userId: restoreActorId,
-          details: 'Admin restored database from backup file (v2.1)',
+          details: 'Admin restored database from backup file (v2.2)',
           ipAddress: ipAddress || null,
         },
       });
