@@ -1,6 +1,6 @@
 const prisma = require('../prismaClient');
 const { ValidationError } = require('../middleware/errorMiddleware');
-const { uploadBuffer } = require('../utils/cloudinaryClient');
+const { uploadBuffer } = require('../services/storage');
 const { generateUniqueCategorySlug, categorySlugFromName } = require('../utils/slugify');
 const { refreshSearchText } = require('../services/productService');
 

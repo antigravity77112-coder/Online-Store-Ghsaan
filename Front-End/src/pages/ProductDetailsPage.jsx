@@ -8,8 +8,6 @@ import {
   Loader2,
   AlertCircle,
   ShoppingCart,
-  Minus,
-  Plus,
   ChevronDown,
   FileText,
   Truck,
@@ -54,13 +52,34 @@ const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12
 
 function ProductSkeleton() {
   return (
-    <div className="bg-white dark:bg-stone-950 animate-pulse">
-      <div className="aspect-[4/5] sm:aspect-square bg-stone-200 dark:bg-stone-800" />
-      <div className="px-3 py-4 space-y-3">
-        <div className="h-8 w-1/3 bg-stone-200 dark:bg-stone-800 rounded" />
-        <div className="h-5 w-full bg-stone-200 dark:bg-stone-800 rounded" />
-        <div className="h-4 w-2/3 bg-stone-200 dark:bg-stone-800 rounded" />
-        <div className="h-11 w-full bg-stone-200 dark:bg-stone-800 rounded-sm mt-4" />
+    <div className="bg-white dark:bg-stone-950 min-h-screen pb-28 lg:pb-12" aria-busy="true" aria-label="جاري تحميل المنتج">
+      <div className="hidden sm:block max-w-6xl mx-auto px-3 sm:px-6 lg:px-8 pt-3">
+        <div className="h-3 w-48 rounded skeleton-shimmer" />
+      </div>
+      <div className="max-w-6xl mx-auto sm:px-6 lg:px-8">
+        <div className="flex flex-col lg:flex-row gap-0 lg:gap-8 lg:items-start lg:pt-4">
+          <div className="w-full lg:w-[52%]">
+            <div className="aspect-[4/5] sm:aspect-square skeleton-shimmer" />
+            <div className="hidden sm:flex gap-2 mt-2 px-3 sm:px-0">
+              {[0, 1, 2, 3].map((i) => (
+                <div key={i} className="w-14 h-14 rounded-sm skeleton-shimmer flex-shrink-0" />
+              ))}
+            </div>
+          </div>
+          <div className="w-full lg:w-[48%] px-3 sm:px-0 pt-4 lg:pt-0 space-y-3">
+            <div className="h-5 w-4/5 rounded skeleton-shimmer" />
+            <div className="h-4 w-1/3 rounded skeleton-shimmer" />
+            <div className="h-9 w-2/5 rounded skeleton-shimmer mt-2" />
+            <div className="h-3 w-1/4 rounded skeleton-shimmer" />
+            <div className="h-10 w-full rounded-sm skeleton-shimmer mt-4" />
+            <div className="h-11 w-full rounded-sm skeleton-shimmer" />
+            <div className="space-y-2 pt-4 border-t border-stone-100 dark:border-stone-800">
+              <div className="h-3 w-full rounded skeleton-shimmer" />
+              <div className="h-3 w-5/6 rounded skeleton-shimmer" />
+              <div className="h-3 w-2/3 rounded skeleton-shimmer" />
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -179,9 +198,12 @@ const ProductDetailsPage = () => {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [selectedVariantId, setSelectedVariantId] = useState(null);
   const [optionSelections, setOptionSelections] = useState({});
-  const [quantity, setQuantity] = useState(1);
+  // Quantity is fixed at 1 on the PDP; customers change qty in the cart only.
+  const quantity = 1;
   const [descSheetOpen, setDescSheetOpen] = useState(false);
   const [brokenGalleryUrls, setBrokenGalleryUrls] = useState(() => new Set());
+  const [heroImageLoaded, setHeroImageLoaded] = useState(false);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
   const [orderMethod, setOrderMethod] = useState("whatsapp");
   const [feedbackMessage, setFeedbackMessage] = useState("");
   const feedbackTimerRef = useRef(null);
@@ -200,13 +222,17 @@ const ProductDetailsPage = () => {
     setAddedToCart(false);
     setSelectedImageIndex(0);
     setBrokenGalleryUrls(new Set());
-    setQuantity(1);
+    setHeroImageLoaded(false);
     setDescSheetOpen(false);
     setLightboxOpen(false);
     setOptionSelections({});
     setSelectedVariantId(null);
     trackedProductIdRef.current = null;
   }, [slug]);
+
+  useEffect(() => {
+    setHeroImageLoaded(false);
+  }, [product?.id]);
 
   useEffect(() => {
     if (!product?.id || trackedProductIdRef.current === product.id) return;
@@ -424,7 +450,6 @@ const ProductDetailsPage = () => {
   }, [product]);
 
   const imageCount = galleryImages.length;
-  const [lightboxOpen, setLightboxOpen] = useState(false);
 
   const goToPrevImage = useCallback(() => {
     if (imageCount <= 1) return;
@@ -442,8 +467,30 @@ const ProductDetailsPage = () => {
     enabled: imageCount > 1,
   });
 
-  const loading = isLoading;
-  const notFound = Boolean((isNotFound || (error && !product)) && !isLoading);
+  // Preload current + neighbors so swipe/next doesn't keep showing the previous image.
+  useEffect(() => {
+    if (!galleryImages.length) return undefined;
+    const idxs = new Set([
+      selectedImageIndex,
+      (selectedImageIndex + 1) % galleryImages.length,
+      (selectedImageIndex - 1 + galleryImages.length) % galleryImages.length,
+    ]);
+    const loaders = [...idxs].map((idx) => {
+      const url = galleryImages[idx];
+      if (!url) return null;
+      const img = new Image();
+      img.src = getOptimizedImageUrl(url, IMAGE_WIDTHS.DETAIL);
+      return img;
+    });
+    return () => {
+      loaders.forEach((img) => {
+        if (img) img.src = '';
+      });
+    };
+  }, [galleryImages, selectedImageIndex]);
+
+  const loading = Boolean(isLoading || (!product && !error && !isNotFound));
+  const notFound = Boolean((isNotFound || (error && !product)) && !loading);
   const errorType = isNotFound ? "not_found" : "server_error";
 
   if (loading) {
@@ -470,15 +517,8 @@ const ProductDetailsPage = () => {
     );
   }
 
-  const safeIndex = Math.min(selectedImageIndex, galleryImages.length - 1);
+  const safeIndex = Math.min(selectedImageIndex, Math.max(galleryImages.length - 1, 0));
   const activeImageRawUrl = galleryImages[safeIndex];
-  const activeImageSources = brokenGalleryUrls.has(activeImageRawUrl)
-    ? { src: getRawCloudinaryUrl(activeImageRawUrl), srcSet: undefined, sizes: undefined }
-    : getResponsiveCloudinarySources(activeImageRawUrl, {
-        widths: RESPONSIVE_WIDTHS.DETAIL,
-        sizes: RESPONSIVE_SIZES.DETAIL,
-        fallbackWidth: IMAGE_WIDTHS.DETAIL,
-      });
 
   const handleGalleryImageError = (url) => {
     setBrokenGalleryUrls((prev) => {
@@ -488,6 +528,16 @@ const ProductDetailsPage = () => {
       return next;
     });
   };
+
+  const getGallerySources = (url) => (
+    brokenGalleryUrls.has(url)
+      ? { src: getRawCloudinaryUrl(url), srcSet: undefined, sizes: undefined }
+      : getResponsiveCloudinarySources(url, {
+          widths: RESPONSIVE_WIDTHS.DETAIL,
+          sizes: RESPONSIVE_SIZES.DETAIL,
+          fallbackWidth: IMAGE_WIDTHS.DETAIL,
+        })
+  );
 
   const getGalleryThumbUrl = (url) => (
     brokenGalleryUrls.has(url)
@@ -509,65 +559,31 @@ const ProductDetailsPage = () => {
     displayStock > 0 ? { icon: ShieldCheck, text: "متوفر للطلب" } : null,
   ].filter(Boolean);
 
-  const quantityStepper = (
-    <div
-      className="inline-flex items-center border border-stone-300 dark:border-stone-600 rounded-sm overflow-hidden shrink-0"
-      aria-label="الكمية"
-    >
-      <button
-        type="button"
-        onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-        disabled={quantity <= 1}
-        className="min-w-[40px] min-h-[40px] flex items-center justify-center text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-800 disabled:opacity-40"
-        aria-label="تقليل الكمية"
-      >
-        <Minus className="w-4 h-4" aria-hidden="true" />
-      </button>
-      <span className="w-10 text-center text-sm font-bold text-stone-900 dark:text-white" aria-live="polite">
-        {quantity}
-      </span>
-      <button
-        type="button"
-        onClick={() => setQuantity((q) => Math.min(displayStock || 999, q + 1))}
-        disabled={quantity >= displayStock}
-        className="min-w-[40px] min-h-[40px] flex items-center justify-center text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-800 disabled:opacity-40"
-        aria-label="زيادة الكمية"
-      >
-        <Plus className="w-4 h-4" aria-hidden="true" />
-      </button>
-    </div>
-  );
-
   const purchaseBlock = (
     <div className="flex flex-col px-3 sm:px-0 pt-3 sm:pt-0">
-      {/* RTL: title/desc/price on the right, quantity on the left */}
-      <div className="mb-3 flex items-start justify-between gap-3">
-        <div className="min-w-0 flex-1">
-          <h1 className="text-base sm:text-lg font-extrabold text-stone-900 dark:text-white leading-snug">
-            {product.title}
-          </h1>
+      <div className="mb-3">
+        <h1 className="text-base sm:text-lg font-extrabold text-stone-900 dark:text-white leading-snug">
+          {product.title}
+        </h1>
 
-          <div className="mt-2.5">
-            <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-              <span className="text-2xl sm:text-3xl font-extrabold text-[#e6533d] dark:text-[#ff7a62] tracking-tight tabular-nums">
-                {formatPrice(finalPrice, product.currency)}
-              </span>
-              {hasDiscount && (
-                <span className="text-sm text-stone-400 line-through tabular-nums">
-                  {formatPrice(displayPrice, product.currency)}
-                </span>
-              )}
-            </div>
+        <div className="mt-2.5">
+          <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+            <span className="text-2xl sm:text-3xl font-extrabold text-[#e6533d] dark:text-[#ff7a62] tracking-tight tabular-nums">
+              {formatPrice(finalPrice, product.currency)}
+            </span>
             {hasDiscount && (
-              <p className="text-xs font-semibold text-[#e6533d] mt-1">
-                وفر {formatPrice(savingsAmount, product.currency)} ({discountPercent}%)
-              </p>
+              <span className="text-sm text-stone-400 line-through tabular-nums">
+                {formatPrice(displayPrice, product.currency)}
+              </span>
             )}
-            <ExpandableDescription text={product.description} />
           </div>
+          {hasDiscount && (
+            <p className="text-xs font-semibold text-[#e6533d] mt-1">
+              وفر {formatPrice(savingsAmount, product.currency)} ({discountPercent}%)
+            </p>
+          )}
+          <ExpandableDescription text={product.description} />
         </div>
-
-        {quantityStepper}
       </div>
 
       <div className="hidden lg:flex items-center gap-1 flex-shrink-0 mb-3">
@@ -797,22 +813,50 @@ const ProductDetailsPage = () => {
         }`}
         {...(galleryImages.length > 1 ? gallerySwipe : {})}
       >
+        {!heroImageLoaded && (
+          <div
+            className="absolute inset-0 z-[2] skeleton-shimmer pointer-events-none"
+            aria-hidden="true"
+          />
+        )}
         <button
           type="button"
           onClick={() => setLightboxOpen(true)}
           className="absolute inset-0 w-full h-full cursor-zoom-in focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gold-500/60"
           aria-label="عرض الصورة بملء الشاشة"
         >
-          <img
-            src={activeImageSources.src}
-            srcSet={activeImageSources.srcSet}
-            sizes={activeImageSources.sizes}
-            alt={imageAltByUrl[activeImageRawUrl] || product.title}
-            className="w-full h-full object-cover"
-            fetchPriority="high"
-            draggable={false}
-            onError={() => handleGalleryImageError(activeImageRawUrl)}
-          />
+          {galleryImages.map((url, idx) => {
+            const sources = getGallerySources(url);
+            const isActive = idx === safeIndex;
+            const isNear = Math.abs(idx - safeIndex) <= 1
+              || (safeIndex === 0 && idx === galleryImages.length - 1)
+              || (safeIndex === galleryImages.length - 1 && idx === 0);
+            if (!isActive && !isNear && idx > 2) return null;
+            return (
+              <img
+                key={`${url}-${idx}`}
+                src={sources.src}
+                srcSet={sources.srcSet}
+                sizes={sources.sizes}
+                alt={isActive ? (imageAltByUrl[url] || product.title) : ''}
+                aria-hidden={!isActive}
+                className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-200 ease-out ${
+                  isActive && heroImageLoaded ? 'opacity-100 z-[1]' : 'opacity-0 z-0 pointer-events-none'
+                }`}
+                fetchPriority={isActive || idx === 0 ? 'high' : 'low'}
+                loading={isActive || isNear || idx < 2 ? 'eager' : 'lazy'}
+                decoding="async"
+                draggable={false}
+                onLoad={() => {
+                  if (isActive) setHeroImageLoaded(true);
+                }}
+                onError={() => {
+                  handleGalleryImageError(url);
+                  if (isActive) setHeroImageLoaded(true);
+                }}
+              />
+            );
+          })}
         </button>
         <span className="pointer-events-none absolute bottom-3 left-3 z-10 flex items-center justify-center w-8 h-8 rounded-full bg-black/40 text-white" aria-hidden="true">
           <ZoomIn className="w-4 h-4" />
@@ -965,7 +1009,7 @@ const ProductDetailsPage = () => {
           )}
         </div>
 
-        {product.categoryName && (
+        {(product.categoryName || product.categoryNames?.length) && (
           <div className="px-3 sm:px-6 lg:px-8 max-w-6xl mx-auto mt-6 pb-4">
             <RelatedProducts
               categoryName={product.categoryName}

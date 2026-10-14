@@ -6,11 +6,13 @@ const prisma = require('../prismaClient');
 const exchangeRatesService = require('./exchangeRatesService');
 const siteConfigService = require('./siteConfigService');
 
-const BACKUP_APP_NAME = 'GHSSAN_Store';
-const BACKUP_VERSION = '2.0';
+const BACKUP_APP_NAME = 'SmartShoperStore';
+/** Current export format. Restores also accept 2.0 (pre-notification tables). */
+const BACKUP_VERSION = '2.1';
+const SUPPORTED_BACKUP_VERSIONS = new Set(['2.0', '2.1']);
 const LEGACY_BACKUP_VERSION = '1.0';
 
-/** Tables required in a v2 backup payload (excluding sidecar exchangeRates). */
+/** Tables required in a v2+ backup payload (excluding sidecar exchangeRates). */
 const REQUIRED_TABLES_V2 = [
   'users',
   'brands',
@@ -33,10 +35,30 @@ const REQUIRED_TABLES_V2 = [
   'orderItems',
   'cartItems',
   'favorites',
+  'deviceTokens',
+  'notificationPreferences',
+  'notifications',
+  'notificationCampaigns',
+  'notificationDeliveries',
+  'coupons',
+  'couponRedemptions',
 ];
 
-/** Added after initial v2 — missing keys in older exports are treated as []. */
-const OPTIONAL_V2_TABLES = new Set(['productCategories', 'productSpecs']);
+/**
+ * Missing keys in older exports are treated as [].
+ * Includes catalog tables added mid-v2, push-notification tables (v2.1), coupons.
+ */
+const OPTIONAL_V2_TABLES = new Set([
+  'productCategories',
+  'productSpecs',
+  'deviceTokens',
+  'notificationPreferences',
+  'notifications',
+  'notificationCampaigns',
+  'notificationDeliveries',
+  'coupons',
+  'couponRedemptions',
+]);
 
 /** Maps backup restore tx delegate names to Prisma model names. */
 const TX_TO_PRISMA_MODEL = {
@@ -62,6 +84,13 @@ const TX_TO_PRISMA_MODEL = {
   cartItem: 'CartItem',
   favorite: 'Favorite',
   auditLog: 'AuditLog',
+  deviceToken: 'DeviceToken',
+  notificationPreference: 'NotificationPreference',
+  notification: 'Notification',
+  notificationCampaign: 'NotificationCampaign',
+  notificationDelivery: 'NotificationDelivery',
+  coupon: 'Coupon',
+  couponRedemption: 'CouponRedemption',
 };
 
 const scalarFieldsCache = new Map();
@@ -174,6 +203,13 @@ async function collectBackupData() {
   const orderItems = await prisma.orderItem.findMany();
   const cartItems = await prisma.cartItem.findMany();
   const favorites = await prisma.favorite.findMany();
+  const deviceTokens = await prisma.deviceToken.findMany();
+  const notificationPreferences = await prisma.notificationPreference.findMany();
+  const notifications = await prisma.notification.findMany();
+  const notificationCampaigns = await prisma.notificationCampaign.findMany();
+  const notificationDeliveries = await prisma.notificationDelivery.findMany();
+  const coupons = await prisma.coupon.findMany();
+  const couponRedemptions = await prisma.couponRedemption.findMany();
   const exchangeRates = await readExchangeRatesForBackup();
 
   return toPlain({
@@ -194,10 +230,17 @@ async function collectBackupData() {
     branches,
     systemSettings,
     banners,
+    coupons,
     orders,
     orderItems,
+    couponRedemptions,
     cartItems,
     favorites,
+    deviceTokens,
+    notificationPreferences,
+    notifications,
+    notificationCampaigns,
+    notificationDeliveries,
     exchangeRates,
   });
 }
@@ -246,12 +289,12 @@ function validateBackupPayload(backupPayload, { allowEmpty = false } = {}) {
   }
   if (metadata.version === LEGACY_BACKUP_VERSION) {
     const err = new Error(
-      'هذه نسخة قديمة (v1.0) ناقصة جداول الكتالوج. صدّر نسخة جديدة v2.0 أو استعد عبر pg_dump.',
+      'هذه نسخة قديمة (v1.0) ناقصة جداول الكتالوج. صدّر نسخة جديدة v2.1 أو استعد عبر pg_dump.',
     );
     err.statusCode = 400;
     throw err;
   }
-  if (metadata.version !== BACKUP_VERSION) {
+  if (!SUPPORTED_BACKUP_VERSIONS.has(metadata.version)) {
     const err = new Error('إصدار ملف النسخ الاحتياطي غير متوافق');
     err.statusCode = 400;
     throw err;
@@ -297,6 +340,12 @@ async function writePreRestoreSnapshot(generatedBy = 'SYSTEM_PRE_RESTORE') {
 }
 
 async function wipeStoreTables(tx) {
+  await tx.notificationDelivery.deleteMany();
+  await tx.notification.deleteMany();
+  await tx.notificationCampaign.deleteMany();
+  await tx.notificationPreference.deleteMany();
+  await tx.deviceToken.deleteMany();
+  await tx.couponRedemption.deleteMany();
   await tx.orderItem.deleteMany();
   await tx.cartItem.deleteMany();
   await tx.favorite.deleteMany();
@@ -309,6 +358,7 @@ async function wipeStoreTables(tx) {
   await tx.productImage.deleteMany();
   await tx.productVariant.deleteMany();
   await tx.order.deleteMany();
+  await tx.coupon.deleteMany();
   await tx.product.deleteMany();
   await tx.categoryAttribute.deleteMany();
   await tx.banner.deleteMany();
@@ -358,7 +408,7 @@ async function dropLegacyProductSellerIdIfPresent(tx) {
 }
 
 /**
- * Add newer catalog columns when the DB was created from older migrations.
+ * Add newer catalog / settings columns when the DB was created from older migrations.
  * Safe to run on every restore; uses IF NOT EXISTS.
  */
 async function ensureOptionalRestoreColumns(tx) {
@@ -366,7 +416,26 @@ async function ensureOptionalRestoreColumns(tx) {
     { table: 'CategoryAttribute', column: 'options', ddl: 'TEXT' },
     { table: 'ProductVariant', column: 'imageUrl', ddl: 'TEXT' },
     { table: 'Product', column: 'isTrending', ddl: 'BOOLEAN NOT NULL DEFAULT false' },
+    { table: 'Product', column: 'showStock', ddl: 'BOOLEAN NOT NULL DEFAULT true' },
+    { table: 'Product', column: 'searchKeywords', ddl: 'TEXT' },
+    { table: 'Product', column: 'searchText', ddl: 'TEXT' },
     { table: 'Banner', column: 'peekProductIds', ddl: 'JSONB' },
+    { table: 'Banner', column: 'textColor', ddl: 'TEXT' },
+    { table: 'Banner', column: 'scrollSpeed', ddl: 'INTEGER NOT NULL DEFAULT 40' },
+    { table: 'Brand', column: 'isActive', ddl: 'BOOLEAN NOT NULL DEFAULT true' },
+    { table: 'Order', column: 'idempotencyKey', ddl: 'TEXT' },
+    { table: 'Order', column: 'couponId', ddl: 'UUID' },
+    { table: 'Order', column: 'couponCode', ddl: 'TEXT' },
+    { table: 'Order', column: 'discountType', ddl: 'TEXT' },
+    { table: 'Order', column: 'discountPercent', ddl: 'INTEGER' },
+    { table: 'Order', column: 'discountAmount', ddl: 'DECIMAL(18,2)' },
+    { table: 'Order', column: 'subtotalBeforeDiscount', ddl: 'DECIMAL(18,2)' },
+    { table: 'SystemSetting', column: 'telegramUrl', ddl: 'TEXT' },
+    { table: 'SystemSetting', column: 'linkedinUrl', ddl: 'TEXT' },
+    { table: 'SystemSetting', column: 'threadsUrl', ddl: 'TEXT' },
+    { table: 'SystemSetting', column: 'privacyPolicyText', ddl: 'TEXT' },
+    { table: 'SystemSetting', column: 'exchangeRates', ddl: 'JSONB' },
+    { table: 'SystemSetting', column: 'whatsappContacts', ddl: 'JSONB' },
   ];
 
   for (const { table, column, ddl } of optionalColumns) {
@@ -418,6 +487,9 @@ async function restoreFromPayload(
       await insertMany(tx, 'branch', data.branches);
       await insertMany(tx, 'systemSetting', data.systemSettings);
       await insertMany(tx, 'banner', data.banners);
+      const coupons = data.coupons || [];
+      const validCouponIds = new Set(coupons.map((c) => c.id));
+      await insertMany(tx, 'coupon', coupons);
       await insertMany(tx, 'product', data.products);
       await insertMany(tx, 'productCategory', data.productCategories);
       await insertMany(tx, 'productImage', data.productImages);
@@ -427,12 +499,52 @@ async function restoreFromPayload(
       await insertMany(tx, 'productSpec', data.productSpecs);
       await insertMany(tx, 'productScent', data.productScents);
       await insertMany(tx, 'review', data.reviews);
-      await insertMany(tx, 'order', data.orders);
+      // Drop dangling coupon FKs (e.g. older backups missing coupons, or filtered rows).
+      const orders = (data.orders || []).map((row) => ({
+        ...row,
+        couponId: row.couponId && validCouponIds.has(row.couponId) ? row.couponId : null,
+      }));
+      await insertMany(tx, 'order', orders);
       await insertMany(tx, 'orderItem', data.orderItems);
+      const validOrderIds = new Set(orders.map((o) => o.id));
+      await insertMany(
+        tx,
+        'couponRedemption',
+        (data.couponRedemptions || []).filter(
+          (row) => validOrderIds.has(row.orderId) && validCouponIds.has(row.couponId),
+        ),
+      );
       await insertMany(tx, 'cartItem', data.cartItems);
       await insertMany(tx, 'favorite', data.favorites);
 
       const validUserIds = new Set((data.users || []).map((u) => u.id));
+
+      // Push notifications — only rows whose user/token FKs exist in this restore.
+      const deviceTokens = (data.deviceTokens || []).filter((row) => validUserIds.has(row.userId));
+      const validDeviceTokenIds = new Set(deviceTokens.map((row) => row.id));
+      await insertMany(tx, 'deviceToken', deviceTokens);
+      await insertMany(
+        tx,
+        'notificationPreference',
+        (data.notificationPreferences || []).filter((row) => validUserIds.has(row.userId)),
+      );
+      const notifications = (data.notifications || []).filter((row) => validUserIds.has(row.userId));
+      const validNotificationIds = new Set(notifications.map((row) => row.id));
+      await insertMany(tx, 'notification', notifications);
+      await insertMany(
+        tx,
+        'notificationCampaign',
+        (data.notificationCampaigns || []).filter((row) => validUserIds.has(row.createdById)),
+      );
+      await insertMany(
+        tx,
+        'notificationDelivery',
+        (data.notificationDeliveries || []).filter(
+          (row) =>
+            validNotificationIds.has(row.notificationId)
+            && validDeviceTokenIds.has(row.deviceTokenId),
+        ),
+      );
 
       if (existingAuditLogs.length > 0) {
         const adjustedLogs = existingAuditLogs.map((log) => ({
@@ -456,12 +568,12 @@ async function restoreFromPayload(
         data: {
           action: 'DATABASE_RESTORED',
           userId: restoreActorId,
-          details: 'Admin restored database from backup file (v2.0)',
+          details: 'Admin restored database from backup file (v2.1)',
           ipAddress: ipAddress || null,
         },
       });
     },
-    { timeout: 120000 },
+    { timeout: 180000 },
   );
 
   if (data.exchangeRates && typeof data.exchangeRates === 'object') {
@@ -474,7 +586,9 @@ async function restoreFromPayload(
 module.exports = {
   BACKUP_APP_NAME,
   BACKUP_VERSION,
+  SUPPORTED_BACKUP_VERSIONS,
   REQUIRED_TABLES_V2,
+  OPTIONAL_V2_TABLES,
   buildBackupPayload,
   gzipJson,
   parseBackupBuffer,

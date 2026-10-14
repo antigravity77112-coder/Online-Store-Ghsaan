@@ -56,6 +56,16 @@ export function clearAnyExpectedListingReturn() {
   expectedReturnKey = null;
 }
 
+/** Drop frozen Back-restore Y so load-more cannot re-jump to an old position. */
+export function clearListingRestoreScrollY(listingKey) {
+  if (!listingKey) return;
+  const prev = listingMemory.get(listingKey);
+  if (!prev || prev.restoreScrollY == null) return;
+  const next = { ...prev };
+  delete next.restoreScrollY;
+  listingMemory.set(listingKey, next);
+}
+
 /**
  * Return an existing shuffleSeed for `key`, or create + store a new one.
  * Stable across SPA remounts; new on F5.

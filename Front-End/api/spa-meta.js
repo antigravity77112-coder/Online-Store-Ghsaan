@@ -81,6 +81,7 @@ function toAbsoluteUrl(url) {
 function toShareImage(url) {
   const abs = toAbsoluteUrl(url);
   if (!abs) return null;
+  // Only Cloudinary supports on-the-fly crop transforms; R2/relative URLs pass through.
   if (!abs.includes('res.cloudinary.com/') || !abs.includes('/upload/')) return abs;
   if (/\/upload\/[^/]*w_1200/.test(abs)) return abs;
   return abs.replace('/upload/', '/upload/w_1200,h_630,c_fill,f_jpg,q_auto/');

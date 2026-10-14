@@ -10,6 +10,7 @@ import {
   AdminFilterChips,
   AdminEmptyState,
   AdminFadeIn,
+  AdminSwitch,
 } from './AdminUI';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -26,18 +27,22 @@ import {
   ExternalLink,
   CheckSquare,
   Square,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 import * as api from '../../services/api';
 import { confirmDiscardDraft } from '../../utils/adminDraftConfirm';
 import { matchesSearch } from '../../utils/arabicSearch';
 
-const EMPTY_BRAND_FORM = { name: '', slug: '', description: '', logoUrl: '' };
+const EMPTY_BRAND_FORM = { name: '', slug: '', description: '', logoUrl: '', isActive: true };
 
 const DESKTOP_GRID =
   'hidden lg:grid lg:grid-cols-[40px_56px_minmax(160px,1fr)_minmax(100px,140px)_72px_140px] lg:gap-3 lg:items-center';
 
 const AdminBrandsTab = ({ onSuccessMsg }) => {
-  const { data: brands, mutate, error: fetchError } = useSWR('adminBrands', api.getBrands);
+  const { data: brands, mutate, error: fetchError } = useSWR('adminBrands', () =>
+    api.getBrands({ includeInactive: true }),
+  );
   const [searchQuery, setSearchQuery] = useState('');
   const [logoFilter, setLogoFilter] = useState('all');
   const [selectedIds, setSelectedIds] = useState(new Set());
@@ -139,6 +144,7 @@ const AdminBrandsTab = ({ onSuccessMsg }) => {
         slug: brand.slug || '',
         description: brand.description || '',
         logoUrl: brand.logoUrl || '',
+        isActive: brand.isActive !== false,
       };
       setForm(next);
       baselineRef.current = JSON.stringify(next);
@@ -211,6 +217,16 @@ const AdminBrandsTab = ({ onSuccessMsg }) => {
       setFormError(err.message || 'حدث خطأ أثناء الحفظ');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleToggleActive = async (brand) => {
+    try {
+      await api.updateBrand(brand.id, { isActive: brand.isActive === false });
+      onSuccessMsg(brand.isActive === false ? 'تم إظهار العلامة التجارية' : 'تم إخفاء العلامة التجارية');
+      mutate();
+    } catch (err) {
+      setFormError(err.message || 'فشل تحديث حالة العلامة');
     }
   };
 
@@ -415,9 +431,16 @@ const AdminBrandsTab = ({ onSuccessMsg }) => {
                         )}
                       </div>
 
-                      <p className="font-bold text-sm text-slate-900 dark:text-white truncate" title={brand.name}>
-                        {brand.name}
-                      </p>
+                      <div className="min-w-0 flex items-center gap-2">
+                        <p className="font-bold text-sm text-slate-900 dark:text-white truncate" title={brand.name}>
+                          {brand.name}
+                        </p>
+                        {brand.isActive === false && (
+                          <span className="shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500">
+                            مخفي
+                          </span>
+                        )}
+                      </div>
 
                       <p className="text-xs font-mono text-slate-500 truncate" dir="ltr" title={brand.slug}>
                         /{brand.slug || '—'}
@@ -428,6 +451,14 @@ const AdminBrandsTab = ({ onSuccessMsg }) => {
                       </p>
 
                       <div className="flex items-center justify-center gap-0.5 relative z-10">
+                        <button
+                          type="button"
+                          onClick={() => handleToggleActive(brand)}
+                          title={brand.isActive === false ? 'إظهار' : 'إخفاء'}
+                          className="p-1.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/30 rounded-lg"
+                        >
+                          {brand.isActive === false ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                        </button>
                         <button
                           type="button"
                           onClick={() => handleOpenModal(brand)}
@@ -619,19 +650,43 @@ const AdminBrandsTab = ({ onSuccessMsg }) => {
                           onChange={handleLogoUpload}
                           className="hidden"
                         />
-                        <button
-                          type="button"
-                          onClick={() => fileInputRef.current?.click()}
-                          disabled={uploading || loading}
-                          className="px-4 py-2 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-300 text-xs font-bold rounded-lg hover:bg-slate-50 dark:hover:bg-slate-600 transition-colors disabled:opacity-50"
-                        >
-                          {uploading ? 'جاري الرفع...' : 'اختيار صورة الغلاف'}
-                        </button>
+                        <div className="flex flex-wrap gap-2">
+                          <button
+                            type="button"
+                            onClick={() => fileInputRef.current?.click()}
+                            disabled={uploading || loading}
+                            className="px-4 py-2 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-300 text-xs font-bold rounded-lg hover:bg-slate-50 dark:hover:bg-slate-600 transition-colors disabled:opacity-50"
+                          >
+                            {uploading ? 'جاري الرفع...' : form.logoUrl ? 'تغيير الصورة' : 'اختيار صورة الغلاف'}
+                          </button>
+                          {form.logoUrl ? (
+                            <button
+                              type="button"
+                              onClick={() => applyForm({ ...form, logoUrl: '' })}
+                              disabled={uploading || loading}
+                              className="px-3 py-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 text-xs font-bold rounded-lg hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors disabled:opacity-50"
+                            >
+                              إزالة الصورة
+                            </button>
+                          ) : null}
+                        </div>
                         <p className="text-[10px] text-slate-400 mt-1 leading-relaxed">
                           المقاس الأفضل: مربع 1200×1200 بكسل (1:1). تظهر في المتجر كبطاقة مربعة بقصّ الغلاف مثل صور المنتجات.
                         </p>
                       </div>
                     </div>
+                  </div>
+
+                  <div className="flex items-center justify-between gap-3 p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50">
+                    <div>
+                      <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">إظهار في المتجر</p>
+                      <p className="text-[11px] text-slate-400">عند الإيقاف تُخفى العلامة من القوائم وصفحتها العامة.</p>
+                    </div>
+                    <AdminSwitch
+                      checked={form.isActive !== false}
+                      aria-label="إظهار العلامة التجارية"
+                      onChange={(next) => applyForm({ ...form, isActive: next })}
+                    />
                   </div>
 
                   <div>

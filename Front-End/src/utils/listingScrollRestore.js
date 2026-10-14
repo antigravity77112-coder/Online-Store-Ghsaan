@@ -1,11 +1,12 @@
 /**
  * Module-level listing scroll restore.
  * Survives React remounts / effect cleanups. No localStorage.
- * Wait for pagesReady / height, then one instant jump (no crawl).
+ * Apply target Y immediately to avoid top-flash, then correct once layout is tall enough.
  */
 
 import {
   clearExpectedListingReturn,
+  clearListingRestoreScrollY,
   getListingMemory,
   isExpectedListingReturn,
   markListingExitToProduct,
@@ -15,6 +16,8 @@ const THRESHOLD = 48;
 const MAX_MS = 6000;
 /** After pagesReady, briefly retry if images still growing height. */
 const POST_READY_RETRY_MS = 400;
+/** If the user scrolls away from the restore target, abort (do not fight them). */
+const USER_SCROLL_ABORT_PX = 120;
 
 let activeKey = null;
 /** Frozen Y for the active restore — never re-read from live scroll persist. */
@@ -24,10 +27,9 @@ let startedAt = 0;
 let pagesReadyFlag = false;
 let safetyTimer = 0;
 let postReadyTimer = 0;
-
-function readScrollY() {
-  return window.scrollY || document.documentElement.scrollTop || 0;
-}
+/** Listing keys whose Back-restore already finished this visit (blocks load-more re-jumps). */
+const finishedKeys = new Set();
+let userScrollAbortBound = false;
 
 function maxScrollY() {
   const doc = document.documentElement;
@@ -60,8 +62,35 @@ export function isListingScrollRestoreActive() {
   return activeKey != null;
 }
 
+function unbindUserScrollAbort() {
+  if (!userScrollAbortBound) return;
+  window.removeEventListener('wheel', onUserScrollAbort, true);
+  window.removeEventListener('touchmove', onUserScrollAbort, true);
+  window.removeEventListener('pointerdown', onUserScrollAbort, true);
+  userScrollAbortBound = false;
+}
+
+function onUserScrollAbort() {
+  const listingKey = activeKey;
+  const y = frozenTargetY;
+  if (!listingKey || typeof y !== 'number') return;
+  const current = window.scrollY || document.documentElement.scrollTop || 0;
+  // Only abort once the user has clearly moved away from the restore target.
+  if (Math.abs(current - y) < USER_SCROLL_ABORT_PX) return;
+  finish(listingKey);
+}
+
+function bindUserScrollAbort() {
+  if (userScrollAbortBound) return;
+  window.addEventListener('wheel', onUserScrollAbort, { capture: true, passive: true });
+  window.addEventListener('touchmove', onUserScrollAbort, { capture: true, passive: true });
+  window.addEventListener('pointerdown', onUserScrollAbort, { capture: true, passive: true });
+  userScrollAbortBound = true;
+}
+
 /** Sync capture before navigating to a product (call from pointerdown). */
 export function captureListingExit(listingKey) {
+  if (listingKey) finishedKeys.delete(listingKey);
   markListingExitToProduct(listingKey);
 }
 
@@ -69,10 +98,15 @@ export function stopListingScrollRestore() {
   activeKey = null;
   frozenTargetY = null;
   pagesReadyFlag = false;
+  unbindUserScrollAbort();
   clearTimers();
 }
 
 function finish(listingKey) {
+  if (listingKey) {
+    finishedKeys.add(listingKey);
+    clearListingRestoreScrollY(listingKey);
+  }
   stopListingScrollRestore();
   clearExpectedListingReturn(listingKey);
 }
@@ -110,8 +144,9 @@ function tick() {
   const elapsed = Date.now() - startedAt;
   const tallEnough = maxY >= y - THRESHOLD;
 
-  // Wait — do NOT applyY while short (that caused the slow crawl UX).
+  // Keep the best available position while waiting (avoids staying stuck at top).
   if (!tallEnough && !pagesReadyFlag && elapsed < MAX_MS) {
+    applyY(Math.min(y, Math.max(maxY, 0)));
     rafId = requestAnimationFrame(tick);
     return;
   }
@@ -136,18 +171,16 @@ function tick() {
 /**
  * Start (or continue) restoring window.scrollY for listingKey.
  * Loop lives outside React so remounts cannot cancel it.
+ * After finish(), further calls are no-ops until the next product exit
+ * (prevents infinite-scroll pagesReady flaps from yanking scroll mid-browse).
  */
 export function startListingScrollRestore(listingKey, { pagesReady = false } = {}) {
   if (!listingKey) return;
   if (typeof window === 'undefined') return;
 
-  const mem = getListingMemory(listingKey);
-  const target = mem?.restoreScrollY ?? mem?.scrollY;
-  if (typeof target !== 'number' || target <= 8) return;
-
-  if (pagesReady) pagesReadyFlag = true;
-
+  // Continue an in-flight restore only.
   if (activeKey === listingKey) {
+    if (pagesReady) pagesReadyFlag = true;
     if (pagesReadyFlag) {
       clearTimers();
       tick();
@@ -157,11 +190,23 @@ export function startListingScrollRestore(listingKey, { pagesReady = false } = {
     return;
   }
 
+  // Do not restart after this visit's restore already completed.
+  if (finishedKeys.has(listingKey)) return;
+
+  const mem = getListingMemory(listingKey);
+  // Prefer frozen exit Y; never fall back to live scrollY (that fights the user).
+  const target = mem?.restoreScrollY;
+  if (typeof target !== 'number' || target <= 8) return;
+
   stopListingScrollRestore();
   activeKey = listingKey;
   frozenTargetY = target;
   pagesReadyFlag = Boolean(pagesReady);
   startedAt = Date.now();
+  bindUserScrollAbort();
+
+  // Immediate paint at best-effort Y so Back never flashes the top of the page.
+  applyY(Math.min(target, Math.max(maxScrollY(), 0)));
 
   tick();
 

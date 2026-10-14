@@ -558,7 +558,7 @@ function AdminBannersTab({ showSuccess, setError }) {
             <div className="flex items-start gap-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl px-4 py-3">
               <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
               <p className="text-sm text-amber-700 dark:text-amber-300 font-medium">
-                يوجد أكثر من بانر نشط في: {[...conflicts].map(p => placementLabel(p)).join('، ')}. ستُعرض جميعها في عرض دوّار تلقائي حسب الأولوية.
+                «تعارض» يعني أكثر من بانر نشط لنفس المكان ({[...conflicts].map(p => placementLabel(p)).join('، ')}) — سيُعرضان بالتناوب (دوّار) حسب الأولوية، وليس خطأ يمنع الحفظ.
               </p>
             </div>
           )}
@@ -601,7 +601,10 @@ function AdminBannersTab({ showSuccess, setError }) {
                           <h4 className="font-bold text-slate-900 dark:text-white truncate">{b.title || 'بدون عنوان'}</h4>
                           <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-bold ${st.color}`}>{st.label}</span>
                           {conflicts.has(b.placement) && b.status === 'active' && (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300">
+                            <span
+                              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300"
+                              title="أكثر من بانر نشط لنفس المكان — سيُعرضان بالتناوب"
+                            >
                               <AlertTriangle className="w-3 h-3" /> تعارض
                             </span>
                           )}

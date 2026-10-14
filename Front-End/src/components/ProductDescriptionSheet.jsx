@@ -125,7 +125,13 @@ export default function ProductDescriptionSheet({
   const hasRows = rows.length > 0;
 
   return createPortal(
-    <div className="fixed inset-0 z-[80] flex items-end sm:items-center justify-center" role="dialog" aria-modal="true" aria-labelledby="product-desc-title">
+    <div
+      className="fixed inset-0 z-[80] flex items-end sm:items-center justify-center"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="product-desc-title"
+      dir="rtl"
+    >
       <button
         type="button"
         className="absolute inset-0 bg-black/45"
@@ -147,40 +153,42 @@ export default function ProductDescriptionSheet({
           </button>
         </div>
 
-        <div className="overflow-y-auto overscroll-contain px-4 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
+        <div className="overflow-y-auto overscroll-contain px-5 sm:px-8 py-4 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
           {hasRows ? (
-            <div>
-              <ul className="divide-y divide-stone-100 dark:divide-stone-800">
-                {rows.map((row, idx) => (
-                  <li
-                    key={`${row.label}-${idx}`}
-                    className="flex items-start justify-between gap-4 py-3.5 text-sm leading-[1.45]"
-                  >
-                    <span className="shrink-0 max-w-[45%] text-stone-500 dark:text-stone-400 text-start">
-                      {row.label}
-                    </span>
-                    <span className="min-w-0 flex-1 font-medium text-stone-900 dark:text-stone-100 text-end break-words">
-                      {row.href ? (
-                        <Link
-                          to={row.href}
-                          className="text-gold-700 dark:text-gold-400 hover:underline underline-offset-2"
-                          onClick={onClose}
-                        >
-                          {row.value}
-                        </Link>
-                      ) : (
-                        row.value
-                      )}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ) : null}
-
-          {!hasRows ? (
+            <ul className="mx-auto max-w-sm space-y-0">
+              {rows.map((row, idx) => (
+                <li
+                  key={`${row.label}-${idx}`}
+                  className="grid grid-cols-[1fr_auto_1fr] items-center gap-x-2.5 py-2.5 text-sm leading-[1.5]"
+                  dir="rtl"
+                >
+                  {/* Right column (RTL start): label */}
+                  <span className="min-w-0 text-right font-semibold text-stone-800 dark:text-stone-100 break-words">
+                    {row.label}
+                  </span>
+                  <span className="select-none text-stone-300 dark:text-stone-600 font-light" aria-hidden="true">
+                    |
+                  </span>
+                  {/* Left column (RTL end): value */}
+                  <span className="min-w-0 text-left text-stone-600 dark:text-stone-300 break-words">
+                    {row.href ? (
+                      <Link
+                        to={row.href}
+                        className="text-gold-700 dark:text-gold-400 hover:underline underline-offset-2"
+                        onClick={onClose}
+                      >
+                        {row.value}
+                      </Link>
+                    ) : (
+                      row.value
+                    )}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          ) : (
             <p className="py-8 text-center text-sm text-stone-500">لا توجد مواصفات مضافة لهذا المنتج.</p>
-          ) : null}
+          )}
         </div>
       </div>
     </div>,

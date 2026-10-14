@@ -8,7 +8,7 @@ import SEO from '../components/SEO';
 import BrandIntroOverlay from '../components/BrandIntroOverlay';
 import CategoryIconGrid from '../components/CategoryIconGrid';
 import HeroSection from '../components/HeroSection';
-import PromoBannerMosaic from '../components/PromoBannerMosaic';
+import BannerRenderer from '../components/BannerRenderer';
 import ProductVerticalSection from '../components/ProductVerticalSection';
 import HomeServiceBar from '../components/HomeServiceBar';
 import HomeProductFeed from '../components/HomeProductFeed';
@@ -126,9 +126,10 @@ const HomePage = () => {
           )}
         </div>
 
-        <div className="mx-auto max-w-7xl space-y-3 px-3 pb-4 pt-3 sm:px-4 lg:px-8 md:pb-10">
-          <PromoBannerMosaic placement="promo_home" maxTiles={3} />
+        {/* Full-bleed promo carousel — same fade / swipe / dots as HeroSection */}
+        <BannerRenderer placement="promo_home" className="w-full" />
 
+        <div className="mx-auto max-w-7xl space-y-3 px-3 pb-4 pt-3 sm:px-4 lg:px-8 md:pb-10">
           {(productsError || feedError) && (
             <div className="rounded-sm border border-rose-200 bg-rose-50 px-3 py-2.5 text-sm text-rose-700 dark:border-rose-900/60 dark:bg-rose-950/40 dark:text-rose-300">
               تعذر تحميل المنتجات حالياً: {(productsError || feedError)?.message || 'حدث خطأ غير متوقع'}

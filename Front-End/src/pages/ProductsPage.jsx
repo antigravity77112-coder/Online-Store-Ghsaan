@@ -253,6 +253,7 @@ const ProductsPage = () => {
 
         <ProductListingToolbar
           productCount={filteredProducts.length}
+          showProductCount={!committedSearch.trim()}
           isValidating={productsValidating && !showSkeleton}
           sortOrder={sortOrder}
           onSortChange={setSortOrder}

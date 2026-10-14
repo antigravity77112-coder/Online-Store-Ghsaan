@@ -33,12 +33,14 @@ import BrandTrio from "./BrandTrio";
 import MobileBottomNav from "./MobileBottomNav";
 import HomeCategoryTabs from "./HomeCategoryTabs";
 import BannerRenderer from "./BannerRenderer";
+import ListingSearchField from "./listing/ListingSearchField";
 import { useLocation } from "react-router-dom";
 import { useSiteConfig } from "../context/SiteConfigContext";
 import { themePage } from "../config/themeTokens";
 import { useTranslation } from "react-i18next";
 import { useLocale } from "../context/LocaleContext";
 import { isShopChromeRoute } from "../utils/marketplaceNav";
+import { pushRecentSearch } from "../utils/recentSearches";
 
 const Layout = React.memo(({ children, homeMarketplace = false, hideMobileHeader = false }) => {
   const { user, isAuthenticated, isAdmin, logout } = useAuth();
@@ -98,11 +100,13 @@ const Layout = React.memo(({ children, homeMarketplace = false, hideMobileHeader
     setIsMobileMenuOpen(false);
   }, [logout, navigate]);
 
-  const handleSearch = useCallback(
-    (e) => {
-      e.preventDefault();
-      if (searchQuery.trim()) {
-        navigate(`/products?search=${encodeURIComponent(searchQuery.trim())}`);
+  const runSearch = useCallback(
+    (override) => {
+      const q = String(typeof override === 'string' ? override : searchQuery).trim();
+      if (q) {
+        pushRecentSearch(q);
+        setSearchQuery(q);
+        navigate(`/products?search=${encodeURIComponent(q)}`);
       } else {
         navigate("/products");
       }
@@ -113,23 +117,16 @@ const Layout = React.memo(({ children, homeMarketplace = false, hideMobileHeader
     [searchQuery, navigate],
   );
 
-  const desktopSearchInputClass =
-    "block w-full pr-11 pl-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-full bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 focus-visible:border-gold-400 transition-all shadow-sm text-sm text-right";
-
-  const renderDesktopSearchForm = (className = "", autoFocus = false) => (
-    <form onSubmit={handleSearch} className={`relative w-full group ${className}`.trim()}>
-      <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
-        <Search className="h-5 w-5 text-gray-400 dark:text-slate-500 group-focus-within:text-gold-500 transition-colors" />
-      </div>
-      <input
-        type="text"
-        value={searchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
-        autoFocus={autoFocus}
-        className={desktopSearchInputClass}
-        placeholder={t("nav.searchPlaceholder")}
-      />
-    </form>
+  const renderDesktopSearchForm = (className = "") => (
+    <ListingSearchField
+      value={searchQuery}
+      onChange={setSearchQuery}
+      onClear={() => setSearchQuery('')}
+      onSubmit={runSearch}
+      placeholder={t("nav.searchPlaceholder")}
+      className={className}
+      inputClassName="py-2.5 rounded-full shadow-sm"
+    />
   );
 
   const mobileNavLinkClass =
@@ -350,13 +347,15 @@ const Layout = React.memo(({ children, homeMarketplace = false, hideMobileHeader
           {/* Expandable desktop search drawer */}
           {!isProductsPage && (
           <div
-            className={`hidden md:block overflow-hidden transition-all duration-200 ease-out ${
-              desktopSearchOpen ? 'max-h-24 opacity-100' : 'max-h-0 opacity-0'
+            className={`hidden md:block transition-all duration-200 ease-out ${
+              desktopSearchOpen
+                ? 'max-h-[min(28rem,75vh)] opacity-100 overflow-visible'
+                : 'max-h-0 opacity-0 overflow-hidden pointer-events-none'
             }`}
           >
             <div className="pb-3 pt-1">
-              <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-3 shadow-sm">
-                {renderDesktopSearchForm('', true)}
+              <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-3 shadow-sm overflow-visible">
+                {renderDesktopSearchForm('')}
               </div>
             </div>
           </div>
@@ -576,8 +575,8 @@ const Layout = React.memo(({ children, homeMarketplace = false, hideMobileHeader
             onClick={() => setMobileSearchOpen(false)}
             aria-label="إغلاق البحث"
           />
-          <div className={`md:hidden fixed inset-x-0 ${mobileSearchTopClass} z-[60] bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-4 py-3 shadow-md`} dir={dir}>
-            {renderDesktopSearchForm('', true)}
+          <div className={`md:hidden fixed inset-x-0 ${mobileSearchTopClass} z-[60] overflow-visible bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-4 py-3 shadow-md`} dir={dir}>
+            {renderDesktopSearchForm('')}
           </div>
         </>
       )}

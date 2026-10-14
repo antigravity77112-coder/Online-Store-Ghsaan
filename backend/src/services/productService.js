@@ -1,6 +1,6 @@
 const prisma = require('../prismaClient');
 const { randomUUID } = require('crypto');
-const { uploadBuffer, deleteByUrl } = require('../utils/cloudinaryClient');
+const { uploadBuffer, deleteByUrl } = require('./storage');
 const { generateUniqueSlug } = require('../utils/slugify');
 const notificationService = require('./notificationService');
 const { withOptionGroups } = require('../utils/variantOptions');
@@ -902,75 +902,83 @@ class ProductService {
         // Validate before processing
         await validateVariantAttributes(effectiveCategoryId, variants);
 
-        // Identify incoming SKUs
-        const incomingSkus = variants.map(v => v.sku).filter(Boolean);
-        if (incomingSkus.length === 0) {
-          throw new Error('كل متغير يحتاج رقم صنف (SKU) صالحاً.');
-        }
-        // Guard: Prisma `notIn: []` matches every row and would wipe all variants.
-        if (incomingSkus.length !== variants.length) {
+        const incomingSkus = variants.map((v) => v.sku).filter(Boolean);
+        if (incomingSkus.length === 0 || incomingSkus.length !== variants.length) {
           throw new Error('كل متغير يحتاج رقم صنف (SKU) صالحاً.');
         }
 
-        // Delete variants that were removed in the UI
-        await prisma.productVariant.deleteMany({
-          where: { productId: id, sku: { notIn: incomingSkus } }
-        });
+        const retainedIds = [];
 
-        // Upsert variants
         for (const v of variants) {
           const variantData = {
             price: parseFloat(v.price),
             discountPrice: v.discountPrice ? parseFloat(v.discountPrice) : null,
-            stockQuantity: parseInt(v.stockQuantity),
+            stockQuantity: parseInt(v.stockQuantity, 10),
             isActive: v.isActive !== undefined ? v.isActive : true,
             sortOrder: v.sortOrder || 0,
             imageUrl: v.imageUrl ? String(v.imageUrl).trim() || null : null,
+            sku: v.sku,
           };
 
-          const existingVariant = await prisma.productVariant.findUnique({ where: { sku: v.sku } });
-
-          if (existingVariant) {
-            if (existingVariant.productId !== id) {
+          let existingVariant = null;
+          if (v.id) {
+            existingVariant = await prisma.productVariant.findFirst({
+              where: { id: v.id, productId: id },
+            });
+          }
+          if (!existingVariant) {
+            existingVariant = await prisma.productVariant.findUnique({ where: { sku: v.sku } });
+            if (existingVariant && existingVariant.productId !== id) {
               throw new Error(`SKU ${v.sku} مستخدم في منتج آخر.`);
             }
+          }
+
+          let variantId;
+          if (existingVariant && existingVariant.productId === id) {
             await prisma.productVariant.update({
               where: { id: existingVariant.id },
               data: variantData,
             });
-            // Update attributes
+            variantId = existingVariant.id;
             if (v.attributes && Array.isArray(v.attributes)) {
-              // Delete old attributes for this variant
-              await prisma.variantAttribute.deleteMany({ where: { variantId: existingVariant.id } });
-              // Create new attributes
+              await prisma.variantAttribute.deleteMany({ where: { variantId } });
               if (v.attributes.length > 0) {
                 await prisma.variantAttribute.createMany({
-                  data: v.attributes.map(attr => ({
-                    variantId: existingVariant.id,
+                  data: v.attributes.map((attr) => ({
+                    variantId,
                     categoryAttributeId: attr.categoryAttributeId,
                     value: String(attr.value),
-                  }))
+                  })),
                 });
               }
             }
           } else {
-            await prisma.productVariant.create({
+            const created = await prisma.productVariant.create({
               data: {
                 productId: id,
-                sku: v.sku,
                 ...variantData,
                 attributes: v.attributes && v.attributes.length > 0
                   ? {
-                    create: v.attributes.map(attr => ({
+                    create: v.attributes.map((attr) => ({
                       categoryAttributeId: attr.categoryAttributeId,
                       value: String(attr.value),
-                    }))
+                    })),
                   }
-                  : undefined
-              }
+                  : undefined,
+              },
             });
+            variantId = created.id;
           }
+          retainedIds.push(variantId);
         }
+
+        // Delete variants removed in the UI (by id — survives SKU edits)
+        await prisma.productVariant.deleteMany({
+          where: {
+            productId: id,
+            ...(retainedIds.length > 0 ? { id: { notIn: retainedIds } } : {}),
+          },
+        });
       } else if (dataToUpdate.hasVariants === false) {
         // Orders keep their own copy of the chosen options, so removed variants can be deleted.
         await prisma.productVariant.deleteMany({ where: { productId: id } });

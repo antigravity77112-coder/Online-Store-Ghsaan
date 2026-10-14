@@ -195,9 +195,11 @@ const CategoryPage = () => {
               `منتجات ${categoryName}`
             )}
           </h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            {filteredProducts.length} منتج
-          </p>
+          {!committedSearch.trim() && (
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              {filteredProducts.length} منتج
+            </p>
+          )}
         </header>
 
         {hub && (
@@ -224,6 +226,7 @@ const CategoryPage = () => {
 
         <ProductListingToolbar
           productCount={filteredProducts.length}
+          showProductCount={!committedSearch.trim()}
           isValidating={productsValidating && !showSkeleton}
           sortOrder={sortOrder}
           onSortChange={setSortOrder}

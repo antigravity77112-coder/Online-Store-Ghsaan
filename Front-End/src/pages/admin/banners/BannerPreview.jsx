@@ -10,7 +10,8 @@ import { getBannerResponsiveSources } from '../../../utils/cloudinaryUrl';
 
 const PLACEMENT_RATIOS = {
   hero: 'aspect-[4/5] sm:aspect-[16/9] lg:aspect-[21/8] min-h-[280px] sm:min-h-[240px]',
-  promo_home: 'aspect-[2.2/1] sm:aspect-[3.5/1]',
+  // Match HeroSection proportions on the homepage promo strip
+  promo_home: 'min-h-[140px] sm:min-h-[200px] lg:min-h-[240px] aspect-[21/9] sm:aspect-[21/8]',
   announcement: 'min-h-[44px]',
   category: 'aspect-[2/1] sm:aspect-[3/1]',
   product: 'aspect-[2/1] sm:aspect-[3/1]',
@@ -88,22 +89,24 @@ export default function BannerPreview({
 
   const ratioClass = compact ? 'aspect-[16/5]' : (PLACEMENT_RATIOS[resolvedPlacement] || 'aspect-[4/1]');
   const forceRtl = resolvedPlacement === 'product' || resolvedPlacement === 'sidebar';
-  const alignClass = ALIGN_CLASSES[forceRtl ? 'right' : textAlign] || ALIGN_CLASSES.right;
+  const isPromoHome = resolvedPlacement === 'promo_home';
+  const alignClass = ALIGN_CLASSES[forceRtl || isPromoHome ? 'right' : textAlign] || ALIGN_CLASSES.right;
   const overlayAlpha = Math.round((overlayOpacity / 100) * 255).toString(16).padStart(2, '0');
   const displayImageRaw = isMobile && mobileImageUrl ? mobileImageUrl : imageUrl;
   const displayImageSources = getBannerResponsiveSources(displayImageRaw, {
-    placement: resolvedPlacement === 'hero' ? 'hero' : resolvedPlacement,
+    placement: resolvedPlacement === 'hero' || isPromoHome ? 'hero' : resolvedPlacement,
     isMobile,
   });
 
   const hasImage = Boolean(displayImageSources.src);
   // Image banners keep light text over the photo; color banners use the chosen text color.
   const copyColor = hasImage ? '#ffffff' : resolvedText;
+  const justifyClass = isPromoHome ? 'justify-center' : 'justify-end';
 
   return (
     <div
-      dir={forceRtl ? 'rtl' : undefined}
-      className={`relative w-full ${ratioClass} ${rounded ? 'rounded-2xl' : ''} overflow-hidden flex flex-col justify-end select-none`}
+      dir={forceRtl || isPromoHome ? 'rtl' : undefined}
+      className={`relative w-full ${ratioClass} ${rounded ? 'rounded-2xl' : ''} overflow-hidden flex flex-col ${justifyClass} select-none`}
       style={{ background: resolvedBg }}
     >
       {hasImage && (
@@ -112,7 +115,7 @@ export default function BannerPreview({
           srcSet={displayImageSources.srcSet}
           sizes={displayImageSources.sizes}
           alt={title || 'بانر ترويجي'}
-          className="absolute inset-0 w-full h-full object-cover"
+          className={`absolute inset-0 w-full h-full object-cover ${isPromoHome ? 'object-[center_10%] md:object-center' : ''}`}
           draggable={false}
           loading={imagePriority ? 'eager' : 'lazy'}
           fetchPriority={imagePriority ? 'high' : 'auto'}
@@ -125,12 +128,23 @@ export default function BannerPreview({
           style={{ backgroundColor: `#000000${overlayAlpha}` }}
         />
       )}
+      {isPromoHome && hasImage && (
+        <div className="absolute inset-0 bg-gradient-to-l from-black/20 via-transparent to-black/30 pointer-events-none" />
+      )}
 
       {(title || subtitle || description || ctaText) && (
-        <div className={`relative z-10 p-3 sm:p-4 flex flex-col gap-0.5 ${alignClass}`}>
+        <div
+          className={`relative z-10 p-3 sm:px-6 sm:py-4 flex flex-col gap-0.5 ${alignClass} ${
+            isPromoHome ? 'max-w-[58%] sm:max-w-[50%] self-end sm:self-end' : ''
+          }`}
+        >
           {title && (
             <h2
-              className="font-extrabold text-xs sm:text-sm lg:text-base leading-tight drop-shadow-lg"
+              className={
+                isPromoHome
+                  ? 'text-lg font-black uppercase leading-[1.15] drop-shadow-lg sm:text-2xl md:text-3xl'
+                  : 'font-extrabold text-xs sm:text-sm lg:text-base leading-tight drop-shadow-lg'
+              }
               style={{ color: copyColor }}
             >
               {title}
@@ -138,7 +152,11 @@ export default function BannerPreview({
           )}
           {subtitle && (
             <p
-              className="font-semibold text-[10px] sm:text-xs leading-snug drop-shadow"
+              className={
+                isPromoHome
+                  ? 'text-[10px] sm:text-xs font-bold mt-1.5 drop-shadow-md'
+                  : 'font-semibold text-[10px] sm:text-xs leading-snug drop-shadow'
+              }
               style={{ color: copyColor, opacity: 0.9 }}
             >
               {subtitle}
@@ -146,16 +164,26 @@ export default function BannerPreview({
           )}
           {description && (
             <p
-              className="text-[10px] sm:text-xs leading-relaxed mt-0.5 line-clamp-2"
-              style={{ color: copyColor, opacity: 0.75 }}
+              className={
+                isPromoHome
+                  ? 'text-[10px] sm:text-xs mt-1 line-clamp-2 drop-shadow'
+                  : 'text-[10px] sm:text-xs leading-relaxed mt-0.5 line-clamp-2'
+              }
+              style={{ color: copyColor, opacity: isPromoHome ? 0.85 : 0.75 }}
             >
               {description}
             </p>
           )}
           {ctaText && (
-            <span className="inline-flex mt-2 self-start px-3 py-1 rounded-lg bg-gold-600 text-white text-[10px] sm:text-xs font-bold">
-              {ctaText}
-            </span>
+            isPromoHome ? (
+              <span className="inline-flex mt-2 sm:mt-2.5 self-start min-h-[40px] items-center justify-center px-4 sm:px-5 border border-white text-white text-[11px] sm:text-xs font-extrabold uppercase tracking-wide bg-transparent">
+                {ctaText}
+              </span>
+            ) : (
+              <span className="inline-flex mt-2 self-start px-3 py-1 rounded-lg bg-gold-600 text-white text-[10px] sm:text-xs font-bold">
+                {ctaText}
+              </span>
+            )
           )}
         </div>
       )}

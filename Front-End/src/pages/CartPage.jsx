@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
-import { ShoppingBag, Trash2, Plus, Minus, ArrowRight, ShoppingCart, Loader2, MapPin, AlertCircle, AlertTriangle } from 'lucide-react';
+import { ShoppingBag, Trash2, Plus, Minus, ArrowRight, ShoppingCart, Loader2, MapPin, AlertCircle, AlertTriangle, TicketPercent, X } from 'lucide-react';
 import Layout from '../components/Layout';
 import SEO from '../components/SEO';
 import OrderMethodSelector from '../components/OrderMethodSelector';
@@ -11,6 +11,7 @@ import DiscoveryLinks from '../components/listing/DiscoveryLinks';
 import { useCart } from '../context/CartContext';
 import { useSiteConfig } from '../context/SiteConfigContext';
 import { useCurrency } from '../context/CurrencyContext';
+import { useAuth } from '../context/AuthContext';
 import * as api from '../services/api';
 import { getOptimizedImageUrl, IMAGE_WIDTHS } from '../utils/cloudinaryUrl';
 import {
@@ -29,20 +30,27 @@ function mapCartCurrency(currency) {
 
 const CartPage = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const { items, removeFromCart, updateQuantity, clearCart, cartTotal, cartCount } = useCart();
   const { preferredCurrency, formatPrice, convertAmount } = useCurrency();
+  const { isAuthenticated } = useAuth();
 
   const [showCheckout, setShowCheckout] = useState(false);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [checkoutDone, setCheckoutDone] = useState(false);
   const [error, setError] = useState('');
   const [addressTouched, setAddressTouched] = useState(false);
+  const [couponInput, setCouponInput] = useState('');
+  const [couponApplying, setCouponApplying] = useState(false);
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
+  const [couponMessage, setCouponMessage] = useState('');
   const { config } = useSiteConfig();
   const contactPhone = config.contact?.phone || '';
   const contactWhatsapp = config.contact?.whatsapp || '';
 
   const checkoutSectionRef = useRef(null);
   const addressRef = useRef(null);
+  const idempotencyKeyRef = useRef(null);
 
   const [checkoutForm, setCheckoutForm] = useState({
     shippingAddress: '',
@@ -66,8 +74,43 @@ const CartPage = () => {
   );
   const displayDiscount = Math.max(0, displayOriginalTotal - displayTotal);
   const hasCartDiscount = displayDiscount > 0.009;
-  const displayTotalLabel = formatPrice(displayTotal, preferredCurrency);
+  const couponPricing = appliedCoupon?.pricing || null;
+  const finalDisplayTotal = couponPricing
+    ? convertAmount(couponPricing.totalAfter, items[0]?.currency || 'YER_Sanaa')
+    : displayTotal;
+  const displayTotalLabel = formatPrice(finalDisplayTotal, preferredCurrency);
   const addressInvalid = addressTouched && !checkoutForm.shippingAddress.trim();
+
+  const handleApplyCoupon = async () => {
+    const code = couponInput.trim();
+    if (!code) {
+      setCouponMessage(t('cart.couponRequired', 'أدخل كود الكوبون'));
+      return;
+    }
+    setCouponApplying(true);
+    setCouponMessage('');
+    try {
+      const result = await api.validateCoupon({ code, cartSubtotal: cartTotal });
+      if (!result?.ok) {
+        setAppliedCoupon(null);
+        setCouponMessage(result?.message || t('cart.couponInvalid', 'الكوبون غير صالح'));
+        return;
+      }
+      setAppliedCoupon(result);
+      setCouponMessage(result.message || t('cart.couponApplied', 'تم تطبيق الكوبون'));
+    } catch (err) {
+      setAppliedCoupon(null);
+      setCouponMessage(err.message || t('cart.couponInvalid', 'الكوبون غير صالح'));
+    } finally {
+      setCouponApplying(false);
+    }
+  };
+
+  const clearCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponInput('');
+    setCouponMessage('');
+  };
 
   const scrollToCheckout = useCallback(() => {
     const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -92,15 +135,55 @@ const CartPage = () => {
       return;
     }
 
+    const couponCode = appliedCoupon?.coupon?.code || null;
+
+    if (couponCode && !isAuthenticated) {
+      setError(t('cart.couponLoginRequired', 'سجّل الدخول لتطبيق الكوبون على الطلب'));
+      navigate('/auth', { state: { from: '/cart' } });
+      return;
+    }
+
     setCheckoutLoading(true);
     setError('');
 
     try {
+      let couponForMessage = null;
+
+      if (couponCode) {
+        if (!idempotencyKeyRef.current && typeof crypto !== 'undefined' && crypto.randomUUID) {
+          idempotencyKeyRef.current = crypto.randomUUID();
+        }
+        const order = await api.createOrder(
+          {
+            shippingAddress: checkoutForm.shippingAddress.trim(),
+            paymentMethod: 'COD',
+            couponCode,
+            items: items.map((item) => ({
+              productId: item.baseProductId || String(item.productId).split('::')[0],
+              quantity: item.quantity,
+            })),
+          },
+          { idempotencyKey: idempotencyKeyRef.current },
+        );
+        couponForMessage = {
+          couponCode: order.couponCode || couponCode,
+          discountType: order.discountType
+            || appliedCoupon?.coupon?.discountType
+            || appliedCoupon?.pricing?.discountType
+            || 'Percent',
+          discountPercent: order.discountPercent ?? appliedCoupon?.coupon?.discountPercent,
+          discountAmount: Number(order.discountAmount ?? appliedCoupon?.pricing?.discountAmount ?? 0),
+          subtotalBeforeCoupon: Number(order.subtotalBeforeDiscount ?? cartTotal),
+          totalAfter: Number(order.totalAmount ?? appliedCoupon?.pricing?.totalAfter ?? cartTotal),
+        };
+      }
+
       const message = buildCartWhatsAppMessage(
         items,
         cartTotal,
         checkoutForm.shippingAddress,
         currencySymbol,
+        couponForMessage,
       );
 
       const baseWhatsappUrl = resolveWhatsAppBaseUrl(contactPhone, contactWhatsapp);
@@ -116,6 +199,8 @@ const CartPage = () => {
 
       setCheckoutDone(true);
       clearCart();
+      clearCoupon();
+      idempotencyKeyRef.current = null;
     } catch (err) {
       setError(err.message || 'حدث خطأ أثناء إرسال الطلب');
     } finally {
@@ -208,9 +293,24 @@ const CartPage = () => {
       </div>
       {hasCartDiscount && (
         <div className="flex justify-between text-slate-500 dark:text-slate-400">
-          <span>الخصم الكلي</span>
+          <span>خصم المنتجات</span>
           <span className="font-bold text-[#e6533d]" dir="ltr">
             −{formatPrice(displayDiscount, preferredCurrency)}
+          </span>
+        </div>
+      )}
+      {couponPricing && (
+        <div className="flex justify-between text-slate-500 dark:text-slate-400">
+          <span>
+            {t('cart.couponDiscount', 'خصم الكوبون')}
+            {' '}
+            <span className="font-mono text-[11px]" dir="ltr">({appliedCoupon.coupon.code})</span>
+          </span>
+          <span className="font-bold text-[#e6533d]" dir="ltr">
+            −{formatPrice(
+              convertAmount(couponPricing.discountAmount, items[0]?.currency || 'YER_Sanaa'),
+              preferredCurrency,
+            )}
           </span>
         </div>
       )}
@@ -221,7 +321,7 @@ const CartPage = () => {
       <hr className="border-slate-100 dark:border-slate-700" />
       <div className="flex justify-between items-baseline">
         <span className="font-bold text-slate-900 dark:text-white text-base">
-          {hasCartDiscount ? 'الإجمالي النهائي' : t('common.total')}
+          {(hasCartDiscount || couponPricing) ? 'الإجمالي النهائي' : t('common.total')}
         </span>
         <span className="font-extrabold text-gold-600 dark:text-gold-400 text-lg">
           {displayTotalLabel}
@@ -269,6 +369,51 @@ const CartPage = () => {
             {t('cart.addressRequired')}
           </p>
         )}
+      </div>
+
+      <div>
+        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5">
+          {t('cart.couponLabel', 'كود الخصم')}
+        </label>
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={couponInput}
+            onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+            dir="ltr"
+            placeholder={t('cart.couponPlaceholder', 'SAVE10')}
+            className="flex-1 px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm font-mono"
+            disabled={Boolean(appliedCoupon)}
+          />
+          {appliedCoupon ? (
+            <button
+              type="button"
+              onClick={clearCoupon}
+              className="min-w-[44px] px-3 rounded-xl border border-slate-200 dark:border-slate-600 text-slate-500 hover:text-rose-500"
+              aria-label={t('cart.couponClear', 'إزالة الكوبون')}
+            >
+              <X className="w-4 h-4 mx-auto" />
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={handleApplyCoupon}
+              disabled={couponApplying}
+              className="inline-flex items-center gap-1.5 px-3 rounded-xl bg-slate-900 dark:bg-stone-100 text-white dark:text-stone-900 text-xs font-bold min-h-[44px]"
+            >
+              {couponApplying ? <Loader2 className="w-4 h-4 animate-spin" /> : <TicketPercent className="w-4 h-4" />}
+              {t('cart.couponApply', 'تطبيق')}
+            </button>
+          )}
+        </div>
+        {couponMessage && (
+          <p className={`mt-1.5 text-xs font-medium ${appliedCoupon ? 'text-emerald-600' : 'text-rose-500'}`}>
+            {couponMessage}
+          </p>
+        )}
+        <Link to="/coupon-check" className="inline-block mt-1 text-[11px] text-gold-600 hover:underline">
+          {t('cart.couponCheckLink', 'التحقق من كوبون')}
+        </Link>
       </div>
 
       <OrderMethodSelector showPaymentOption={false} />

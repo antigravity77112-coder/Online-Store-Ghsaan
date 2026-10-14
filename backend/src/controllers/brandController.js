@@ -1,6 +1,6 @@
 const prisma = require('../prismaClient');
 const { ValidationError } = require('../middleware/errorMiddleware');
-const { uploadBuffer } = require('../utils/cloudinaryClient');
+const { uploadBuffer } = require('../services/storage');
 const crypto = require('crypto');
 
 class BrandController {
@@ -10,8 +10,9 @@ class BrandController {
    */
   async getBrands(req, res) {
     try {
-      // Return brands with their product count
+      const includeInactive = req.query.includeInactive === 'true';
       const brands = await prisma.brand.findMany({
+        where: includeInactive ? undefined : { isActive: true },
         orderBy: { name: 'asc' },
         include: {
           _count: {
@@ -61,7 +62,7 @@ class BrandController {
         where: { slug: req.params.slug },
         include: { _count: { select: { products: true } } },
       });
-      if (!brand) {
+      if (!brand || brand.isActive === false) {
         res.status(404);
         throw new Error('العلامة التجارية غير موجودة (Brand not found)');
       }
@@ -84,7 +85,7 @@ class BrandController {
       const brandId = req.params.id;
 
       const brand = await prisma.brand.findUnique({ where: { id: brandId } });
-      if (!brand) {
+      if (!brand || brand.isActive === false) {
         res.status(404);
         throw new Error('العلامة التجارية غير موجودة (Brand not found)');
       }
@@ -161,6 +162,7 @@ class BrandController {
           slug,
           logoUrl: logoUrl || null,
           description: description || null,
+          isActive: req.body.isActive !== false,
         },
       });
 
@@ -206,6 +208,7 @@ class BrandController {
           slug,
           logoUrl: req.body.logoUrl !== undefined ? (req.body.logoUrl || null) : existing.logoUrl,
           description: req.body.description !== undefined ? (req.body.description || null) : existing.description,
+          isActive: req.body.isActive !== undefined ? Boolean(req.body.isActive) : existing.isActive,
         },
       });
 

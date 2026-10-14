@@ -52,6 +52,9 @@ export function getRawCloudinaryUrl(url) {
 export function getOptimizedImageUrl(url, width = 400) {
   if (!url || typeof url !== 'string') return url;
 
+  // Cloudflare R2 / relative / external hosts: return unchanged (no Cloudinary transforms).
+  if (!isTransformableCloudinaryUrl(url)) return url;
+
   const rawUrl = getRawCloudinaryUrl(url);
 
   // Callers keep getRawCloudinaryUrl as an onError fallback in case a delivery transform 404s.
@@ -112,6 +115,11 @@ export function getBannerImageUrl(url, { placement = 'promo', isMobile = false }
 
 function isCloudinaryImageUrl(url) {
   return typeof url === 'string' && url.includes('res.cloudinary.com');
+}
+
+/** R2 / non-Cloudinary URLs must not receive Cloudinary delivery transforms. */
+function isTransformableCloudinaryUrl(url) {
+  return isCloudinaryImageUrl(url);
 }
 
 /**

@@ -205,6 +205,7 @@ const ScentPage = () => {
 
         <ProductListingToolbar
           productCount={filteredProducts.length}
+          showProductCount={!committedSearch.trim()}
           sortOrder={sortOrder}
           onSortChange={setSortOrder}
         />

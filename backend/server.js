@@ -130,6 +130,7 @@ app.use('/api/devices', require('./src/routes/deviceRoutes'));
 app.use('/api/notifications', require('./src/routes/notificationRoutes'));
 app.use('/api/brands', require('./src/routes/brandRoutes'));
 app.use('/api/scents', require('./src/routes/scentRoutes'));
+app.use('/api/coupons', require('./src/routes/couponRoutes'));
 
 // Error handling
 app.use(notFound);

@@ -196,10 +196,12 @@ const BrandPage = () => {
                   {brand.description}
                 </p>
               )}
-              <div className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 bg-gold-50 dark:bg-gold-900/20 border border-gold-100 dark:border-gold-800/50 text-gold-700 dark:text-gold-400 rounded-xl text-sm font-bold">
-                <Package className="w-4 h-4" aria-hidden="true" />
-                {productCount} منتجات متاحة
-              </div>
+              {!committedSearch.trim() && (
+                <div className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 bg-gold-50 dark:bg-gold-900/20 border border-gold-100 dark:border-gold-800/50 text-gold-700 dark:text-gold-400 rounded-xl text-sm font-bold">
+                  <Package className="w-4 h-4" aria-hidden="true" />
+                  {productCount} منتجات متاحة
+                </div>
+              )}
             </div>
           </motion.div>
         </div>
@@ -221,6 +223,7 @@ const BrandPage = () => {
 
         <ProductListingToolbar
           productCount={filteredProducts.length}
+          showProductCount={!committedSearch.trim()}
           sortOrder={sortOrder}
           onSortChange={setSortOrder}
         />

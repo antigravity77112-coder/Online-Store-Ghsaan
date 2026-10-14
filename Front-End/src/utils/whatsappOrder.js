@@ -114,7 +114,20 @@ function itemPrices(item) {
   return { price, discount: onSale ? discount : null };
 }
 
-export function buildCartWhatsAppMessage(items, cartTotal, shippingAddress, currencySymbol = '') {
+/**
+ * @param {object} [coupon]
+ * @param {string} [coupon.couponCode]
+ * @param {number} [coupon.discountPercent]
+ * @param {number} [coupon.discountAmount]
+ * @param {number} [coupon.subtotalBeforeCoupon]
+ */
+export function buildCartWhatsAppMessage(
+  items,
+  cartTotal,
+  shippingAddress,
+  currencySymbol = '',
+  coupon = null,
+) {
   const origin = typeof window !== 'undefined' ? window.location.origin : '';
 
   let message = 'مرحباً، أود طلب المنتجات التالية:\n\n';
@@ -136,11 +149,34 @@ export function buildCartWhatsAppMessage(items, cartTotal, shippingAddress, curr
     message += `   الرابط: ${buildProductPageUrl(origin, item)}\n\n`;
   });
 
-  const savings = originalTotal - cartTotal;
-  message += `الإجمالي: ${formatAmount(originalTotal, currencySymbol)}\n`;
-  if (savings > 0.009) {
-    message += `الخصم: ${formatAmount(savings, currencySymbol)}\n`;
-    message += `بعد الخصم: ${formatAmount(cartTotal, currencySymbol)}\n`;
+  const hasCoupon = Boolean(
+    coupon?.couponCode
+    && Number(coupon.discountAmount) > 0.009,
+  );
+
+  if (hasCoupon) {
+    const subtotal = Number(
+      coupon.subtotalBeforeCoupon != null ? coupon.subtotalBeforeCoupon : cartTotal,
+    );
+    const finalTotal = Number(
+      coupon.totalAfter != null
+        ? coupon.totalAfter
+        : Math.max(0, subtotal - Number(coupon.discountAmount)),
+    );
+    const couponLabel = coupon.discountType === 'Amount'
+      ? `كوبون ${coupon.couponCode} — خصم بمبلغ ثابت`
+      : `كوبون ${coupon.couponCode} — خصم ${coupon.discountPercent}%`;
+    message += `المجموع قبل الكوبون: ${formatAmount(subtotal, currencySymbol)}\n`;
+    message += `${couponLabel}\n`;
+    message += `خصم الكوبون: ${formatAmount(coupon.discountAmount, currencySymbol)}\n`;
+    message += `الإجمالي النهائي: ${formatAmount(finalTotal, currencySymbol)}\n`;
+  } else {
+    const savings = originalTotal - cartTotal;
+    message += `الإجمالي: ${formatAmount(originalTotal, currencySymbol)}\n`;
+    if (savings > 0.009) {
+      message += `الخصم: ${formatAmount(savings, currencySymbol)}\n`;
+      message += `بعد الخصم: ${formatAmount(cartTotal, currencySymbol)}\n`;
+    }
   }
 
   if (shippingAddress?.trim()) {

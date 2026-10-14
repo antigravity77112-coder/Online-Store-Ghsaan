@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useLayoutEffect, useRef } from 'react';
 import { useNavigationType } from 'react-router-dom';
 import { setListingMemory } from '../utils/listingSessionMemory';
 import {
@@ -66,8 +66,9 @@ export function useListingScrollMemory({ listingKey, ready = true, pagesReady = 
     };
   }, [listingKey]);
 
-  // Kick module-level restore once on Back. Do not cancel the module loop on cleanup.
-  useEffect(() => {
+  // Kick restore before paint on Back so the page never flashes the top.
+  // pagesReady may flap on every load-more — only nudge an in-flight restore.
+  useLayoutEffect(() => {
     if (!listingKey || !ready) return;
     if (!shouldRestoreListing(listingKey, navigationType)) return;
 
@@ -78,7 +79,7 @@ export function useListingScrollMemory({ listingKey, ready = true, pagesReady = 
       return;
     }
 
-    if (pagesReady) {
+    if (pagesReady && isListingScrollRestoreActive()) {
       startListingScrollRestore(listingKey, { pagesReady: true });
     }
   }, [listingKey, ready, pagesReady, navigationType]);

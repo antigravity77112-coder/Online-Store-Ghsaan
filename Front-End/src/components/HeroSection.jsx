@@ -131,10 +131,12 @@ const HeroSection = React.memo(() => {
   const hasImage = Boolean(bgImageSources.src);
   const overlayAlpha = Math.round(((activeBanner.overlayOpacity ?? 30) / 100) * 255).toString(16).padStart(2, '0');
   const overlayColor = `#000000${overlayAlpha}`;
-  const titleLines = activeBanner.title ? activeBanner.title.split('\n') : [];
-  const headline = titleLines[0] || '';
-  const subheadline = titleLines.slice(1).join(' ') || activeBanner.description || '';
-  const hasTextContent = Boolean(activeBanner.subtitle || headline || subheadline);
+  const titleLines = activeBanner.title
+    ? activeBanner.title.split(/\r?\n/).map((l) => l.trim()).filter(Boolean)
+    : [];
+  const descriptionLine = (activeBanner.description || '').trim();
+  const subtitleLine = (activeBanner.subtitle || '').trim();
+  const hasTextContent = Boolean(titleLines.length || subtitleLine || descriptionLine);
   const showCta = Boolean(activeBanner.ctaText || activeBanner.ctaUrl);
   const ctaLabel = activeBanner.ctaText || 'تسوق الآن';
 
@@ -154,6 +156,7 @@ const HeroSection = React.memo(() => {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.35 }}
+          style={{ zIndex: 1 }}
         >
           {hasImage ? (
             <img
@@ -174,25 +177,37 @@ const HeroSection = React.memo(() => {
         </motion.div>
       </AnimatePresence>
 
-      {/* Promo copy + peek cards use physical sides so layout stays correct in EN/AR */}
+      {/* Title lines first (top→bottom), then subtitle, then description. Peek stays inside this hero. */}
       <div className="absolute inset-0 z-20 pointer-events-none px-3 sm:px-6">
         {(hasTextContent || showCta) && (
-          <div className="absolute top-1/2 -translate-y-1/2 right-0 sm:right-1 max-w-[58%] sm:max-w-[50%] text-right">
-            {activeBanner.subtitle && (
-              <p className="text-[10px] sm:text-xs font-bold text-white/90 mb-1 drop-shadow-md">
-                {activeBanner.subtitle}
+          <div className="absolute top-1/2 -translate-y-1/2 right-0 sm:right-1 max-w-[58%] sm:max-w-[50%] text-right" dir="rtl">
+            {titleLines.map((line, idx) => (
+              idx === 0 ? (
+                <h1
+                  key={`title-${idx}`}
+                  className="text-lg font-black uppercase leading-[1.15] text-white drop-shadow-lg sm:text-2xl md:text-3xl"
+                >
+                  {line}
+                </h1>
+              ) : (
+                <p
+                  key={`title-${idx}`}
+                  className="mt-0.5 text-base font-extrabold uppercase leading-[1.15] text-white drop-shadow-lg sm:text-xl md:text-2xl"
+                >
+                  {line}
+                </p>
+              )
+            ))}
+            {subtitleLine ? (
+              <p className="text-[10px] sm:text-xs font-bold text-white/90 mt-1.5 drop-shadow-md">
+                {subtitleLine}
               </p>
-            )}
-            {headline && (
-              <h1 className="line-clamp-2 text-lg font-black uppercase leading-[1.1] text-white drop-shadow-lg sm:text-2xl md:text-3xl">
-                {headline}
-              </h1>
-            )}
-            {subheadline && (
+            ) : null}
+            {descriptionLine ? (
               <p className="text-[10px] sm:text-xs text-white/85 mt-1 line-clamp-2 drop-shadow">
-                {subheadline}
+                {descriptionLine}
               </p>
-            )}
+            ) : null}
             {showCta && (
               <button
                 type="button"
@@ -231,10 +246,10 @@ const HeroSection = React.memo(() => {
               aria-selected={i === currentIndex}
               aria-label={`البانر ${i + 1}`}
               onClick={() => goTo(i)}
-              className="min-w-[32px] min-h-[32px] flex items-center justify-center"
+              className="p-1 flex items-center justify-center"
             >
               <span
-                className={`rounded-full transition-all ${i === currentIndex ? 'w-3 h-1 bg-white' : 'w-1 h-1 bg-white/50'}`}
+                className={`block rounded-full transition-all ${i === currentIndex ? 'w-2.5 h-0.5 bg-white' : 'w-1 h-0.5 bg-white/50'}`}
               />
             </button>
           ))}

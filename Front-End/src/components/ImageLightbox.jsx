@@ -77,9 +77,31 @@ export default function ImageLightbox({
     if (!open) resetZoom();
   }, [open, resetZoom]);
 
+  // Preload current + neighbors so next/prev doesn't stick on the previous frame.
+  useEffect(() => {
+    if (!open || count <= 1) return undefined;
+    const idxs = new Set([
+      safeIndex,
+      (safeIndex + 1) % count,
+      (safeIndex - 1 + count) % count,
+    ]);
+    const loaders = [...idxs].map((i) => {
+      const u = images[i];
+      if (!u) return null;
+      const img = new Image();
+      img.src = getOptimizedImageUrl(u, LIGHTBOX_WIDTH);
+      return img;
+    });
+    return () => {
+      loaders.forEach((img) => {
+        if (img) img.src = '';
+      });
+    };
+  }, [open, images, safeIndex, count]);
+
   if (!open || !url) return null;
 
-  const src = broken.has(url) ? getRawCloudinaryUrl(url) : getOptimizedImageUrl(url, LIGHTBOX_WIDTH);
+  const srcFor = (u) => (broken.has(u) ? getRawCloudinaryUrl(u) : getOptimizedImageUrl(u, LIGHTBOX_WIDTH));
 
   const toggleZoom = () => {
     if (zoomed) resetZoom();
@@ -181,15 +203,29 @@ export default function ImageLightbox({
         onPointerCancel={swipe.onPointerCancel}
         onDoubleClick={toggleZoom}
       >
-        <img
-          key={url}
-          src={src}
-          alt={altByUrl[url] || fallbackAlt}
-          draggable={false}
-          onError={() => setBroken((prev) => (prev.has(url) ? prev : new Set(prev).add(url)))}
-          className="absolute inset-0 m-auto max-w-full max-h-full object-contain transition-transform duration-150 ease-out"
-          style={{ transform: `translate(${offset.x}px, ${offset.y}px) scale(${zoom})` }}
-        />
+        {images.map((imgUrl, idx) => {
+          const isActive = idx === safeIndex;
+          const isNear = Math.abs(idx - safeIndex) <= 1
+            || (safeIndex === 0 && idx === count - 1)
+            || (safeIndex === count - 1 && idx === 0);
+          if (!isActive && !isNear) return null;
+          return (
+            <img
+              key={`${imgUrl}-${idx}`}
+              src={srcFor(imgUrl)}
+              alt={isActive ? (altByUrl[imgUrl] || fallbackAlt) : ''}
+              aria-hidden={!isActive}
+              draggable={false}
+              onError={() => setBroken((prev) => (prev.has(imgUrl) ? prev : new Set(prev).add(imgUrl)))}
+              className={`absolute inset-0 m-auto max-w-full max-h-full object-contain transition-opacity duration-150 ease-out ${
+                isActive ? 'opacity-100 z-[1]' : 'opacity-0 z-0 pointer-events-none'
+              }`}
+              style={isActive ? { transform: `translate(${offset.x}px, ${offset.y}px) scale(${zoom})` } : undefined}
+              loading={isActive || isNear ? 'eager' : 'lazy'}
+              decoding="async"
+            />
+          );
+        })}
 
         {count > 1 && !zoomed ? (
           <>

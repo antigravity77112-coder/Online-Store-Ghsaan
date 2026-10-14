@@ -40,6 +40,32 @@ export function rankProductsBySeed(products, seed) {
   });
 }
 
+/**
+ * Infinite-scroll friendly order: keep already-shown products in place,
+ * rank only newly arrived items and append them at the bottom.
+ * Prevents cards jumping among existing rows when the next page loads.
+ *
+ * @param {Array} products - flat list (all loaded pages)
+ * @param {string|number} seed
+ * @param {string[]} previousOrderedIds - ids already shown (mutated caller ref)
+ * @returns {{ products: Array, orderedIds: string[] }}
+ */
+export function appendRankedProducts(products, seed, previousOrderedIds = []) {
+  const list = products || [];
+  const byId = new Map(list.map((p) => [String(p.id), p]));
+  const keptIds = (previousOrderedIds || []).filter((id) => byId.has(String(id))).map(String);
+  const keptSet = new Set(keptIds);
+  const newcomers = list.filter((p) => !keptSet.has(String(p.id)));
+  const rankedNew = seed
+    ? rankProductsBySeed(newcomers, seed)
+    : shuffleProducts(newcomers);
+  const ordered = [...keptIds.map((id) => byId.get(id)), ...rankedNew];
+  return {
+    products: ordered,
+    orderedIds: ordered.map((p) => String(p.id)),
+  };
+}
+
 /** Fisher–Yates shuffle (new array). Optional random() for seeded shuffles. */
 export function shuffleProducts(products, random = Math.random) {
   const result = [...(products || [])];

@@ -40,8 +40,7 @@ import {
   Megaphone,
   MapPin,
   Database,
-  Sparkles,
-  Bell,
+  TicketPercent,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import useSWR, { mutate } from "swr";
@@ -58,14 +57,13 @@ import AdminUsersTab from "./admin/AdminUsersTab";
 const ADMIN_TAB_IDS = new Set([
   "dashboard",
   "orders",
-  "notifications",
   "users",
   "products",
   "categories",
   "brands",
-  "scents",
   "banners",
   "branches",
+  "coupons",
   "storeInfo",
   "rates",
   "storeBackup",
@@ -103,8 +101,7 @@ const AdminRatesTab = lazyWithRetry(() => import("./admin/AdminRatesTab"));
 const AdminBannersTab = lazyWithRetry(() => import("./admin/AdminBannersTab"));
 const AdminBranchesTab = lazyWithRetry(() => import("./admin/AdminBranchesTab"));
 const AdminBrandsTab = lazyWithRetry(() => import("./admin/AdminBrandsTab"));
-const AdminScentsTab = lazyWithRetry(() => import("./admin/AdminScentsTab"));
-const AdminNotificationsTab = lazyWithRetry(() => import("./admin/AdminNotificationsTab"));
+const AdminCouponsTab = lazyWithRetry(() => import("./admin/AdminCouponsTab"));
 
 const AdminTabFallback = () => (
   <AdminLoading label="جاري تحميل القسم..." />
@@ -537,7 +534,6 @@ const AdminDashboard = () => {
       label: 'العمليات',
       items: [
         { id: 'orders', label: 'إدارة الطلبات', icon: ClipboardList },
-        { id: 'notifications', label: 'الإشعارات', icon: Bell },
         { id: 'users', label: 'المستخدمين', icon: Users },
       ],
     },
@@ -547,7 +543,6 @@ const AdminDashboard = () => {
         { id: 'products', label: 'المحتوى', icon: Package },
         { id: 'categories', label: 'الأقسام', icon: Tag },
         { id: 'brands', label: '  الماركات التجارية', icon: Crown },
-        { id: 'scents', label: 'عائلات الروائح', icon: Sparkles },
       ],
     },
     {
@@ -555,6 +550,7 @@ const AdminDashboard = () => {
       items: [
         { id: 'banners', label: 'الإعلانات', icon: Megaphone },
         { id: 'branches', label: 'الفروع', icon: MapPin },
+        { id: 'coupons', label: 'إدارة الكوبونات', icon: TicketPercent },
       ],
     },
     {
@@ -740,16 +736,6 @@ const AdminDashboard = () => {
               onHighlightConsumed={() => setHighlightOrderId(null)}
             />
           )}
-          {activeTab === "notifications" && (
-            <AdminNotificationsTab
-              showSuccess={showSuccessMsg}
-              setError={setError}
-              onOpenOrder={(orderId) => {
-                setHighlightOrderId(orderId);
-                setActiveTab("orders");
-              }}
-            />
-          )}
           {activeTab === "users" && (
             <AdminUsersTab
               users={users}
@@ -774,9 +760,11 @@ const AdminDashboard = () => {
             />
           )}
           {activeTab === "brands" && <AdminBrandsTab onSuccessMsg={showSuccessMsg} />}
-          {activeTab === "scents" && <AdminScentsTab onSuccessMsg={showSuccessMsg} />}
           {activeTab === "banners" && <AdminBannersTab showSuccess={showSuccessMsg} setError={setError} />}
           {activeTab === "branches" && <AdminBranchesTab />}
+          {activeTab === "coupons" && (
+            <AdminCouponsTab showSuccess={showSuccessMsg} setError={setError} />
+          )}
           {activeTab === "storeInfo" && (
             <AdminCustomizationTab
               config={siteConfig}

@@ -10,6 +10,7 @@ const createOrderSchema = Joi.object({
   paymentMethod: Joi.string().valid('COD').optional(),
   items: Joi.array().items(orderItemSchema).min(1).required(),
   idempotencyKey: Joi.string().guid({ version: ['uuidv4', 'uuidv5'] }).optional(),
+  couponCode: Joi.string().trim().max(32).allow('', null).optional(),
 });
 
 module.exports = { createOrderSchema };

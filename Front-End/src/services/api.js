@@ -483,10 +483,14 @@ export async function uploadCategoryIcon(file) {
 }
 
 // ─── Orders ───
-export async function createOrder(data) {
+export async function createOrder(data, { idempotencyKey } = {}) {
+  const headers = {
+    ...jsonHeaders(),
+    ...(idempotencyKey ? { 'Idempotency-Key': idempotencyKey } : {}),
+  };
   return request('/orders', {
     method: 'POST',
-    headers: jsonHeaders(),
+    headers,
     body: JSON.stringify(data),
   });
 }
@@ -683,8 +687,9 @@ export async function deleteCategory(id) {
 }
 
 // ─── Brands ───
-export async function getBrands() {
-  return request('/brands', { headers: jsonHeaders() });
+export async function getBrands({ includeInactive = false } = {}) {
+  const q = includeInactive ? '?includeInactive=true' : '';
+  return request(`/brands${q}`, { headers: jsonHeaders() });
 }
 
 export async function getBrandById(id) {
@@ -978,5 +983,55 @@ export async function deleteBranch(id) {
   });
 }
 
+// ─── Coupons ──────────────────────────────────────────────────────────────────
+
+/** Public: validate a coupon without redeeming it. */
+export async function validateCoupon({ code, cartSubtotal } = {}) {
+  return request('/coupons/validate', {
+    method: 'POST',
+    headers: jsonHeaders(),
+    body: JSON.stringify({
+      code,
+      ...(cartSubtotal != null ? { cartSubtotal } : {}),
+    }),
+  });
+}
+
+/** Admin: list coupons (optional search q). */
+export async function getCoupons({ q } = {}) {
+  const qs = q ? `?q=${encodeURIComponent(q)}` : '';
+  return request(`/coupons${qs}`, { headers: jsonHeaders() });
+}
+
+export async function getCoupon(id) {
+  return request(`/coupons/${id}`, { headers: jsonHeaders() });
+}
+
+export async function generateCouponCode() {
+  return request('/coupons/meta/generate-code', { headers: jsonHeaders() });
+}
+
+export async function createCoupon(data) {
+  return request('/coupons', {
+    method: 'POST',
+    headers: jsonHeaders(),
+    body: JSON.stringify(data),
+  });
+}
+
+export async function updateCoupon(id, data) {
+  return request(`/coupons/${id}`, {
+    method: 'PUT',
+    headers: jsonHeaders(),
+    body: JSON.stringify(data),
+  });
+}
+
+export async function disableCoupon(id) {
+  return request(`/coupons/${id}/disable`, {
+    method: 'POST',
+    headers: jsonHeaders(),
+  });
+}
 
 

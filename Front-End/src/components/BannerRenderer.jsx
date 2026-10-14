@@ -25,7 +25,7 @@ import {
 } from './banners/bannerUtils';
 
 const PLACEMENT_DEFAULTS = {
-  promo_home: { className: 'w-full my-2 sm:my-3', autoPlayMs: 4500 },
+  promo_home: { className: 'w-full', autoPlayMs: 5000 },
   category: { className: 'w-full my-2 sm:my-3', autoPlayMs: 4500 },
   footer: { className: 'w-full my-2', autoPlayMs: 5500 },
   product: { className: 'w-full my-4', autoPlayMs: 4500 },
@@ -136,6 +136,7 @@ export default function BannerRenderer({ placement, className: classNameProp, ov
 
   const defaults = PLACEMENT_DEFAULTS[placement] || { className: 'w-full my-4', autoPlayMs: 5500 };
   const className = classNameProp || defaults.className;
+  const heroLike = placement === 'promo_home';
 
   // Single-banner impression tracking (announcement/popup handle their own)
   const singleBanner = visibleBanners.length === 1 ? visibleBanners[0] : null;
@@ -173,7 +174,10 @@ export default function BannerRenderer({ placement, className: classNameProp, ov
     // Secondary placements are usually empty; a skeleton there would flash on every page.
     if (placement !== 'promo_home') return null;
     return (
-      <div className={`${className} aspect-[2.2/1] sm:aspect-[3.5/1] rounded-lg sm:rounded-xl bg-slate-200 dark:bg-slate-800 animate-pulse`} aria-hidden="true" />
+      <div
+        className={`${className} min-h-[140px] w-full bg-stone-200/50 animate-pulse dark:bg-stone-800 sm:min-h-[200px] lg:min-h-[240px]`}
+        aria-hidden="true"
+      />
     );
   }
 
@@ -216,14 +220,15 @@ export default function BannerRenderer({ placement, className: classNameProp, ov
     };
 
     const singleRtl = placement === 'product' || placement === 'sidebar';
+    const rounded = !heroLike && placement !== 'footer';
 
     return (
       <motion.div
         className={className}
         dir={singleRtl ? 'rtl' : undefined}
-        initial={{ opacity: 0, y: 10 }}
+        initial={{ opacity: 0, y: heroLike ? 0 : 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
+        transition={{ duration: heroLike ? 0.35 : 0.4 }}
       >
         {banner.ctaUrl ? (
           <a
@@ -231,12 +236,24 @@ export default function BannerRenderer({ placement, className: classNameProp, ov
             target="_blank"
             rel="noopener noreferrer"
             onClick={handleCtaClick}
-            className="block rounded-lg sm:rounded-xl overflow-hidden"
+            className={`block overflow-hidden ${rounded ? 'rounded-lg sm:rounded-xl' : ''}`}
           >
-            <BannerPreview banner={banner} placement={placement} isMobile={isMobile} />
+            <BannerPreview
+              banner={banner}
+              placement={placement}
+              isMobile={isMobile}
+              rounded={rounded}
+              imagePriority
+            />
           </a>
         ) : (
-          <BannerPreview banner={banner} placement={placement} isMobile={isMobile} />
+          <BannerPreview
+            banner={banner}
+            placement={placement}
+            isMobile={isMobile}
+            rounded={rounded}
+            imagePriority
+          />
         )}
       </motion.div>
     );
@@ -246,16 +263,17 @@ export default function BannerRenderer({ placement, className: classNameProp, ov
   return (
     <motion.div
       className={className}
-      initial={{ opacity: 0, y: 10 }}
+      initial={{ opacity: 0, y: heroLike ? 0 : 10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
+      transition={{ duration: heroLike ? 0.35 : 0.4 }}
     >
       <BannerCarousel
         banners={visibleBanners}
         placement={placement}
         isMobile={isMobile}
         autoPlayMs={defaults.autoPlayMs}
-        rounded={placement !== 'footer'}
+        rounded={!heroLike && placement !== 'footer'}
+        variant={heroLike ? 'hero' : 'default'}
       />
     </motion.div>
   );

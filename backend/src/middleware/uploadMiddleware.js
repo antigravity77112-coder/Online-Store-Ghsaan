@@ -1,6 +1,7 @@
 const multer = require('multer');
 
-const MAX_FILE_SIZE = parseInt(process.env.MAX_FILE_SIZE, 10) || 5 * 1024 * 1024;
+// Default 15MB so large camera photos can reach Cloudinary compression + R2.
+const MAX_FILE_SIZE = parseInt(process.env.MAX_FILE_SIZE, 10) || 15 * 1024 * 1024;
 const MAX_BACKUP_SIZE = parseInt(process.env.MAX_BACKUP_SIZE, 10) || 50 * 1024 * 1024;
 const ALLOWED_IMAGE_TYPES = (process.env.ALLOWED_FILE_TYPES || 'image/jpeg,image/png,image/gif,image/webp')
   .split(',')

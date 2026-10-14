@@ -1,5 +1,5 @@
 /**
- * BrandTile — بطاقة علامة كبيرة (شعار + اسم + عدد المنتجات)
+ * BrandTile — بطاقة علامة كبيرة (شعار + اسم)
  */
 
 import React, { useState } from 'react';
@@ -19,7 +19,6 @@ function BrandTileSkeleton() {
     <div className="flex flex-col items-center gap-2 w-full">
       <div className="w-full aspect-square rounded-2xl skeleton-shimmer" />
       <div className="h-4 w-2/3 rounded skeleton-shimmer" />
-      <div className="h-3 w-1/3 rounded skeleton-shimmer" />
     </div>
   );
 }
@@ -29,14 +28,12 @@ const BrandTile = React.memo(({ brand, isLoading = false, priority = false }) =>
 
   if (isLoading || !brand) return <BrandTileSkeleton />;
 
-  const { name, logoUrl, productsCount } = brand;
+  const { name, logoUrl } = brand;
   const href = getBrandHref(brand);
   const hasImage = logoUrl && imgFailures < 2;
   const initial = name?.trim()?.charAt(0) || '؟';
   const rawUrl = getRawCloudinaryUrl(logoUrl);
   const useRaw = imgFailures === 1;
-  const count = Number(productsCount);
-  const countLabel = Number.isFinite(count) ? `${count} منتج` : null;
 
   const inner = (
     <>
@@ -65,11 +62,6 @@ const BrandTile = React.memo(({ brand, isLoading = false, priority = false }) =>
       <span className="block w-full pt-2 pb-0.5 text-sm sm:text-base font-bold text-stone-900 dark:text-stone-100 text-center leading-snug line-clamp-2 px-1 group-hover:text-[#e6533d] dark:group-hover:text-[#ff7a62] transition-colors">
         {name}
       </span>
-      {countLabel ? (
-        <span className="text-xs text-stone-400 dark:text-stone-500 text-center">
-          {countLabel}
-        </span>
-      ) : null}
     </>
   );
 

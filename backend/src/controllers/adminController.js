@@ -400,7 +400,7 @@ class AdminController {
           data: {
             action: 'BACKUP_DOWNLOADED',
             userId: req.user.id,
-            details: 'Admin downloaded full store backup (v2.0)',
+            details: 'Admin downloaded full store backup (v2.1)',
             ipAddress: req.ip || req.connection?.remoteAddress || null,
           },
         });

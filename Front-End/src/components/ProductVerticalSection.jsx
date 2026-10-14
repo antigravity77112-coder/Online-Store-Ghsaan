@@ -5,8 +5,11 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronLeft } from 'lucide-react';
+import { motion, useReducedMotion } from 'framer-motion';
 import { ProductCard } from './HighConversionGrid/ProductCard';
 import { VERTICAL_PRODUCT_GRID_CLASS } from './HighConversionGrid/productGridClasses';
+
+const MORE_SKELETON_COUNT = 4;
 
 export default function ProductVerticalSection({
   title,
@@ -14,6 +17,7 @@ export default function ProductVerticalSection({
   viewAllHref,
   products = [],
   isLoading = false,
+  isLoadingMore = false,
   loadingCount = 6,
   limit,
   variant = 'default',
@@ -21,11 +25,15 @@ export default function ProductVerticalSection({
   onQuickAdd,
   className = '',
   priorityCount = 0,
+  /** Fade/slide cards in as they appear (PDP related feed). */
+  animateEntrance = false,
 }) {
+  const reduceMotion = useReducedMotion();
   const isFlash = variant === 'flash';
   const visible = limit != null ? products.slice(0, limit) : products;
+  const showInitialSkeleton = isLoading && visible.length === 0;
 
-  if (!isLoading && visible.length === 0) return null;
+  if (!isLoading && !isLoadingMore && visible.length === 0) return null;
 
   return (
     <section className={`mb-3 sm:mb-4 ${className}`} aria-label={title}>
@@ -61,20 +69,46 @@ export default function ProductVerticalSection({
       )}
 
       <div className={VERTICAL_PRODUCT_GRID_CLASS}>
-        {isLoading
+        {showInitialSkeleton
           ? Array.from({ length: loadingCount }).map((_, i) => (
               <ProductCard key={`vertical-skel-${i}`} isLoading compact />
             ))
-          : visible.map((product, index) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                compact
-                priority={index < priorityCount}
-                onFavorite={onFavorite}
-                onQuickAdd={onQuickAdd}
-              />
-            ))}
+          : (
+            <>
+              {visible.map((product, index) => {
+                const card = (
+                  <ProductCard
+                    product={product}
+                    compact
+                    priority={index < priorityCount}
+                    onFavorite={onFavorite}
+                    onQuickAdd={onQuickAdd}
+                  />
+                );
+
+                if (!animateEntrance || reduceMotion) {
+                  return <React.Fragment key={product.id}>{card}</React.Fragment>;
+                }
+
+                const stagger = Math.min(index % 6, 5) * 0.05;
+
+                return (
+                  <motion.div
+                    key={product.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.35, ease: 'easeOut', delay: stagger }}
+                  >
+                    {card}
+                  </motion.div>
+                );
+              })}
+              {isLoadingMore &&
+                Array.from({ length: MORE_SKELETON_COUNT }).map((_, i) => (
+                  <ProductCard key={`vertical-more-skel-${i}`} isLoading compact />
+                ))}
+            </>
+          )}
       </div>
     </section>
   );

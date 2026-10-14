@@ -890,18 +890,23 @@ const AddProductForm = ({ onSuccess, onCancel, editProduct, onDirtyChange }) => 
     setUploading(false);
   };
 
-  const mapVariantsPayload = (variants) => variants.map((v) => ({
-    sku: v.sku,
-    price: parseFloat(v.price),
-    discountPrice: v.discountPrice ? parseFloat(v.discountPrice) : null,
-    stockQuantity: parseInt(v.stockQuantity, 10) || 0,
-    isActive: v.isActive !== false,
-    sortOrder: v.sortOrder ?? 0,
-    imageUrl: v.imageUrl?.trim() || null,
-    attributes: Object.entries(v.attributes || {})
-      .filter(([, value]) => value !== undefined && value !== '')
-      .map(([categoryAttributeId, value]) => ({ categoryAttributeId, value })),
-  }));
+  const mapVariantsPayload = (variants) => variants.map((v, index) => {
+    const sku = String(v.sku || '').trim()
+      || `VAR-${Date.now().toString(36)}-${index + 1}`.toUpperCase();
+    return {
+      id: v.id || undefined,
+      sku,
+      price: parseFloat(v.price),
+      discountPrice: v.discountPrice ? parseFloat(v.discountPrice) : null,
+      stockQuantity: parseInt(v.stockQuantity, 10) || 0,
+      isActive: v.isActive !== false,
+      sortOrder: v.sortOrder ?? index,
+      imageUrl: v.imageUrl?.trim() || null,
+      attributes: Object.entries(v.attributes || {})
+        .filter(([, value]) => value !== undefined && value !== '')
+        .map(([categoryAttributeId, value]) => ({ categoryAttributeId, value })),
+    };
+  });
 
   const handleDrop = (e) => {
     e.preventDefault();
@@ -946,9 +951,9 @@ const AddProductForm = ({ onSuccess, onCancel, editProduct, onDirtyChange }) => 
 
     const hasVariants = Boolean(form.hasVariants && form.variants?.length);
     if (hasVariants) {
-      const invalid = form.variants.find((v) => !v.sku?.trim() || !v.price || v.stockQuantity === '' || v.stockQuantity == null);
+      const invalid = form.variants.find((v) => !v.price || v.stockQuantity === '' || v.stockQuantity == null);
       if (invalid) {
-        setError('كل متغير يحتاج SKU وسعراً وكمية');
+        setError('كل متغير يحتاج سعراً وكمية (يُولَّد رقم الصنف تلقائياً إن تُرك فارغاً)');
         return;
       }
     }
@@ -1569,21 +1574,27 @@ const AddProductForm = ({ onSuccess, onCancel, editProduct, onDirtyChange }) => 
         </div>
 
         {/* Toggle Switch for isPromoted */}
-        <div className="flex items-center justify-between">
-          <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">منتج مُروّج (عرض / مميز)</label>
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">عرض في قسم العروض</label>
+            <p className="text-[11px] text-slate-400">يظهر في سكة العروض على الرئيسية (وليس مجرد شارة).</p>
+          </div>
           <AdminSwitch
             checked={form.isPromoted}
-            aria-label="منتج مروج"
+            aria-label="عرض في قسم العروض"
             onChange={(next) => setForm((prev) => ({ ...prev, isPromoted: next }))}
           />
         </div>
 
         {/* Toggle Switch for isTrending */}
-        <div className="flex items-center justify-between">
-          <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">تريند</label>
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">عرض في قسم التريند</label>
+            <p className="text-[11px] text-slate-400">يظهر في سكة التريند على الرئيسية.</p>
+          </div>
           <AdminSwitch
             checked={form.isTrending}
-            aria-label="تريند"
+            aria-label="عرض في قسم التريند"
             onChange={(next) => setForm((prev) => ({ ...prev, isTrending: next }))}
           />
         </div>
@@ -1632,7 +1643,7 @@ const AddProductForm = ({ onSuccess, onCancel, editProduct, onDirtyChange }) => 
 
         {/* Promotion Label */}
         <div>
-          <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5">نص الترويج (اختياري)</label>
+          <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5">نص الشارة على البطاقة (اختياري)</label>
           <input
             type="text"
             name="promotionLabel"
@@ -1641,6 +1652,7 @@ const AddProductForm = ({ onSuccess, onCancel, editProduct, onDirtyChange }) => 
             placeholder='مثال: "عرض محدود" أو "الأكثر مبيعاً"'
             className="w-full px-4 py-3 border border-slate-200 dark:border-slate-600 rounded-xl text-sm bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-gold-500/40 focus:border-gold-400"
           />
+          <p className="mt-1 text-[11px] text-slate-400">شارة نصية فقط على بطاقة المنتج — لا تنشئ قسماً منفصلاً في الرئيسية.</p>
         </div>
       </div>
 

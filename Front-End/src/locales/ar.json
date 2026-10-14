@@ -76,7 +76,29 @@
     "decreaseQuantity": "تقليل الكمية",
     "increaseQuantity": "زيادة الكمية",
     "removeItem": "إزالة من السلة",
-    "checkoutProgress": "الخطوة التالية: أدخل عنوان التوصيل"
+    "checkoutProgress": "الخطوة التالية: أدخل عنوان التوصيل",
+    "couponLabel": "كود الخصم",
+    "couponPlaceholder": "SAVE10",
+    "couponApply": "تطبيق",
+    "couponClear": "إزالة الكوبون",
+    "couponRequired": "أدخل كود الكوبون",
+    "couponInvalid": "الكوبون غير صالح",
+    "couponApplied": "تم تطبيق الكوبون",
+    "couponDiscount": "خصم الكوبون",
+    "couponLoginRequired": "سجّل الدخول لتطبيق الكوبون على الطلب",
+    "couponCheckLink": "التحقق من كوبون"
+  },
+  "couponCheck": {
+    "title": "التحقق من كوبون",
+    "seoDesc": "تحقق من صلاحية كود الخصم قبل الطلب.",
+    "subtitle": "أدخل الكود لمعرفة إن كان صالحاً للاستخدام",
+    "submit": "تحقق",
+    "inputLabel": "كود الكوبون",
+    "backToCart": "العودة للسلة",
+    "percent": "نسبة الخصم",
+    "amount": "مبلغ الخصم",
+    "expires": "ينتهي",
+    "error": "تعذر التحقق حالياً"
   },
   "settings": {
     "title": "الإعدادات",

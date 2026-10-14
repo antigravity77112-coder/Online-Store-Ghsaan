@@ -16,6 +16,8 @@ const SORT_OPTIONS = [
 
 const ProductListingToolbar = ({
   productCount = 0,
+  /** When false (e.g. active search), do not show "N منتج". */
+  showProductCount = true,
   isValidating = false,
   sortOrder,
   onSortChange,
@@ -29,7 +31,11 @@ const ProductListingToolbar = ({
     <div className="flex items-center justify-between gap-2 py-2.5 px-3 mb-3 rounded-xl bg-white dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 shadow-sm">
       <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 dark:text-slate-400 min-w-0">
         {isValidating && <Loader2 className="w-3.5 h-3.5 animate-spin text-gold-500 flex-shrink-0" />}
-        <span className="truncate">{productCount} منتج</span>
+        {showProductCount ? (
+          <span className="truncate">{productCount} منتج</span>
+        ) : (
+          <span className="truncate sr-only">نتائج البحث</span>
+        )}
       </div>
 
       <div className="flex items-center gap-2 flex-shrink-0">

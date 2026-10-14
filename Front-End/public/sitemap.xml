@@ -3,1168 +3,1818 @@
         xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
   <url>
     <loc>https://online-store-ghsaan.vercel.app/</loc>
-    <lastmod>2026-10-03</lastmod>
+    <lastmod>2026-10-14</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/products</loc>
-    <lastmod>2026-10-03</lastmod>
+    <lastmod>2026-10-14</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/categories</loc>
-    <lastmod>2026-10-03</lastmod>
+    <lastmod>2026-10-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/scents</loc>
-    <lastmod>2026-10-03</lastmod>
+    <lastmod>2026-10-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/branches</loc>
-    <lastmod>2026-10-03</lastmod>
+    <lastmod>2026-10-14</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/about</loc>
-    <lastmod>2026-10-03</lastmod>
+    <lastmod>2026-10-14</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/contact</loc>
-    <lastmod>2026-10-03</lastmod>
+    <lastmod>2026-10-14</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/privacy-policy</loc>
-    <lastmod>2026-10-03</lastmod>
+    <lastmod>2026-10-14</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://online-store-ghsaan.vercel.app/category/mens-accessories</loc>
-    <lastmod>2026-10-03</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://online-store-ghsaan.vercel.app/category/electrical-appliances</loc>
-    <lastmod>2026-10-03</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://online-store-ghsaan.vercel.app/category/analog-watches</loc>
-    <lastmod>2026-10-03</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://online-store-ghsaan.vercel.app/category/travel-trips</loc>
-    <lastmod>2026-10-03</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://online-store-ghsaan.vercel.app/category/womens-accessories</loc>
-    <lastmod>2026-10-03</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://online-store-ghsaan.vercel.app/category/electronic-games</loc>
-    <lastmod>2026-10-03</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://online-store-ghsaan.vercel.app/category/eyewear</loc>
-    <lastmod>2026-10-03</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://online-store-ghsaan.vercel.app/category/watches</loc>
-    <lastmod>2026-10-03</lastmod>
+    <loc>https://online-store-ghsaan.vercel.app/category/educational-toys</loc>
+    <lastmod>2026-10-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/category/clothing</loc>
-    <lastmod>2026-10-03</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://online-store-ghsaan.vercel.app/category/toys-games</loc>
-    <lastmod>2026-10-03</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://online-store-ghsaan.vercel.app/category/kids-toys</loc>
-    <lastmod>2026-10-03</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://online-store-ghsaan.vercel.app/category/beauty-tools</loc>
-    <lastmod>2026-10-03</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://online-store-ghsaan.vercel.app/category/frashat</loc>
-    <lastmod>2026-10-03</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://online-store-ghsaan.vercel.app/category/cameras-accessories</loc>
-    <lastmod>2026-10-03</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://online-store-ghsaan.vercel.app/category/headphones-earphones</loc>
-    <lastmod>2026-10-03</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://online-store-ghsaan.vercel.app/category/kitchen-appliances</loc>
-    <lastmod>2026-10-03</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://online-store-ghsaan.vercel.app/category/electrical-home-appliances</loc>
-    <lastmod>2026-10-03</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://online-store-ghsaan.vercel.app/category/pocket-watche</loc>
-    <lastmod>2026-10-03</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://online-store-ghsaan.vercel.app/category/chargers-cables</loc>
-    <lastmod>2026-10-03</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://online-store-ghsaan.vercel.app/category/audio-devices</loc>
-    <lastmod>2026-10-03</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://online-store-ghsaan.vercel.app/category/computer-accessories</loc>
-    <lastmod>2026-10-03</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://online-store-ghsaan.vercel.app/category/mobile-accessories</loc>
-    <lastmod>2026-10-03</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://online-store-ghsaan.vercel.app/category/smart-devices</loc>
-    <lastmod>2026-10-03</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://online-store-ghsaan.vercel.app/category/group-games</loc>
-    <lastmod>2026-10-03</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://online-store-ghsaan.vercel.app/category/digital-watches</loc>
-    <lastmod>2026-10-03</lastmod>
+    <lastmod>2026-10-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/category/sports-fitness</loc>
-    <lastmod>2026-10-03</lastmod>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/category/womens-accessories</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/category/electronic-games</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/category/eyewear</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/category/mens-accessories</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/category/toys-games</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/category/kids-toys</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/category/beauty-tools</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/category/frashat</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/category/cameras-accessories</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/category/headphones-earphones</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/category/kitchen-appliances</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/category/electrical-home-appliances</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/category/pocket-watche</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/category/chargers-cables</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/category/audio-devices</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/category/computer-accessories</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/category/mobile-accessories</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/category/smart-devices</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/category/group-games</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/category/digital-watches</loc>
+    <lastmod>2026-10-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/category/personal-care-devices</loc>
-    <lastmod>2026-10-03</lastmod>
+    <lastmod>2026-10-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/category/kids-clothing</loc>
-    <lastmod>2026-10-03</lastmod>
+    <lastmod>2026-10-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/category/womens-clothing</loc>
-    <lastmod>2026-10-03</lastmod>
+    <lastmod>2026-10-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/category/mens-clothing</loc>
-    <lastmod>2026-10-03</lastmod>
+    <lastmod>2026-10-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/category/mens-perfumes</loc>
-    <lastmod>2026-10-03</lastmod>
+    <lastmod>2026-10-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/category/womens-perfumes</loc>
-    <lastmod>2026-10-03</lastmod>
+    <lastmod>2026-10-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/category/sports-clothing</loc>
-    <lastmod>2026-10-03</lastmod>
+    <lastmod>2026-10-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/category/hair-care</loc>
-    <lastmod>2026-10-03</lastmod>
+    <lastmod>2026-10-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/category/skin-care</loc>
-    <lastmod>2026-10-03</lastmod>
+    <lastmod>2026-10-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/category/magic-tricks-toys</loc>
-    <lastmod>2026-10-03</lastmod>
+    <lastmod>2026-10-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://online-store-ghsaan.vercel.app/category/educational-toys</loc>
-    <lastmod>2026-10-03</lastmod>
+    <loc>https://online-store-ghsaan.vercel.app/category/travel-trips</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/category/watches</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/category/electrical-appliances</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/category/analog-watches</loc>
+    <lastmod>2026-10-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/category/electric-bikes</loc>
-    <lastmod>2026-10-03</lastmod>
+    <lastmod>2026-10-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/category/electronics</loc>
-    <lastmod>2026-10-03</lastmod>
+    <lastmod>2026-10-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/category/decoration-home-decor</loc>
-    <lastmod>2026-10-03</lastmod>
+    <lastmod>2026-10-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/category/perfumes-incense</loc>
-    <lastmod>2026-10-03</lastmod>
+    <lastmod>2026-10-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/category/jewelry-accessories</loc>
-    <lastmod>2026-10-03</lastmod>
+    <lastmod>2026-10-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://online-store-ghsaan.vercel.app/brand/UGREEN</loc>
-    <lastmod>2026-10-03</lastmod>
+    <loc>https://online-store-ghsaan.vercel.app/brand/lt-9d48adb0</loc>
+    <lastmod>2026-10-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://online-store-ghsaan.vercel.app/product/alkhatm-alshry-khd3h-althkm-walikhfa</loc>
-    <lastmod>2026-10-03</lastmod>
+    <loc>https://online-store-ghsaan.vercel.app/brand/poedagar-fec7ba48</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/brand/%D8%A5%D8%A8%D8%B1%D8%A7%D9%87%D9%8A%D9%85-%D8%A7%D9%84%D9%82%D8%B1%D8%B4%D9%8A-4bdd07e4</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/brand/%D8%B9%D8%B3%D8%A7%D9%81-f26e6dd0</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/brand/%D9%85%D9%8A%D9%85%D9%88-memo-7059e445</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/brand/%D9%8A%D9%88%D8%AC%D8%B1%D9%8A%D9%86-ugreen-68f8fc58</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/brwjktr-t3lymy-wtrfyhy-m3-mkbr-swt-wmkrfwnat</loc>
+    <lastmod>2026-10-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790904688/products/wpzfhzlyv1dhumhql5r4.png</image:loc>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/wvpyhkpqvqclyzuahzbv.webp</image:loc>
+      <image:title>بروجكتر تعليمي وترفيهي مع مكبر صوت ومكرفونات</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/sa3h-jyb-wn-bys-qb3h-alqsh</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/nrzmb8efuwlmifettj4n.webp</image:loc>
+      <image:title>ساعة جيب ون بيس – قبعة القش</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/sma3h-jymnj-slkyh-mhytyh-llal3ab</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/xgxdfxpe4gyyrjjlwaan.webp</image:loc>
+      <image:title>سماعة جيمنج سلكية محيطية للألعاب</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/l3bh-sling-puck-alhwky-alsry3-alhjm-alkbyr</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/gq2luoebeevxfnuoxkb9.webp</image:loc>
+      <image:title>لعبة Sling Puck الهوكي السريع – الحجم الكبير</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/jhaz-3rd-alnjwm-walqmr-walkwakb</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/zuuhtuxaqouy2ad3eivc.webp</image:loc>
+      <image:title>جهاز عرض النجوم والقمر والكواكب</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/shashh-sylfy-mghnatysyh-magsafe-lsna3-almhtwa</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/l2a8ukitlobdr1x2smwt.webp</image:loc>
+      <image:title>شاشة سيلفي مغناطيسية MagSafe لصناع المحتوى</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/khatm-altsbyh-alzky-itasbih</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/gnuvririy8ywuu3ixka6.webp</image:loc>
+      <image:title>خاتم التسبيح الذكي iTasbih </image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/sma3h-jymnj-rx3-mhytyh-mkhssh-llal3ab-bidah-rgb</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/nc0u9gzbe3ns8wtaagrn.webp</image:loc>
+      <image:title>سماعة جيمنج RX3 محيطية مخصصة للألعاب بإضاءة RGB</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/san3h-thlj-mhmwlh</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/zcvxd9xgsiwj9mzrxpff.webp</image:loc>
+      <image:title> صانعة ثلج محمولة</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/3sarh-mhmwlh-shhn-zjajyh-b-26-shfrh</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/xui5bnwd0gue0baobxjj.webp</image:loc>
+      <image:title> عصارة محمولة  شحن زجاجية بـ 26 شفرة</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/kybwrd-blwtwth-mhmwl-m3-lwhh-maws-mdmj</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/drup7zxaz6hsr32mbdma.webp</image:loc>
+      <image:title>كيبورد بلوتوث محمول مع لوحة ماوس مدمج</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/krsy-nfkh-mryh</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/ilaretvl93ahrcoedkmx.webp</image:loc>
+      <image:title>كرسي نفخ مريح</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/wla3h-dafwr-bsh3lh-qwyh</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/prqc8babnylspdkebm3i.webp</image:loc>
+      <image:title>ولاعة دافور بشعلة قوية</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/sa3h-poedagar-alrjalyh-tsmym-ryady-fakhr-2</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/p4pl2wgugtk89ytowrwz.webp</image:loc>
+      <image:title>ساعة POEDAGAR الرجالية – تصميم رياضي فاخر</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/sa3h-poedagar-alrjalyh-tsmym-ryady-fakhr</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/y5mt8jlpzlwchh9fe5xd.webp</image:loc>
+      <image:title> ساعة POEDAGAR الرجالية – تصميم رياضي فاخر</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/sa3h-poedagar-alrjalyh-tsmym-fdy-wzhby-fakhr</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/gkelwjlitbiakjps885o.webp</image:loc>
+      <image:title>ساعة POEDAGAR الرجالية – تصميم فضي وذهبي فاخر</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/sa3h-poedagar-alrjalyh-anaqh-klasykyh-raqyh-2</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/soqpifp5pnm3jtvk9n47.webp</image:loc>
+      <image:title>ساعة POEDAGAR الرجالية – أناقة كلاسيكية راقية</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/sa3h-poedagar-alrjalyh-anaqh-3sryh-bmyna-aswd</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/lbnkikdrzv1zlx9l3sl6.webp</image:loc>
+      <image:title>ساعة POEDAGAR الرجالية – أناقة عصرية بمينا أسود</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/sa3h-poedagar-alrjalyh-tsmym-fakhr-wmmyz</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/vgyrwxehkmw6o0kpyqmf.webp</image:loc>
+      <image:title>ساعة POEDAGAR الرجالية – تصميم فاخر ومميز</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/sa3h-poedagar-alrjalyh-anaqh-klasykyh-raqyh</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/wgmfh8lvttlwfutdcyuz.webp</image:loc>
+      <image:title>ساعة POEDAGAR الرجالية – أناقة كلاسيكية راقية</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/sa3h-poedagar-alrjalyh-fkhamh-ryadyh-3sryh</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/yss0mjit9cjdhprznfxd.webp</image:loc>
+      <image:title>ساعة POEDAGAR الرجالية – فخامة رياضية عصرية</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/tqm-sa3at-poedagar-llrjal-walnsa-fkhamh-wanaqh</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/mu5fm5xmqauj9qbubcux.webp</image:loc>
+      <image:title> طقم ساعات POEDAGAR للرجال والنساء – فخامة وأناقة</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/tqm-sa3at-poedagar-llrjal-walnsa-tsmym-fakhr-mtnasq</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/vocwas2io9kuk4nyx13t.webp</image:loc>
+      <image:title>طقم ساعات POEDAGAR للرجال والنساء – تصميم فاخر متناسق</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/sa3h-poedagar-alnsayyh-anaqh-zhbyh-fakhrh</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/rcijhdqzflcqurgbntih.webp</image:loc>
+      <image:title>ساعة POEDAGAR النسائية – أناقة ذهبية فاخرة</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/alkhatm-alshry-khd3h-althkm-walikhfa</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/wpzfhzlyv1dhumhql5r4.webp</image:loc>
       <image:title>الخاتم السحري – خدعة التحكم والإخفاء</image:title>
     </image:image>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/product/khd3h-akhtraq-al3mlh-alm3dnyh-llkas</loc>
-    <lastmod>2026-10-03</lastmod>
+    <lastmod>2026-10-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790904322/products/ah3ossqqsjlos1wgkgir.png</image:loc>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/ah3ossqqsjlos1wgkgir.webp</image:loc>
       <image:title>خدعة اختراق العملة المعدنية للكأس</image:title>
     </image:image>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/product/khd3h-ikhraj-alnar-mn-almhfzh</loc>
-    <lastmod>2026-10-03</lastmod>
+    <lastmod>2026-10-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790903791/products/vgrreoovbspyhgybc1nq.png</image:loc>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/vgrreoovbspyhgybc1nq.webp</image:loc>
       <image:title>خدعة إخراج النار من المحفظة</image:title>
     </image:image>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/product/khd3h-ikhfa-awraq-all3b-dakhl-alsndwq</loc>
-    <lastmod>2026-10-03</lastmod>
+    <lastmod>2026-10-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790902607/products/hmf5g3skychz3ackbeqs.png</image:loc>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/hmf5g3skychz3ackbeqs.webp</image:loc>
       <image:title>خدعة إخفاء أوراق اللعب داخل الصندوق</image:title>
     </image:image>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/product/khd3h-aldmyh-walnqat-alshryh</loc>
-    <lastmod>2026-10-03</lastmod>
+    <lastmod>2026-10-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790902470/products/qxsbijszl4xohderzvmd.png</image:loc>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/qxsbijszl4xohderzvmd.webp</image:loc>
       <image:title>خدعة الدمية والنقاط السحرية</image:title>
     </image:image>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/product/khd3h-awraq-all3b-almttabqh</loc>
-    <lastmod>2026-10-03</lastmod>
+    <lastmod>2026-10-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790900609/products/psy0dc3nilaalyjyvjbb.png</image:loc>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/psy0dc3nilaalyjyvjbb.webp</image:loc>
       <image:title> خدعة أوراق اللعب المتطابقة</image:title>
     </image:image>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/product/alsnadyq-alshryh-likhraj-alzhwr</loc>
-    <lastmod>2026-10-03</lastmod>
+    <lastmod>2026-10-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790898741/products/xg2tqekmq5buvokgxhct.png</image:loc>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/xg2tqekmq5buvokgxhct.webp</image:loc>
       <image:title> الصناديق السحرية لإخراج الزهور</image:title>
     </image:image>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/product/lwhh-albwkr-alshryh</loc>
-    <lastmod>2026-10-03</lastmod>
+    <lastmod>2026-10-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790897412/products/qp3oycufgk9hwpncxcyc.png</image:loc>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/qp3oycufgk9hwpncxcyc.webp</image:loc>
       <image:title> لوحة البوكر السحرية</image:title>
     </image:image>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/product/khd3h-altnbw-balslk-alm3dny-lm3rfh-wrq-all3b-almkhtarh</loc>
-    <lastmod>2026-10-03</lastmod>
+    <lastmod>2026-10-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790896745/products/pg5tbfxagf5plkcsre11.png</image:loc>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/pg5tbfxagf5plkcsre11.webp</image:loc>
       <image:title>خدعة التنبؤ بالسلك المعدني لمعرفة ورق اللعب المختارة</image:title>
     </image:image>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/product/lmbh-shryh-mt3ddh-alalwan</loc>
-    <lastmod>2026-10-03</lastmod>
+    <lastmod>2026-10-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790892992/products/uya2tgdcq517vaqd0jvn.png</image:loc>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/uya2tgdcq517vaqd0jvn.webp</image:loc>
       <image:title>لمبة سحرية متعددة الألوان</image:title>
     </image:image>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/product/dmyh-alqsh-alshryh-khd3h-alwqwf-alzaty</loc>
-    <lastmod>2026-10-03</lastmod>
+    <lastmod>2026-10-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790892834/products/k4qoqswfsvo4gkkcfcih.png</image:loc>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/k4qoqswfsvo4gkkcfcih.webp</image:loc>
       <image:title>دمية القش السحرية – خدعة الوقوف الذاتي</image:title>
     </image:image>
   </url>
   <url>
-    <loc>https://online-store-ghsaan.vercel.app/product/ktab-altnbw-alshry</loc>
-    <lastmod>2026-10-03</lastmod>
+    <loc>https://online-store-ghsaan.vercel.app/product/dftr-altnbw-alshry</loc>
+    <lastmod>2026-10-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790892581/products/l900acjvr48wojmg2zqo.png</image:loc>
-      <image:title>كتاب التنبؤ السحري</image:title>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/l900acjvr48wojmg2zqo.webp</image:loc>
+      <image:title>دفتر التنبؤ السحري</image:title>
     </image:image>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/product/sndwq-khd3h-awraq-all3b-alshry</loc>
-    <lastmod>2026-10-03</lastmod>
+    <lastmod>2026-10-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790891954/products/syhyud9ucrvvy3acxq4m.png</image:loc>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/syhyud9ucrvvy3acxq4m.webp</image:loc>
       <image:title>صندوق خدعة أوراق اللعب السحري</image:title>
     </image:image>
   </url>
   <url>
-    <loc>https://online-store-ghsaan.vercel.app/product/khd3h-alshrb-alshry-akhtfa-alhlyb</loc>
-    <lastmod>2026-10-03</lastmod>
+    <loc>https://online-store-ghsaan.vercel.app/product/khd3h-alkas-alshry-akhtfa-alhlyb</loc>
+    <lastmod>2026-10-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790891799/products/tmkhg0n6aj4yxfrrpmgb.png</image:loc>
-      <image:title>خدعة الشرب السحري – اختفاء الحليب</image:title>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/tmkhg0n6aj4yxfrrpmgb.webp</image:loc>
+      <image:title>خدعة الكأس السحري – اختفاء الحليب</image:title>
     </image:image>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/product/wla3h-zorro-nhasyh-klasykyh</loc>
-    <lastmod>2026-10-03</lastmod>
+    <lastmod>2026-10-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790538913/products/n3cc5atpgmamvwxsumcq.png</image:loc>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/n3cc5atpgmamvwxsumcq.webp</image:loc>
       <image:title>ولاعة ZORRO نحاسية كلاسيكية</image:title>
     </image:image>
   </url>
   <url>
-    <loc>https://online-store-ghsaan.vercel.app/product/wla3h-zorro-dwarh-btsmym-dayry-fakhr</loc>
-    <lastmod>2026-10-03</lastmod>
+    <loc>https://online-store-ghsaan.vercel.app/product/wla3h-chief-dwarh-btsmym-dayry-fakhr</loc>
+    <lastmod>2026-10-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790537692/products/tcrzjsnjwqc1cj91vj7k.png</image:loc>
-      <image:title>ولاعة ZORRO دوّارة بتصميم دائري فاخر</image:title>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/tcrzjsnjwqc1cj91vj7k.webp</image:loc>
+      <image:title>ولاعة CHIEF دوّارة بتصميم دائري فاخر</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/tbakhh-khrbayyh-mt3ddh-alastkhdamat-1200-ml</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/imdom2ileer0u2zugoan.webp</image:loc>
+      <image:title>طباخة كهربائية متعددة الاستخدامات 1200 مل</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/brwjktr-al3ab-m3-ydyn-thkm-tjrbh-trfyh-mtkamlh</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/src50vjzcyqydozhzjg4.webp</image:loc>
+      <image:title>بروجكتر ألعاب مع يدين تحكم – تجربة ترفيه متكاملة</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/l3bh-shjrh-altwazn-thdy-rwad-alfda</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/syg6oluxxz1tlp4egqzw.webp</image:loc>
+      <image:title>لعبة شجرة التوازن – تحدي رواد الفضاء</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/sa3h-jyb-3jlh-alqrasnh</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/uzmt8n9zcmvzubfm8nu6.webp</image:loc>
+      <image:title>ساعة جيب عجلة القراصنة </image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/sa3h-jyb-swda-bzkharf-klasykyh-fakhrh</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/nn2gi8id7we9friirbk3.webp</image:loc>
+      <image:title>ساعة جيب سوداء بزخارف كلاسيكية فاخرة</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/sa3h-jyb-almsarat-almtdakhlh-tsmym-hndsy-fryd</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/luzxfl5ngtpcj3dn0sac.webp</image:loc>
+      <image:title>ساعة جيب المسارات المتداخلة – تصميم هندسي فريد</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/sa3h-jyb-altrws-alzhbyh-thfh-mykanykyh</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/stdmhp3avp3ffwonv1fa.webp</image:loc>
+      <image:title>ساعة جيب التروس الذهبية – تحفة ميكانيكية</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/sa3h-jyb-hjwm-al3malqh-sh3ar-fylq-alasttla3</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/yomccynpkhkxtakvj9qq.webp</image:loc>
+      <image:title>ساعة جيب هجوم العمالقة – شعار فيلق الاستطلاع</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/sa3h-jyb-almjrh-alzrqa-tsmym-alsma-walnjwm</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/gp2ajvxrkbqy8swch2u9.webp</image:loc>
+      <image:title>ساعة جيب المجرة الزرقاء – تصميم السماء والنجوم</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/sa3h-jyb-fdyh-mzkhrfh-anaqh-klasykyh</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/eqh3ij19x1ktli8u3a7r.webp</image:loc>
+      <image:title>ساعة جيب فضية مزخرفة – أناقة كلاسيكية</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/sa3h-jyb-fakhrh-btsmym-alsa3h-alflkyh</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/xvbsey2ku3dycsjoowpx.webp</image:loc>
+      <image:title>ساعة جيب فاخرة بتصميم الساعة الفلكية</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/sa3h-jyb-altrws-tsmym-steampunk-3tyq</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/hxmoc2nesqi38qt0jjlx.webp</image:loc>
+      <image:title>ساعة جيب التروس – تصميم Steampunk عتيق</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/sa3h-jyb-aljnahyn-alzhbyh</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/goosellapyava6u4uhdv.webp</image:loc>
+      <image:title>ساعة جيب الجناحين الذهبية </image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/sa3h-jyb-awraq-all3b-tsmym-mlky-aswd</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/cd5ofzicldpjskvzki3i.webp</image:loc>
+      <image:title>ساعة جيب أوراق اللعب – تصميم ملكي أسود</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/l3bh-alzakrh-almqlbh-almmt3h</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/vxsdrmjtp7lhi2ggw2gi.webp</image:loc>
+      <image:title>لعبة الذاكرة المقلبة الممتعة</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/jhaz-tdlyk-alyd-walrqbh-waljsm</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/ysgrxyv1k0hvx4okpfep.webp</image:loc>
+      <image:title>جهاز تدليك اليد والرقبة والجسم</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/l3bh-alshtrnj-almghnatysyh</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/bpyxpp4mlmwpzooocmcl.webp</image:loc>
+      <image:title>لعبة الشطرنج المغناطيسية </image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/l3bh-alyd-althabth-thdy-alslk-alkhrbayy</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/hgppwgsbmzd4ijudqryp.webp</image:loc>
+      <image:title>لعبة اليد الثابتة – تحدي السلك الكهربائي</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/jhaz-almlakmh-alzky-llatfal-m3-bluetooth</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/ywyjgcmfjm3ahmxvtwfw.webp</image:loc>
+      <image:title>جهاز الملاكمة الذكي للأطفال مع Bluetooth</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/jhaz-almlakmh-alzky-llkbar-m3-bluetooth</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/kn0cgh8n35xwjdcrjczv.webp</image:loc>
+      <image:title>جهاز الملاكمة الذكي للكبار مع Bluetooth</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/sfynh-wn-bys-al3aymh-dykwr-sayl</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/ydxindaztydcycu9czhj.webp</image:loc>
+      <image:title>سفينة ون بيس العائمة – ديكور سائل</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/jhaz-nfkh-wshft-srofly-mt3dd-alastkhdamat</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/lh6dflxzxjuhsdy2fuiz.webp</image:loc>
+      <image:title>جهاز نفخ وشفط SROFLY متعدد الاستخدامات</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/jhaz-qyas-asthlak-alkhrba-whsab-altklfh</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/p6gwwocjzmqkihzjtb12.webp</image:loc>
+      <image:title>جهاز قياس استهلاك الكهرباء وحساب التكلفة</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/khatm-tsbyh-zky-aswd-btsmym-anyq</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/fihhcn1owdb1xdit52hl.webp</image:loc>
+      <image:title>خاتم تسبيح ذكي أسود بتصميم أنيق</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/khatm-altsbyh-alzky-3-fy-1</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/qre30hjmfmryjh6fofag.webp</image:loc>
+      <image:title>خاتم التسبيح الذكي 3 في 1</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/tqm-dryl-weng-21v-m3-3dh-kamlh</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/s13fpmqrrgzhutihm4rk.webp</image:loc>
+      <image:title>طقم دريل Weng 21V مع عدة كاملة</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/shahn-way-fay-zky-llmnzl</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/hybhkou6oppwe9dweoqz.webp</image:loc>
+      <image:title>شاحن واي فاي ذكي للمنزل</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/tab3h-fwatyr-iysalat-hraryh</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/r9ewcxmjdgkwov8alyc2.webp</image:loc>
+      <image:title>طابعة فواتير إيصالات حرارية</image:title>
     </image:image>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/product/khd3h-twq3-awraq-all3b</loc>
-    <lastmod>2026-10-03</lastmod>
+    <lastmod>2026-10-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790905427/products/isgkyox7kgalixap8yon.png</image:loc>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/isgkyox7kgalixap8yon.webp</image:loc>
       <image:title>خدعة توقع أوراق اللعب</image:title>
     </image:image>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/product/khd3h-amtsas-alhbr-mn-btaqh-all3b</loc>
-    <lastmod>2026-10-03</lastmod>
+    <lastmod>2026-10-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790904544/products/nlylfa4vmexnsqaktufs.png</image:loc>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/nlylfa4vmexnsqaktufs.webp</image:loc>
       <image:title>خدعة امتصاص الحبر من بطاقة اللعب</image:title>
     </image:image>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/product/khd3h-qs-alisb3-alshryh</loc>
-    <lastmod>2026-10-03</lastmod>
+    <lastmod>2026-10-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790904183/products/rx2bsggpzyghpw4scrnh.png</image:loc>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/rx2bsggpzyghpw4scrnh.webp</image:loc>
       <image:title>خدعة قص الإصبع السحرية</image:title>
     </image:image>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/product/sndwq-ikhfa-wizhar-alashya-alshry</loc>
-    <lastmod>2026-10-03</lastmod>
+    <lastmod>2026-10-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790904005/products/jacml2kbzwxjmbfqs6d2.png</image:loc>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/jacml2kbzwxjmbfqs6d2.webp</image:loc>
       <image:title>صندوق إخفاء وإظهار الأشياء السحري</image:title>
     </image:image>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/product/khd3h-akhtraq-alqlm-ll3mlat-alnqdyh</loc>
-    <lastmod>2026-10-03</lastmod>
+    <lastmod>2026-10-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790903624/products/jthhusxknhlxr9zdkswn.png</image:loc>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/jthhusxknhlxr9zdkswn.webp</image:loc>
       <image:title>خدعة اختراق القلم للعملات النقدية</image:title>
     </image:image>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/product/wrqh-all3b-alkbyrh-llkhd3-alshryh</loc>
-    <lastmod>2026-10-03</lastmod>
+    <lastmod>2026-10-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790903236/products/dtuy4hpbvci5tpuwm7ns.png</image:loc>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/dtuy4hpbvci5tpuwm7ns.webp</image:loc>
       <image:title> ورقة اللعب الكبيرة للخدع السحرية</image:title>
     </image:image>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/product/khd3h-tghyyr-lwn-albtaqh-alshryh</loc>
-    <lastmod>2026-10-03</lastmod>
+    <lastmod>2026-10-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790903037/products/lbuawyemwppuwo3phhcc.png</image:loc>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/lbuawyemwppuwo3phhcc.webp</image:loc>
       <image:title>خدعة تغيير لون البطاقة السحرية</image:title>
     </image:image>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/product/alkys-alqmashy-alshry-likhfa-wizhar-alashya</loc>
-    <lastmod>2026-10-03</lastmod>
+    <lastmod>2026-10-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790902352/products/zqigwbhdesw4kzhg7xmy.png</image:loc>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/zqigwbhdesw4kzhg7xmy.webp</image:loc>
       <image:title> الكيس القماشي السحري لإخفاء وإظهار الأشياء</image:title>
     </image:image>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/product/khd3h-anhna-alml3qh-alshryh</loc>
-    <lastmod>2026-10-03</lastmod>
+    <lastmod>2026-10-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790902177/products/vf0fak5ex7zyyptv94ur.png</image:loc>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/vf0fak5ex7zyyptv94ur.webp</image:loc>
       <image:title>خدعة انحناء الملعقة السحرية</image:title>
     </image:image>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/product/khywt-alkhfh-alshryh-lltyran</loc>
-    <lastmod>2026-10-03</lastmod>
+    <lastmod>2026-10-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790901910/products/mv8g1cw14rdrptw123tb.png</image:loc>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/mv8g1cw14rdrptw123tb.webp</image:loc>
       <image:title>خيوط الخفة السحرية للطيران</image:title>
     </image:image>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/product/al3sa-alshryh-tkhrj-zhrh</loc>
-    <lastmod>2026-10-03</lastmod>
+    <lastmod>2026-10-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790899040/products/kokunwa9fisc45ngyhhu.png</image:loc>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/kokunwa9fisc45ngyhhu.webp</image:loc>
       <image:title>العصا السحرية تُخرج زهرة</image:title>
     </image:image>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/product/khd3h-bskwyt-awryw-alshryh</loc>
-    <lastmod>2026-10-03</lastmod>
+    <lastmod>2026-10-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790898290/products/qatemm3kbjekgvyjujv3.png</image:loc>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/qatemm3kbjekgvyjujv3.webp</image:loc>
       <image:title>خدعة بسكويت أوريو السحرية</image:title>
     </image:image>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/product/khd3h-isharh-almrwr-alshryh</loc>
-    <lastmod>2026-10-03</lastmod>
+    <lastmod>2026-10-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790897873/products/tnkbp8md6y9btvql9n5l.png</image:loc>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/tnkbp8md6y9btvql9n5l.webp</image:loc>
       <image:title>خدعة إشارة المرور السحرية</image:title>
     </image:image>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/product/sndwq-alwhm-alshry</loc>
-    <lastmod>2026-10-03</lastmod>
+    <lastmod>2026-10-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790892352/products/ulhfwlkqvwmhskyplcif.png</image:loc>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/ulhfwlkqvwmhskyplcif.webp</image:loc>
       <image:title>صندوق الوهم السحري</image:title>
     </image:image>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/product/zrf-alkhd3-alshryh-ltghyyr-wizhar-alnqwd</loc>
-    <lastmod>2026-10-03</lastmod>
+    <lastmod>2026-10-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790891537/products/tygwya620mexrmk7yeks.png</image:loc>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/tygwya620mexrmk7yeks.webp</image:loc>
       <image:title>ظرف الخدع السحرية لتغيير وإظهار النقود</image:title>
     </image:image>
   </url>
   <url>
-    <loc>https://online-store-ghsaan.vercel.app/product/lghz-hrq-hrf-t-thdy-altfkyr-waltrkyz</loc>
-    <lastmod>2026-10-03</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-    <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790889338/products/v8btrzvyrpxxgcibhmlo.png</image:loc>
-      <image:title>لغز حرق حرف T – تحدي التفكير والتركيز</image:title>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://online-store-ghsaan.vercel.app/product/maws-bad-jymnj</loc>
-    <lastmod>2026-10-03</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-    <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790282213/products/syrw6w9fmwch0tqyvsxn.jpg</image:loc>
-      <image:title>ماوس باد جيمنج </image:title>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://online-store-ghsaan.vercel.app/product/maws-bad-mnzr-lyly-mrs3-balnjwm</loc>
-    <lastmod>2026-10-03</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-    <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790282071/products/l0poxiru1aooavlfyzds.jpg</image:loc>
-      <image:title>ماوس باد منظر ليلي مرصع بالنجوم</image:title>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://online-store-ghsaan.vercel.app/product/maws-bad-syarh-sbaq-lansr-iyfwlwshn</loc>
-    <lastmod>2026-10-03</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-    <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790281919/products/xqff8pzqrjdaimb86jgk.jpg</image:loc>
-      <image:title>ماوس باد سيارة سباق لانسر إيفولوشن</image:title>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://online-store-ghsaan.vercel.app/product/maws-bad-syarh-ryadyh-yabanyh</loc>
-    <lastmod>2026-10-03</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-    <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790281604/products/lfylhd4klwa0kq4nixcu.jpg</image:loc>
-      <image:title>ماوس باد سيارة رياضية يابانية </image:title>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://online-store-ghsaan.vercel.app/product/maws-bad-alsamwray-alyabany</loc>
-    <lastmod>2026-10-03</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-    <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790280912/products/a4ifgljfjfsdtoxhtmlo.jpg</image:loc>
-      <image:title>ماوس باد الساموراي الياباني</image:title>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://online-store-ghsaan.vercel.app/product/maws-bad-almnazr-altby3yh-alsynyh</loc>
-    <lastmod>2026-10-03</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-    <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790280688/products/lfdibjdfpce337zw0wjr.jpg</image:loc>
-      <image:title>ماوس باد المناظر الطبيعية الصينية</image:title>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://online-store-ghsaan.vercel.app/product/maws-bad-sakwra-yabany</loc>
-    <lastmod>2026-10-03</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-    <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790280499/products/sjwn1ehtu09trrxutrp9.jpg</image:loc>
-      <image:title>ماوس باد ساكورا ياباني</image:title>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://online-store-ghsaan.vercel.app/product/maws-bad-mnzr-lyly-qmr-ahmr</loc>
-    <lastmod>2026-10-03</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-    <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790280185/products/hq2zvw0nuz4ckpu0zxdg.jpg</image:loc>
-      <image:title>ماوس باد منظر ليلي قمر أحمر </image:title>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://online-store-ghsaan.vercel.app/product/maws-bad-aldwamh-albhryh</loc>
-    <lastmod>2026-10-03</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-    <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790279450/products/uv4vsbdptothb6dzx5rp.jpg</image:loc>
-      <image:title>ماوس باد الدوامة البحرية</image:title>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://online-store-ghsaan.vercel.app/product/maws-bad-jymnj-btsmym-hndsy</loc>
-    <lastmod>2026-10-03</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-    <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790279092/products/dnmqu9r3l5fbsbwsutfu.jpg</image:loc>
-      <image:title>ماوس باد جيمنج بتصميم هندسي </image:title>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://online-store-ghsaan.vercel.app/product/maws-bad-sdasy-btsmym-brkany</loc>
-    <lastmod>2026-10-03</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-    <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790278899/products/fjrvffrbjkash8tjv39l.jpg</image:loc>
-      <image:title>ماوس باد سداسي بتصميم بركاني</image:title>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://online-store-ghsaan.vercel.app/product/maws-bad-yabany-ahmr</loc>
-    <lastmod>2026-10-03</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-    <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790278740/products/xz368jipbhhfwdipggaw.jpg</image:loc>
-      <image:title>ماوس باد ياباني أحمر</image:title>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://online-store-ghsaan.vercel.app/product/maws-bad-slah-m4</loc>
-    <lastmod>2026-10-03</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-    <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790278483/products/j5fhiqnszbx58quvkdlc.jpg</image:loc>
-      <image:title>ماوس باد سلاح M4</image:title>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://online-store-ghsaan.vercel.app/product/maws-bad-jld-aswd-sadh</loc>
-    <lastmod>2026-10-03</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-    <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790278223/products/rrkugqqqmstp1h5rlniz.jpg</image:loc>
-      <image:title>ماوس باد جلد أسود سادة</image:title>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://online-store-ghsaan.vercel.app/product/maws-bad-jld-rmady-sadh</loc>
-    <lastmod>2026-10-03</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-    <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790278051/products/n7zc32zs48h1tk4kqxwj.jpg</image:loc>
-      <image:title>ماوس باد جلد رمادي سادة</image:title>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://online-store-ghsaan.vercel.app/product/maws-bad-akhtsarat-word-wexcel-wpowerpoint</loc>
-    <lastmod>2026-10-03</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-    <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790277564/products/k8dskfhegye9hpr66dbb.jpg</image:loc>
-      <image:title>ماوس باد اختصارات Word وExcel وPowerPoint</image:title>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://online-store-ghsaan.vercel.app/product/maws-bad-akhtsarat-alkmbywtr</loc>
-    <lastmod>2026-10-03</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-    <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790277419/products/aoomgcl6wigq9fv2aqyw.jpg</image:loc>
-      <image:title>ماوس باد اختصارات الكمبيوتر</image:title>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://online-store-ghsaan.vercel.app/product/maws-bad-syarh-ryadyh-bnfsjyh</loc>
-    <lastmod>2026-10-03</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-    <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790277244/products/uap1sqv33lwedarea9vz.jpg</image:loc>
-      <image:title>ماوس باد سيارة رياضية بنفسجية</image:title>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://online-store-ghsaan.vercel.app/product/sa3h-jyb-hary-bwtr</loc>
-    <lastmod>2026-10-03</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-    <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790276430/products/ehnhlbqsbtbrgveybhx9.jpg</image:loc>
-      <image:title>ساعة جيب هاري بوتر</image:title>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://online-store-ghsaan.vercel.app/product/sa3h-jyb-mlwnh-klasykyh</loc>
-    <lastmod>2026-10-03</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-    <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790275999/products/tyjrgwj9g6ohv88tqrl9.jpg</image:loc>
-      <image:title>ساعة جيب ملونة كلاسيكية</image:title>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://online-store-ghsaan.vercel.app/product/sa3h-jyb-narwtwa</loc>
-    <lastmod>2026-10-03</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-    <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790275548/products/j0acn4y1gpvo5d6admef.jpg</image:loc>
-      <image:title>ساعة جيب ناروتوا</image:title>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://online-store-ghsaan.vercel.app/product/msbah-lyly-khshby-led</loc>
-    <lastmod>2026-10-03</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-    <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790274682/products/dvcpprw43jocl74ojvba.jpg</image:loc>
-      <image:title>مصباح ليلي خشبي LED</image:title>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://online-store-ghsaan.vercel.app/product/mjmw3h-tmaryn-qbdh-alyd</loc>
-    <lastmod>2026-10-03</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-    <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790282650/products/cyilvqjtgznjmdhurhxa.jpg</image:loc>
-      <image:title>مجموعة تمارين قبضة اليد</image:title>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://online-store-ghsaan.vercel.app/product/sa3h-abw-wla3h-ghaz</loc>
-    <lastmod>2026-10-03</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-    <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790023287/products/ejhkn4xakobc19eevmaz.jpg</image:loc>
-      <image:title>ساعة أبو ولاعة غاز</image:title>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://online-store-ghsaan.vercel.app/product/msds-altdlyk-altby-ll3dlat-8-rwws-wshashh-rqmyh</loc>
-    <lastmod>2026-10-03</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-    <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790273069/products/kall9somphfmozqgtils.jpg</image:loc>
-      <image:title>مسدس التدليك الطبي للعضلات – 8 رؤوس وشاشة رقمية</image:title>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://online-store-ghsaan.vercel.app/product/msds-altdlyk-alzky-8-rwws-lltdlyk-al3myq</loc>
-    <lastmod>2026-10-03</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-    <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790023205/products/j3crozzo9cupfjm0wgyd.jpg</image:loc>
-      <image:title>مسدس التدليك الذكي – 8 رؤوس للتدليك العميق</image:title>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://online-store-ghsaan.vercel.app/product/sfynh-qrasnh-3aymh-dykwr</loc>
-    <lastmod>2026-10-03</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-    <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790022985/products/pz5wemupdlpfcvnwql3b.jpg</image:loc>
-      <image:title>سفينة قراصنة عائمة | ديكور </image:title>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://online-store-ghsaan.vercel.app/product/bkj-altmaryn-almnzlyh</loc>
-    <lastmod>2026-10-03</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-    <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790022518/products/ohxoifjhmyw0g6mao2im.jpg</image:loc>
-      <image:title>بكج التمارين المنزلية </image:title>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://online-store-ghsaan.vercel.app/product/khd3h-thwyl-alrsm-ila-syarh-hqyqyh</loc>
-    <lastmod>2026-10-03</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-    <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790901229/products/jjqysg4emxdvwamz29xj.png</image:loc>
-      <image:title>خدعة تحويل الرسم إلى سيارة حقيقية</image:title>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://online-store-ghsaan.vercel.app/product/wla3h-shwkwlath-btsmym-msttyl-anyq</loc>
-    <lastmod>2026-10-03</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-    <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790538697/products/h5ci49shulogxpqiiumq.png</image:loc>
-      <image:title>ولاعة شوكولاتة بتصميم مستطيل أنيق</image:title>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://online-store-ghsaan.vercel.app/product/sma3at-jymnj-yx37-llal3ab</loc>
-    <lastmod>2026-10-03</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-    <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790024901/products/hvhmmpzduwncandvnr8c.jpg</image:loc>
-      <image:title> سماعات جيمنج YX37 للألعاب</image:title>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://online-store-ghsaan.vercel.app/product/sa3h-jyb-shjrh-dm-alakhwyn</loc>
-    <lastmod>2026-10-03</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-    <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790024705/products/lab74icgqss09xvctaxd.jpg</image:loc>
-      <image:title>ساعة جيب شجرة دم الأخوين</image:title>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://online-store-ghsaan.vercel.app/product/sa3h-skmei-alrjalyh</loc>
-    <lastmod>2026-10-03</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-    <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790015393/products/zgj5p8lcz5wfjop5x5rs.jpg</image:loc>
-      <image:title>ساعة SKMEI الرجالية</image:title>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://online-store-ghsaan.vercel.app/product/khd3h-anhna-alwrqh-alshryh</loc>
-    <lastmod>2026-10-03</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-    <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790905538/products/ssskxvoapnzflfqzge3v.png</image:loc>
-      <image:title>خدعة انحناء الورقة السحرية</image:title>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://online-store-ghsaan.vercel.app/product/khd3h-thwyl-alhbl-ila-qmash-ahmr</loc>
-    <lastmod>2026-10-03</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-    <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790901614/products/etdxn50zsvhhanlwvo9y.png</image:loc>
-      <image:title> خدعة تحويل الحبل إلى قماش أحمر</image:title>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://online-store-ghsaan.vercel.app/product/khd3h-alnrd-almthwl</loc>
-    <lastmod>2026-10-03</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-    <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790901078/products/q4tfy2u0k9xy0ygz2gnx.png</image:loc>
-      <image:title>خدعة النرد المتحول</image:title>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://online-store-ghsaan.vercel.app/product/qmash-shry-mtghyr-alalwan</loc>
-    <lastmod>2026-10-03</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-    <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790896256/products/chm5xpfnririkohfbn1w.png</image:loc>
-      <image:title>قماش سحري متغير الألوان</image:title>
-    </image:image>
-  </url>
-  <url>
     <loc>https://online-store-ghsaan.vercel.app/product/khd3h-tyran-alkhshb-fwq-awraq-all3b</loc>
-    <lastmod>2026-10-03</lastmod>
+    <lastmod>2026-10-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790891386/products/w3gubbjlrz8rxhgawlse.png</image:loc>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/w3gubbjlrz8rxhgawlse.webp</image:loc>
       <image:title>خدعة طيران الخشب فوق أوراق اللعب</image:title>
     </image:image>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/product/frshh-alkhd3-alshryh-alahtrafyh</loc>
-    <lastmod>2026-10-03</lastmod>
+    <lastmod>2026-10-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790890536/products/pu1etj7acnoqrpue2qmz.png</image:loc>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/pu1etj7acnoqrpue2qmz.webp</image:loc>
       <image:title>فرشة الخدع السحرية الاحترافية</image:title>
     </image:image>
   </url>
   <url>
-    <loc>https://online-store-ghsaan.vercel.app/product/wla3h-zorro-astwanyh-dwarh</loc>
-    <lastmod>2026-10-03</lastmod>
+    <loc>https://online-store-ghsaan.vercel.app/product/lghz-hrq-hrf-t-thdy-altfkyr-waltrkyz</loc>
+    <lastmod>2026-10-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790537785/products/tpnmag2nnra7a7tfvs3u.png</image:loc>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/v8btrzvyrpxxgcibhmlo.webp</image:loc>
+      <image:title>لغز حرق حرف T – تحدي التفكير والتركيز</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/maws-bad-jymnj</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/syrw6w9fmwch0tqyvsxn.webp</image:loc>
+      <image:title>ماوس باد جيمنج </image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/maws-bad-mnzr-lyly-mrs3-balnjwm</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/l0poxiru1aooavlfyzds.webp</image:loc>
+      <image:title>ماوس باد منظر ليلي مرصع بالنجوم</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/maws-bad-syarh-sbaq-lansr-iyfwlwshn</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/xqff8pzqrjdaimb86jgk.webp</image:loc>
+      <image:title>ماوس باد سيارة سباق لانسر إيفولوشن</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/maws-bad-syarh-ryadyh-yabanyh</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/lfylhd4klwa0kq4nixcu.webp</image:loc>
+      <image:title>ماوس باد سيارة رياضية يابانية </image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/maws-bad-alsamwray-alyabany</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/a4ifgljfjfsdtoxhtmlo.webp</image:loc>
+      <image:title>ماوس باد الساموراي الياباني</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/maws-bad-almnazr-altby3yh-alsynyh</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/lfdibjdfpce337zw0wjr.webp</image:loc>
+      <image:title>ماوس باد المناظر الطبيعية الصينية</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/maws-bad-sakwra-yabany</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/sjwn1ehtu09trrxutrp9.webp</image:loc>
+      <image:title>ماوس باد ساكورا ياباني</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/maws-bad-mnzr-lyly-qmr-ahmr</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/hq2zvw0nuz4ckpu0zxdg.webp</image:loc>
+      <image:title>ماوس باد منظر ليلي قمر أحمر </image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/maws-bad-aldwamh-albhryh</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/uv4vsbdptothb6dzx5rp.webp</image:loc>
+      <image:title>ماوس باد الدوامة البحرية</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/maws-bad-jymnj-btsmym-hndsy</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/dnmqu9r3l5fbsbwsutfu.webp</image:loc>
+      <image:title>ماوس باد جيمنج بتصميم هندسي </image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/maws-bad-sdasy-btsmym-brkany</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/fjrvffrbjkash8tjv39l.webp</image:loc>
+      <image:title>ماوس باد سداسي بتصميم بركاني</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/maws-bad-yabany-ahmr-kbyr</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/xz368jipbhhfwdipggaw.webp</image:loc>
+      <image:title>ماوس باد ياباني أحمر كبير</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/maws-bad-slah-m4</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/j5fhiqnszbx58quvkdlc.webp</image:loc>
+      <image:title>ماوس باد سلاح M4</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/maws-bad-jld-aswd-sadh</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/rrkugqqqmstp1h5rlniz.webp</image:loc>
+      <image:title>ماوس باد جلد أسود سادة</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/maws-bad-jld-rmady-sadh</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/n7zc32zs48h1tk4kqxwj.webp</image:loc>
+      <image:title>ماوس باد جلد رمادي سادة</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/maws-bad-akhtsarat-word-wexcel-wpowerpoint</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/k8dskfhegye9hpr66dbb.webp</image:loc>
+      <image:title>ماوس باد اختصارات Word وExcel وPowerPoint</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/maws-bad-akhtsarat-alkmbywtr</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/aoomgcl6wigq9fv2aqyw.webp</image:loc>
+      <image:title>ماوس باد اختصارات الكمبيوتر</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/maws-bad-syarh-ryadyh-bnfsjyh</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/uap1sqv33lwedarea9vz.webp</image:loc>
+      <image:title>ماوس باد سيارة رياضية بنفسجية</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/sa3h-jyb-hary-bwtr</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/geu6yjdwzy4cbmundzhb.webp</image:loc>
+      <image:title>ساعة جيب هاري بوتر</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/sa3h-jyb-mlwnh-klasykyh</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/e4lgbwjfknp9delmorkx.webp</image:loc>
+      <image:title>ساعة جيب ملونة كلاسيكية</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/sa3h-jyb-narwtw</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/tvfzdrucvt8ro5kotkhd.webp</image:loc>
+      <image:title>ساعة جيب ناروتو</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/mhfzh-btayq-awtwmatyk</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/s3gn2csfzwbr4bpfgcbm.webp</image:loc>
+      <image:title>محفظة بطائق أوتوماتيك</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/kamyra-mraqbh-taqh-shmsyh</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/wlg9g4yogvhemxx258ew.webp</image:loc>
+      <image:title>كاميرا مراقبة طاقة شمسية</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/msbah-lyly-khshby-led</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/dvcpprw43jocl74ojvba.webp</image:loc>
+      <image:title>مصباح ليلي خشبي LED</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/mjmw3h-tmaryn-qbdh-alyd</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/cyilvqjtgznjmdhurhxa.webp</image:loc>
+      <image:title>مجموعة تمارين قبضة اليد</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/sa3h-abw-wla3h-ghaz</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/ejhkn4xakobc19eevmaz.webp</image:loc>
+      <image:title>ساعة أبو ولاعة غاز</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/sa3h-nsayyh-hi-watch-i-530-mini</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/ggkoynhcvdjwxfqob1h0.webp</image:loc>
+      <image:title>ساعة نسائية Hi Watch I-530 Mini</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/msds-altdlyk-altby-ll3dlat-8-rwws-wshashh-rqmyh</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/kall9somphfmozqgtils.webp</image:loc>
+      <image:title>مسدس التدليك الطبي للعضلات – 8 رؤوس وشاشة رقمية</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/msds-altdlyk-alzky-8-rwws-lltdlyk-al3myq</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/j3crozzo9cupfjm0wgyd.webp</image:loc>
+      <image:title>مسدس التدليك الذكي – 8 رؤوس للتدليك العميق</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/sfynh-qrasnh-3aymh-dykwr</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/pz5wemupdlpfcvnwql3b.webp</image:loc>
+      <image:title>سفينة قراصنة عائمة | ديكور </image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/mjmw3h-altmaryn-almnzlyh</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/ohxoifjhmyw0g6mao2im.webp</image:loc>
+      <image:title>مجموعة التمارين المنزلية </image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/maws-bad-jymnj-tsmym-hndsy-mlwn</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/e7yradhnydqap9oixqsq.webp</image:loc>
+      <image:title>ماوس باد جيمنج – تصميم هندسي ملون</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/jhaz-izalh-alwbr-mn-almlabs</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/s0hqoorvhpzaab7e3zhm.webp</image:loc>
+      <image:title>جهاز إزالة الوبر من الملابس</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/khd3h-thwyl-alrsm-ila-syarh-hqyqyh</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/jjqysg4emxdvwamz29xj.webp</image:loc>
+      <image:title>خدعة تحويل الرسم إلى سيارة حقيقية</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/wla3h-shwkwlath-btsmym-msttyl-anyq</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/h5ci49shulogxpqiiumq.webp</image:loc>
+      <image:title>ولاعة شوكولاتة بتصميم مستطيل أنيق</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/sma3h-jymnj-yx37-llal3ab</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/hvhmmpzduwncandvnr8c.webp</image:loc>
+      <image:title> سماعة جيمنج YX37 للألعاب</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/sa3h-jyb-shjrh-dm-alakhwyn</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/xarha6igbxm3gwehpgrc.webp</image:loc>
+      <image:title>ساعة جيب شجرة دم الأخوين</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/sa3h-skmei-alrjalyh</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/zgj5p8lcz5wfjop5x5rs.webp</image:loc>
+      <image:title>ساعة SKMEI الرجالية</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/l3bh-thdy-alsr3h-wrdh-alf3l</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/undodyu7qs9m64oynytt.webp</image:loc>
+      <image:title>لعبة تحدي السرعة وردة الفعل</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/msn-alskakyn-alasly-shhz-ahtrafy</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/wkyuvn3cuv8yb4ifx7xy.webp</image:loc>
+      <image:title>مسن السكاكين الأصلي – شحذ احترافي</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/fwahh-m3tr-jw-btathyr-allhb</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/yg3idqdhsw6kb4zh2ucv.webp</image:loc>
+      <image:title>فواحة معطر جو بتأثير اللهب</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/dbash-ydwyh-3-fy-1-msds-tdbys-m3dny</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/bkc2yzpm1vkjmd82kr3c.webp</image:loc>
+      <image:title>دباسة يدوية 3 في 1 – مسدس تدبيس معدني</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/mqabd-tmaryn-aldght</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/ac33yjpydrz09bcjau85.webp</image:loc>
+      <image:title>مقابض تمارين الضغط </image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/jhaz-qyas-drjh-alhrarh-balash3h-tht-alhmra</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/p9ryzqbm1dqcorkfq2oc.webp</image:loc>
+      <image:title>جهاز قياس درجة الحرارة بالأشعة تحت الحمراء</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/sma3h-blwtwth-laslkyh-bshashh-rqmyh</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/lzddmogmsdj3rxjeznos.webp</image:loc>
+      <image:title>سماعة بلوتوث لاسلكية بشاشة رقمية</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/sma3h-blwtwth-laslkyh</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/ahkkuoo3rvgbeqk6hybo.webp</image:loc>
+      <image:title>سماعة بلوتوث لاسلكية</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/khd3h-anhna-alwrqh-alshryh</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/ssskxvoapnzflfqzge3v.webp</image:loc>
+      <image:title>خدعة انحناء الورقة السحرية</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/khd3h-thwyl-alhbl-ila-qmash-ahmr</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/etdxn50zsvhhanlwvo9y.webp</image:loc>
+      <image:title> خدعة تحويل الحبل إلى قماش أحمر</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/khd3h-alnrd-almthwl</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/q4tfy2u0k9xy0ygz2gnx.webp</image:loc>
+      <image:title>خدعة النرد المتحول</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/qmash-shry-mtghyr-alalwan</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/eimx302lrjyrz1di90eb.webp</image:loc>
+      <image:title>قماش سحري متغير الألوان</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://online-store-ghsaan.vercel.app/product/wla3h-zorro-astwanyh-dwarh</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/tpnmag2nnra7a7tfvs3u.webp</image:loc>
       <image:title>ولاعة ZORRO أسطوانية دوّارة</image:title>
     </image:image>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/product/sa3h-jyb-khryth-al3alm</loc>
-    <lastmod>2026-10-03</lastmod>
+    <lastmod>2026-10-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790275794/products/jbosechqv3bu50g5ac0i.jpg</image:loc>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/f96zmah0kok46jfnyr5u.webp</image:loc>
       <image:title>ساعة جيب خريطة العالم</image:title>
     </image:image>
   </url>
   <url>
-    <loc>https://online-store-ghsaan.vercel.app/product/mhfzh-btaqat-awtwmatyk</loc>
-    <lastmod>2026-10-03</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-    <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790025789/products/s3gn2csfzwbr4bpfgcbm.jpg</image:loc>
-      <image:title>محفظة بطاقات أوتوماتيك</image:title>
-    </image:image>
-  </url>
-  <url>
     <loc>https://online-store-ghsaan.vercel.app/product/kamyra-mraqbh-zkyh-mt3ddh-al3dsat</loc>
-    <lastmod>2026-10-03</lastmod>
+    <lastmod>2026-10-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790025463/products/espdpetocovkafxn6ona.jpg</image:loc>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/espdpetocovkafxn6ona.webp</image:loc>
       <image:title>كاميرا مراقبة ذكية متعددة العدسات</image:title>
     </image:image>
   </url>
   <url>
-    <loc>https://online-store-ghsaan.vercel.app/product/kamyra-taqh-shmsyh</loc>
-    <lastmod>2026-10-03</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-    <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790025275/products/wlg9g4yogvhemxx258ew.jpg</image:loc>
-      <image:title>كاميرا طاقة شمسية</image:title>
-    </image:image>
-  </url>
-  <url>
     <loc>https://online-store-ghsaan.vercel.app/product/alktab-almdy</loc>
-    <lastmod>2026-10-03</lastmod>
+    <lastmod>2026-10-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790274165/products/eoyyewvlsdfluccrak6w.jpg</image:loc>
-      <image:title>الكتاب المضيء</image:title>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/eoyyewvlsdfluccrak6w.webp</image:loc>
+      <image:title>الكتاب المضيء </image:title>
     </image:image>
   </url>
   <url>
-    <loc>https://online-store-ghsaan.vercel.app/product/bkj-x8-plus-altqnyh</loc>
-    <lastmod>2026-10-03</lastmod>
+    <loc>https://online-store-ghsaan.vercel.app/product/mjmw3h-x8-plus-altqnyh</loc>
+    <lastmod>2026-10-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790025127/products/lfodwis13pbabgtkitus.jpg</image:loc>
-      <image:title>بكج  X8 plus التقنية</image:title>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/lfodwis13pbabgtkitus.webp</image:loc>
+      <image:title>مجموعة X8 plus التقنية</image:title>
     </image:image>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/product/almyzan-alzky-lthlyl-aljsm</loc>
-    <lastmod>2026-10-03</lastmod>
+    <lastmod>2026-10-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790283901/products/igmzxp3wvkkqw276foft.jpg</image:loc>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/igmzxp3wvkkqw276foft.webp</image:loc>
       <image:title>الميزان الذكي لتحليل الجسم</image:title>
     </image:image>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/product/jhaz-tqwyh-alm3sm-walsa3d</loc>
-    <lastmod>2026-10-03</lastmod>
+    <lastmod>2026-10-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790024622/products/cosposbi1tlhrbms2ztx.jpg</image:loc>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/cosposbi1tlhrbms2ztx.webp</image:loc>
       <image:title>جهاز تقوية المعصم والساعد</image:title>
     </image:image>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/product/mqwy-qbdh-alyd-5165-kjm</loc>
-    <lastmod>2026-10-03</lastmod>
+    <lastmod>2026-10-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790024383/products/srgtatbxgpn2po6bzxel.jpg</image:loc>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/srgtatbxgpn2po6bzxel.webp</image:loc>
       <image:title>مقوّي قبضة اليد 5–165 كجم</image:title>
     </image:image>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/product/jhaz-twsy3-alsdr-3-fy-1</loc>
-    <lastmod>2026-10-03</lastmod>
+    <lastmod>2026-10-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790024251/products/e025jysfy7tv6cekcayr.jpg</image:loc>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/e025jysfy7tv6cekcayr.webp</image:loc>
       <image:title>جهاز توسيع الصدر 3 في 1</image:title>
     </image:image>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/product/msds-tdlyk-sghyr</loc>
-    <lastmod>2026-10-03</lastmod>
+    <lastmod>2026-10-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790024131/products/zfmxo0irsrdqc7ymrfrt.jpg</image:loc>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/zfmxo0irsrdqc7ymrfrt.webp</image:loc>
       <image:title>مسدس تدليك صغير</image:title>
     </image:image>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/product/haml-hatf-mghnatysy</loc>
-    <lastmod>2026-10-03</lastmod>
+    <lastmod>2026-10-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790274028/products/l5qtb7tfmqjwdyslfc1r.jpg</image:loc>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/l5qtb7tfmqjwdyslfc1r.webp</image:loc>
       <image:title>حامل هاتف مغناطيسي</image:title>
     </image:image>
   </url>
   <url>
     <loc>https://online-store-ghsaan.vercel.app/product/sa3h-abw-wla3h-shhn</loc>
-    <lastmod>2026-10-03</lastmod>
+    <lastmod>2026-10-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790023439/products/kc8j25033fu1lbhesldk.jpg</image:loc>
+      <image:loc>https://pub-0edeefa6494c43fa9839ef49950d4510.r2.dev/migrated/cloudinary/image/upload/products/kc8j25033fu1lbhesldk.webp</image:loc>
       <image:title>ساعة أبو ولاعة شحن</image:title>
-    </image:image>
-  </url>
-  <url>
-    <loc>https://online-store-ghsaan.vercel.app/product/sa3h-nsayyh-hi-watch-i-530-mini</loc>
-    <lastmod>2026-10-03</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-    <image:image>
-      <image:loc>https://res.cloudinary.com/xgbqlctj/image/upload/v1790026036/products/ggkoynhcvdjwxfqob1h0.jpg</image:loc>
-      <image:title>ساعة نسائية Hi Watch I-530 Mini</image:title>
     </image:image>
   </url>
 </urlset>

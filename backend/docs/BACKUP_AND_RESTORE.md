@@ -18,9 +18,11 @@ Supabase Free has **no automatic daily backups** and **no PITR**. Projects can *
 | Layer | What | When to use |
 |-------|------|-------------|
 | **1 – `pg_dump`** | Full Postgres logical dump (schema + data) via `DIRECT_URL` | True disaster recovery (DB deleted, new project, migration) |
-| **2 – Admin JSON v2** | App `.json.gz` from Admin UI or `export-app-backup.js` | Convenient store snapshot (products, variants, orders, users, rates) |
+| **2 – Admin JSON v2.1** | App `.json.gz` from Admin UI or `export-app-backup.js` | Convenient store snapshot (catalog, orders, users, rates, push notifications) |
 
-Cloudinary images are URLs only — binary assets stay in Cloudinary. Exchange rates are included in Layer 2 and also live in `backend/data/exchange-rates.json`.
+Image URLs in the DB may point at Cloudinary and/or Cloudflare R2 — binary assets are not inside the JSON. Exchange rates are included in Layer 2 and also live in `backend/data/exchange-rates.json`.
+
+**v2.1 adds:** `deviceTokens`, `notificationPreferences`, `notifications`, `notificationCampaigns`, `notificationDeliveries`. Older **v2.0** files still restore (those tables become empty).
 
 ---
 
@@ -91,7 +93,7 @@ That script **refuses** to run unless `CONFIRM_RESTORE=YES` and `ALLOW_PRODUCTIO
 ### Layer 2 restore (admin JSON)
 
 Use Admin → Restore **only** when you intend to replace store data.  
-Requires backup **version 2.0**. Old v1.0 files are rejected (incomplete catalog).
+Requires backup **version 2.0 or 2.1**. Old v1.0 files are rejected (incomplete catalog). New exports are **v2.1**.
 
 **Before restore on a new Supabase project**, run all migrations so the schema matches the app:
 

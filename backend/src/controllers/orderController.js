@@ -1,6 +1,7 @@
 const prisma = require('../prismaClient');
 const { ValidationError, UnauthorizedError } = require('../middleware/errorMiddleware');
 const notificationService = require('../services/notificationService');
+const couponService = require('../services/couponService');
 
 // Map old numeric statuses used by the frontend to Prisma enum strings
 const STATUS_MAP = {
@@ -64,8 +65,9 @@ class OrderController {
       const buyerId = req.user?.id;
       if (!buyerId) throw new UnauthorizedError('Unauthorized');
 
-      const { shippingAddress, paymentMethod = 'COD', items } = req.body;
+      const { shippingAddress, paymentMethod = 'COD', items, couponCode } = req.body;
       const idempotencyKey = resolveIdempotencyKey(req);
+      const normalizedCoupon = couponService.normalizeCode(couponCode);
 
       if (idempotencyKey) {
         const existing = await prisma.order.findFirst({
@@ -81,7 +83,7 @@ class OrderController {
         throw new ValidationError('Order must contain at least one item');
       }
 
-      let totalAmount = 0;
+      let subtotal = 0;
       let orderCurrency = null;
       const resolvedItems = [];
 
@@ -104,7 +106,7 @@ class OrderController {
 
         // Use discountPrice if available (Mode A — no variants)
         const unitPrice = Number(product.discountPrice ?? product.price);
-        totalAmount += unitPrice * item.quantity;
+        subtotal += unitPrice * item.quantity;
 
         // Fetch primary image for snapshot (new architecture as source of truth)
         const primaryImage = await prisma.productImage.findFirst({
@@ -125,31 +127,64 @@ class OrderController {
 
       let order;
       try {
-        // Create order and items — stock is NOT decremented yet (admin approval required)
-        order = await prisma.order.create({
-          data: {
-            buyerId,
-            totalAmount,
-            currency: orderCurrency || 'YER_Sanaa',
-            shippingAddress,
-            paymentMethod: paymentMethod || 'COD',
-            status: 'Pending',
-            ...(idempotencyKey ? { idempotencyKey } : {}),
-            orderItems: {
-              create: resolvedItems.map((item) => ({
-                productId: item.productId,
-                quantity: item.quantity,
-                unitPrice: item.unitPrice,
-                productTitle: item.productTitle,
-                productImageUrl: item.productImageUrl,
-                productSku: item.productSku,
-              })),
+        order = await prisma.$transaction(async (tx) => {
+          let totalAmount = couponService.roundMoney(subtotal);
+          let couponFields = {};
+
+          if (normalizedCoupon) {
+            const redeemed = await couponService.redeemInTransaction(tx, {
+              code: normalizedCoupon,
+              subtotal,
+            });
+            totalAmount = redeemed.totalAmount;
+            couponFields = {
+              couponId: redeemed.couponId,
+              couponCode: redeemed.couponCode,
+              discountType: redeemed.discountType,
+              discountPercent: redeemed.discountPercent,
+              discountAmount: redeemed.discountAmount,
+              subtotalBeforeDiscount: redeemed.subtotalBeforeDiscount,
+            };
+          }
+
+          const created = await tx.order.create({
+            data: {
+              buyerId,
+              totalAmount,
+              currency: orderCurrency || 'YER_Sanaa',
+              shippingAddress,
+              paymentMethod: paymentMethod || 'COD',
+              status: 'Pending',
+              ...(idempotencyKey ? { idempotencyKey } : {}),
+              ...couponFields,
+              orderItems: {
+                create: resolvedItems.map((item) => ({
+                  productId: item.productId,
+                  quantity: item.quantity,
+                  unitPrice: item.unitPrice,
+                  productTitle: item.productTitle,
+                  productImageUrl: item.productImageUrl,
+                  productSku: item.productSku,
+                })),
+              },
             },
-          },
-          include: ORDER_CREATE_INCLUDE,
+            include: ORDER_CREATE_INCLUDE,
+          });
+
+          if (couponFields.couponId) {
+            await tx.couponRedemption.create({
+              data: {
+                couponId: couponFields.couponId,
+                orderId: created.id,
+                discountAmount: couponFields.discountAmount,
+              },
+            });
+          }
+
+          return created;
         });
       } catch (err) {
-        // Concurrent duplicate submit with same key
+        // Concurrent duplicate submit with same key — do not double-redeem
         if (err.code === 'P2002' && idempotencyKey) {
           const existing = await prisma.order.findFirst({
             where: { buyerId, idempotencyKey },

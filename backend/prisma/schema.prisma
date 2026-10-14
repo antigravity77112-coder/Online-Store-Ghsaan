@@ -158,6 +158,19 @@ enum PreferredLanguage {
   en
 }
 
+/// Admin-controlled coupon lifecycle. Used / Expired are computed at read time.
+enum CouponAdminStatus {
+  Draft
+  Active
+  Disabled
+}
+
+/// How the coupon reduces the cart subtotal.
+enum CouponDiscountType {
+  Percent
+  Amount
+}
+
 // =============================================================================
 // USER
 // =============================================================================
@@ -361,12 +374,15 @@ model Brand {
   slug        String   @unique
   logoUrl     String?
   description String?
+  /// When false, brand is hidden from the public storefront.
+  isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   products Product[]
 
   @@index([name])
+  @@index([isActive])
 }
 
 // =============================================================================
@@ -720,13 +736,70 @@ model Order {
   orderDate       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 
+  /// Coupon snapshot at order time (optional).
+  couponId               String?  @db.Uuid
+  coupon                 Coupon?  @relation(fields: [couponId], references: [id], onDelete: SetNull)
+  couponCode             String?
+  discountType           CouponDiscountType?
+  discountPercent        Int?
+  discountAmount         Decimal? @db.Decimal(18, 2)
+  subtotalBeforeDiscount Decimal? @db.Decimal(18, 2)
+
   buyerId    String      @db.Uuid
   buyer      User        @relation("BuyerOrders", fields: [buyerId], references: [id])
   orderItems OrderItem[] @relation("OrderItems")
+  couponRedemption CouponRedemption?
 
   @@unique([buyerId, idempotencyKey])
   @@index([buyerId, orderDate(sort: Desc)])
   @@index([status, orderDate(sort: Desc)])
+  @@index([couponId])
+}
+
+// =============================================================================
+// COUPONS
+// =============================================================================
+
+/// Percent- or fixed-amount coupon. Validity clock starts on first transition to Active.
+model Coupon {
+  id                  String             @id @default(uuid()) @db.Uuid
+  name                String
+  code                String             @unique
+  discountType        CouponDiscountType @default(Percent)
+  /// Used when discountType = Percent (1–100).
+  discountPercent     Int?
+  /// Used when discountType = Amount (store base currency). Capped at cart subtotal on redeem.
+  discountFixedAmount Decimal?           @db.Decimal(18, 2)
+  validityDays        Int
+  usageLimit          Int                @default(1)
+  usageCount          Int                @default(0)
+  adminStatus         CouponAdminStatus  @default(Draft)
+  /// Set once on first activation (server time).
+  activatedAt         DateTime?
+  /// activatedAt + validityDays; null while Draft / never activated.
+  expiresAt           DateTime?
+  internalNotes       String?
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+
+  redemptions CouponRedemption[]
+  orders      Order[]
+
+  @@index([adminStatus, expiresAt])
+  @@index([code])
+}
+
+/// One successful checkout redemption per order (atomic with order create).
+model CouponRedemption {
+  id             String   @id @default(uuid()) @db.Uuid
+  couponId       String   @db.Uuid
+  coupon         Coupon   @relation(fields: [couponId], references: [id], onDelete: Cascade)
+  orderId        String   @unique @db.Uuid
+  order          Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  discountAmount Decimal  @db.Decimal(18, 2)
+  createdAt      DateTime @default(now())
+
+  @@index([couponId])
 }
 
 /// Line item within an order.

@@ -76,7 +76,29 @@
     "decreaseQuantity": "Decrease quantity",
     "increaseQuantity": "Increase quantity",
     "removeItem": "Remove from cart",
-    "checkoutProgress": "Next: enter your delivery address"
+    "checkoutProgress": "Next: enter your delivery address",
+    "couponLabel": "Coupon code",
+    "couponPlaceholder": "SAVE10",
+    "couponApply": "Apply",
+    "couponClear": "Remove coupon",
+    "couponRequired": "Enter a coupon code",
+    "couponInvalid": "Invalid coupon",
+    "couponApplied": "Coupon applied",
+    "couponDiscount": "Coupon discount",
+    "couponLoginRequired": "Sign in to apply a coupon to your order",
+    "couponCheckLink": "Check a coupon"
+  },
+  "couponCheck": {
+    "title": "Check coupon",
+    "seoDesc": "Verify a discount code before ordering.",
+    "subtitle": "Enter a code to see if it is valid",
+    "submit": "Check",
+    "inputLabel": "Coupon code",
+    "backToCart": "Back to cart",
+    "percent": "Discount percent",
+    "amount": "Discount amount",
+    "expires": "Expires",
+    "error": "Could not verify right now"
   },
   "settings": {
     "title": "Settings",

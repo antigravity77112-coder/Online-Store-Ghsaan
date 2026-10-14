@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { pushRecentSearch } from '../utils/recentSearches';
 
 /**
  * Draft search input with URL commit on Enter/submit.
@@ -17,13 +18,19 @@ export function useUrlSearchDraft(paramName = 'search') {
   const commitSearch = useCallback((value, { replace = true } = {}) => {
     const trimmed = (value ?? '').trim();
     const next = new URLSearchParams(searchParams);
-    if (trimmed) next.set(paramName, trimmed);
-    else next.delete(paramName);
+    if (trimmed) {
+      next.set(paramName, trimmed);
+      pushRecentSearch(trimmed);
+    } else {
+      next.delete(paramName);
+    }
     setSearchParams(next, { replace });
   }, [searchParams, setSearchParams, paramName]);
 
-  const commitSearchNow = useCallback(() => {
-    commitSearch(draftSearch, { replace: true });
+  const commitSearchNow = useCallback((overrideValue) => {
+    const value = typeof overrideValue === 'string' ? overrideValue : draftSearch;
+    if (typeof overrideValue === 'string') setDraftSearch(overrideValue);
+    commitSearch(value, { replace: true });
   }, [draftSearch, commitSearch]);
 
   const clearSearch = useCallback(() => {

@@ -137,12 +137,13 @@
     transition: background-color 9999s ease-in-out 0s;
   }
 
-  /* EN: Keep native search clear control visible in dark mode (WebKit browsers)
-     AR: إبقاء زر المسح داخل حقل البحث واضحاً في الوضع الداكن (متصفحات WebKit) */
-  .dark input[type="search"]::-webkit-search-cancel-button {
-    filter: invert(1) brightness(1.4);
-    opacity: 0.95;
-    cursor: pointer;
+  /* EN: Hide native WebKit clear — ListingSearchField already has a custom X
+     AR: إخفاء زر المسح الأصلي — الحقل يستخدم زر X مخصص */
+  input[type="search"]::-webkit-search-cancel-button,
+  input[type="search"]::-webkit-search-decoration {
+    -webkit-appearance: none;
+    appearance: none;
+    display: none;
   }
 
   ::selection {

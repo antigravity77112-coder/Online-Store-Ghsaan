@@ -1,6 +1,6 @@
 const siteConfigService = require('../services/siteConfigService');
 const { buildWebManifest } = require('../config/siteConfigDefaults');
-const { uploadBuffer } = require('../utils/cloudinaryClient');
+const { uploadBuffer } = require('../services/storage');
 
 class SiteConfigController {
   async getPublicConfig(req, res) {
