@@ -205,7 +205,8 @@ const ProductDetailsPage = () => {
   const quantity = 1;
   const [descSheetOpen, setDescSheetOpen] = useState(false);
   const [brokenGalleryUrls, setBrokenGalleryUrls] = useState(() => new Set());
-  const [heroImageLoaded, setHeroImageLoaded] = useState(false);
+  /** URLs that have finished loading (incl. cache). Do not gate on active-only onLoad. */
+  const [loadedGalleryUrls, setLoadedGalleryUrls] = useState(() => new Set());
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [orderMethod, setOrderMethod] = useState("whatsapp");
   const [feedbackMessage, setFeedbackMessage] = useState("");
@@ -225,7 +226,7 @@ const ProductDetailsPage = () => {
     setAddedToCart(false);
     setSelectedImageIndex(0);
     setBrokenGalleryUrls(new Set());
-    setHeroImageLoaded(false);
+    setLoadedGalleryUrls(new Set());
     setDescSheetOpen(false);
     setLightboxOpen(false);
     setOptionSelections({});
@@ -234,8 +235,18 @@ const ProductDetailsPage = () => {
   }, [slug]);
 
   useEffect(() => {
-    setHeroImageLoaded(false);
+    setLoadedGalleryUrls(new Set());
   }, [product?.id]);
+
+  const markGalleryUrlLoaded = useCallback((url) => {
+    if (!url) return;
+    setLoadedGalleryUrls((prev) => {
+      if (prev.has(url)) return prev;
+      const next = new Set(prev);
+      next.add(url);
+      return next;
+    });
+  }, []);
 
   useEffect(() => {
     if (!product?.id || trackedProductIdRef.current === product.id) return;
@@ -522,8 +533,10 @@ const ProductDetailsPage = () => {
 
   const safeIndex = Math.min(selectedImageIndex, Math.max(galleryImages.length - 1, 0));
   const activeImageRawUrl = galleryImages[safeIndex];
+  const activeImageLoaded = Boolean(activeImageRawUrl && loadedGalleryUrls.has(activeImageRawUrl));
 
   const handleGalleryImageError = (url) => {
+    markGalleryUrlLoaded(url);
     setBrokenGalleryUrls((prev) => {
       if (prev.has(url)) return prev;
       const next = new Set(prev);
@@ -823,7 +836,7 @@ const ProductDetailsPage = () => {
         }`}
         {...(galleryImages.length > 1 ? gallerySwipe : {})}
       >
-        {!heroImageLoaded && (
+        {!activeImageLoaded && (
           <div
             className="absolute inset-0 z-[2] skeleton-shimmer pointer-events-none"
             aria-hidden="true"
@@ -842,6 +855,7 @@ const ProductDetailsPage = () => {
               || (safeIndex === 0 && idx === galleryImages.length - 1)
               || (safeIndex === galleryImages.length - 1 && idx === 0);
             if (!isActive && !isNear && idx > 2) return null;
+            const isLoaded = loadedGalleryUrls.has(url);
             const ImgTag = idx === 0 && heroLayoutId ? motion.img : 'img';
             const layoutProps = idx === 0 && heroLayoutId
               ? {
@@ -858,19 +872,20 @@ const ProductDetailsPage = () => {
                 alt={isActive ? (imageAltByUrl[url] || product.title) : ''}
                 aria-hidden={!isActive}
                 className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-200 ease-out ${
-                  isActive && heroImageLoaded ? 'opacity-100 z-[1]' : 'opacity-0 z-0 pointer-events-none'
+                  isActive && isLoaded ? 'opacity-100 z-[1]' : 'opacity-0 z-0 pointer-events-none'
                 }`}
                 fetchPriority={isActive || idx === 0 ? 'high' : 'low'}
                 loading={isActive || isNear || idx < 2 ? 'eager' : 'lazy'}
                 decoding="async"
                 draggable={false}
-                onLoad={() => {
-                  if (isActive) setHeroImageLoaded(true);
+                ref={(el) => {
+                  // Cached images often skip onLoad; detect complete after mount.
+                  if (el && el.complete && el.naturalWidth > 0) {
+                    markGalleryUrlLoaded(url);
+                  }
                 }}
-                onError={() => {
-                  handleGalleryImageError(url);
-                  if (isActive) setHeroImageLoaded(true);
-                }}
+                onLoad={() => markGalleryUrlLoaded(url)}
+                onError={() => handleGalleryImageError(url)}
                 {...layoutProps}
               />
             );
