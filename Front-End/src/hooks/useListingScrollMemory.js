@@ -14,7 +14,7 @@ function readScrollY() {
 }
 
 /**
- * Capture listing scroll on exit; restore window place via module-level loop on Back.
+ * Capture listing scroll on exit; restore instantly on Back (before paint).
  *
  * @param {{ listingKey: string, ready?: boolean, pagesReady?: boolean }} opts
  */
@@ -28,12 +28,10 @@ export function useListingScrollMemory({ listingKey, ready = true, pagesReady = 
     startedRef.current = '';
   }, [listingKey]);
 
-  // Persist scroll while browsing; snapshot before product navigation.
   useEffect(() => {
     if (!listingKey) return undefined;
 
     const persist = () => {
-      // Never overwrite the frozen restore target while a Back-restore is running.
       if (isListingScrollRestoreActive()) return;
       const y = readScrollY();
       if (y > 8) setListingMemory(listingKeyRef.current, { scrollY: y });
@@ -46,7 +44,6 @@ export function useListingScrollMemory({ listingKey, ready = true, pagesReady = 
       if (!anchor) return;
       const href = anchor.getAttribute('href') || '';
       if (!isProductListingHref(href)) return;
-      // Capture BEFORE React Router navigates / ScrollToTop zeros the window.
       captureListingExit(listingKeyRef.current);
     };
 
@@ -55,7 +52,6 @@ export function useListingScrollMemory({ listingKey, ready = true, pagesReady = 
     document.addEventListener('click', onProductIntent, true);
 
     return () => {
-      // Do not persist on unmount if window was already scrolled to 0 by ScrollToTop.
       if (!isListingScrollRestoreActive()) {
         const y = readScrollY();
         if (y > 8) setListingMemory(listingKeyRef.current, { scrollY: y });
@@ -66,20 +62,18 @@ export function useListingScrollMemory({ listingKey, ready = true, pagesReady = 
     };
   }, [listingKey]);
 
-  // Kick restore before paint on Back so the page never flashes the top.
-  // pagesReady may flap on every load-more — only nudge an in-flight restore.
+  // Start restore ASAP on Back — do NOT wait for products (that painted Y=0 then climbed).
   useLayoutEffect(() => {
-    if (!listingKey || !ready) return;
+    if (!listingKey) return;
     if (!shouldRestoreListing(listingKey, navigationType)) return;
 
     const startToken = `${listingKey}|back`;
     if (startedRef.current !== startToken) {
       startedRef.current = startToken;
-      startListingScrollRestore(listingKey, { pagesReady });
-      return;
+      startListingScrollRestore(listingKey, { pagesReady: false });
     }
 
-    if (pagesReady && isListingScrollRestoreActive()) {
+    if (ready && pagesReady && isListingScrollRestoreActive()) {
       startListingScrollRestore(listingKey, { pagesReady: true });
     }
   }, [listingKey, ready, pagesReady, navigationType]);

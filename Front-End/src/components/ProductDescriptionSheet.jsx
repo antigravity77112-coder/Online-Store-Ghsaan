@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import { X } from 'lucide-react';
+import { useLocale } from '../context/LocaleContext';
 
 /**
  * Formats a product attribute value for display in the description sheet.
@@ -106,6 +107,8 @@ export default function ProductDescriptionSheet({
   title = 'المواصفات',
   rows = [],
 }) {
+  const { dir, isRtl } = useLocale();
+
   useEffect(() => {
     if (!open) return undefined;
     const prev = document.body.style.overflow;
@@ -130,7 +133,7 @@ export default function ProductDescriptionSheet({
       role="dialog"
       aria-modal="true"
       aria-labelledby="product-desc-title"
-      dir="rtl"
+      dir={dir}
     >
       <button
         type="button"
@@ -138,7 +141,7 @@ export default function ProductDescriptionSheet({
         aria-label="إغلاق"
         onClick={onClose}
       />
-      <div className="relative w-full sm:max-w-md max-h-[85vh] bg-white dark:bg-stone-900 rounded-t-2xl sm:rounded-2xl shadow-xl flex flex-col overflow-hidden animate-in slide-in-from-bottom duration-200">
+      <div className="relative w-full sm:max-w-md max-h-[85vh] bg-white dark:bg-stone-900 rounded-t-2xl sm:rounded-2xl shadow-xl flex flex-col overflow-hidden">
         <div className="relative flex items-center justify-center px-4 py-3.5 border-b border-stone-100 dark:border-stone-800 shrink-0">
           <h2 id="product-desc-title" className="text-base font-extrabold text-stone-900 dark:text-white">
             {title}
@@ -146,7 +149,9 @@ export default function ProductDescriptionSheet({
           <button
             type="button"
             onClick={onClose}
-            className="absolute left-3 top-1/2 -translate-y-1/2 min-w-[40px] min-h-[40px] flex items-center justify-center rounded-full text-stone-500 hover:bg-stone-100 dark:hover:bg-stone-800"
+            className={`absolute top-1/2 -translate-y-1/2 min-w-[40px] min-h-[40px] flex items-center justify-center rounded-full text-stone-500 hover:bg-stone-100 dark:hover:bg-stone-800 ${
+              isRtl ? 'left-3' : 'right-3'
+            }`}
             aria-label="إغلاق الوصف"
           >
             <X className="w-5 h-5" aria-hidden="true" />
@@ -159,18 +164,17 @@ export default function ProductDescriptionSheet({
               {rows.map((row, idx) => (
                 <li
                   key={`${row.label}-${idx}`}
-                  className="grid grid-cols-[1fr_auto_1fr] items-center gap-x-2.5 py-2.5 text-sm leading-[1.5]"
-                  dir="rtl"
+                  className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-start gap-x-2.5 py-2.5 text-sm leading-[1.5]"
                 >
-                  {/* Right column (RTL start): label */}
-                  <span className="min-w-0 text-right font-semibold text-stone-800 dark:text-stone-100 break-words">
+                  {/* Key: inline-start */}
+                  <span className="min-w-0 text-start font-semibold text-stone-800 dark:text-stone-100 break-words">
                     {row.label}
                   </span>
-                  <span className="select-none text-stone-300 dark:text-stone-600 font-light" aria-hidden="true">
+                  <span className="select-none text-stone-300 dark:text-stone-600 font-light pt-px" aria-hidden="true">
                     |
                   </span>
-                  {/* Left column (RTL end): value */}
-                  <span className="min-w-0 text-left text-stone-600 dark:text-stone-300 break-words">
+                  {/* Value: right-aligned (flush toward separator in RTL Arabic) */}
+                  <span className="min-w-0 text-right text-stone-600 dark:text-stone-300 break-words">
                     {row.href ? (
                       <Link
                         to={row.href}

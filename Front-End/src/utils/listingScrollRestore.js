@@ -1,7 +1,9 @@
 /**
  * Module-level listing scroll restore.
  * Survives React remounts / effect cleanups. No localStorage.
- * Apply target Y immediately to avoid top-flash, then correct once layout is tall enough.
+ *
+ * Instant jump only (never smooth). Spacer keeps document tall enough so
+ * Back never paints at Y=0 then climbs to the saved position.
  */
 
 import {
@@ -14,40 +16,67 @@ import {
 
 const THRESHOLD = 48;
 const MAX_MS = 6000;
-/** After pagesReady, briefly retry if images still growing height. */
-const POST_READY_RETRY_MS = 400;
-/** If the user scrolls away from the restore target, abort (do not fight them). */
-const USER_SCROLL_ABORT_PX = 120;
+const POST_READY_RETRY_MS = 200;
+const USER_SCROLL_ABORT_PX = 48;
+
+const SPACER_ATTR = 'data-listing-scroll-spacer';
+const RESTORING_CLASS = 'listing-scroll-restoring';
 
 let activeKey = null;
-/** Frozen Y for the active restore — never re-read from live scroll persist. */
 let frozenTargetY = null;
-let rafId = 0;
 let startedAt = 0;
 let pagesReadyFlag = false;
 let safetyTimer = 0;
 let postReadyTimer = 0;
-/** Listing keys whose Back-restore already finished this visit (blocks load-more re-jumps). */
+let userInteracted = false;
 const finishedKeys = new Set();
 let userScrollAbortBound = false;
 
-function maxScrollY() {
-  const doc = document.documentElement;
-  return Math.max(0, (doc?.scrollHeight || 0) - window.innerHeight);
+function readScrollY() {
+  return window.scrollY || document.documentElement.scrollTop || 0;
 }
 
+/**
+ * Always instant — global CSS `scroll-behavior: smooth` must not animate restore.
+ */
 function applyY(y) {
   const target = Math.max(0, y);
-  window.scrollTo(0, target);
-  document.documentElement.scrollTop = target;
+  const doc = document.documentElement;
+  const prev = doc.style.scrollBehavior;
+  doc.style.scrollBehavior = 'auto';
+  try {
+    window.scrollTo({ top: target, left: 0, behavior: 'instant' });
+  } catch {
+    window.scrollTo(0, target);
+  }
+  doc.scrollTop = target;
   if (document.body) document.body.scrollTop = target;
+  doc.style.scrollBehavior = prev;
+}
+
+function ensureSpacer(targetY) {
+  const doc = document.documentElement;
+  if (!doc) return;
+  const need = Math.ceil(targetY + window.innerHeight + 80);
+  doc.style.minHeight = `${need}px`;
+  doc.setAttribute(SPACER_ATTR, '1');
+}
+
+function clearSpacer() {
+  const doc = document.documentElement;
+  if (!doc || !doc.hasAttribute(SPACER_ATTR)) return;
+  doc.style.minHeight = '';
+  doc.removeAttribute(SPACER_ATTR);
+}
+
+function setRestoringClass(on) {
+  const doc = document.documentElement;
+  if (!doc) return;
+  if (on) doc.classList.add(RESTORING_CLASS);
+  else doc.classList.remove(RESTORING_CLASS);
 }
 
 function clearTimers() {
-  if (rafId) {
-    cancelAnimationFrame(rafId);
-    rafId = 0;
-  }
   if (safetyTimer) {
     window.clearTimeout(safetyTimer);
     safetyTimer = 0;
@@ -74,9 +103,7 @@ function onUserScrollAbort() {
   const listingKey = activeKey;
   const y = frozenTargetY;
   if (!listingKey || typeof y !== 'number') return;
-  const current = window.scrollY || document.documentElement.scrollTop || 0;
-  // Only abort once the user has clearly moved away from the restore target.
-  if (Math.abs(current - y) < USER_SCROLL_ABORT_PX) return;
+  userInteracted = true;
   finish(listingKey);
 }
 
@@ -95,9 +122,12 @@ export function captureListingExit(listingKey) {
 }
 
 export function stopListingScrollRestore() {
+  clearSpacer();
+  setRestoringClass(false);
   activeKey = null;
   frozenTargetY = null;
   pagesReadyFlag = false;
+  userInteracted = false;
   unbindUserScrollAbort();
   clearTimers();
 }
@@ -111,90 +141,60 @@ function finish(listingKey) {
   clearExpectedListingReturn(listingKey);
 }
 
-function jumpToTarget(listingKey, y) {
-  if (rafId) {
-    cancelAnimationFrame(rafId);
-    rafId = 0;
-  }
-  if (safetyTimer) {
-    window.clearTimeout(safetyTimer);
-    safetyTimer = 0;
-  }
+function jumpToTarget(listingKey, y, { allowRetry = false } = {}) {
+  clearTimers();
+  ensureSpacer(y);
   applyY(y);
-  // One short correction if layout grows right after jump (images).
-  if (postReadyTimer) window.clearTimeout(postReadyTimer);
+
+  if (!allowRetry || userInteracted) {
+    if (pagesReadyFlag || Date.now() - startedAt >= MAX_MS) {
+      finish(listingKey);
+    }
+    return;
+  }
+
   postReadyTimer = window.setTimeout(() => {
     if (activeKey !== listingKey) return;
-    applyY(y);
+    if (userInteracted) {
+      finish(listingKey);
+      return;
+    }
+    const current = readScrollY();
+    if (Math.abs(current - y) <= THRESHOLD * 2) {
+      ensureSpacer(y);
+      applyY(y);
+    }
     finish(listingKey);
   }, POST_READY_RETRY_MS);
 }
 
-function tick() {
-  const listingKey = activeKey;
-  if (!listingKey) return;
-
-  const y = frozenTargetY;
-  if (typeof y !== 'number' || y <= 8) {
-    finish(listingKey);
-    return;
-  }
-
-  const maxY = maxScrollY();
-  const elapsed = Date.now() - startedAt;
-  const tallEnough = maxY >= y - THRESHOLD;
-
-  // Keep the best available position while waiting (avoids staying stuck at top).
-  if (!tallEnough && !pagesReadyFlag && elapsed < MAX_MS) {
-    applyY(Math.min(y, Math.max(maxY, 0)));
-    rafId = requestAnimationFrame(tick);
-    return;
-  }
-
-  // pagesReady but still short: clamp once and stop (best effort).
-  if (!tallEnough && pagesReadyFlag) {
-    applyY(Math.min(y, maxY));
-    finish(listingKey);
-    return;
-  }
-
-  if (tallEnough) {
-    jumpToTarget(listingKey, y);
-    return;
-  }
-
-  // Timed out still short
-  applyY(Math.min(y, maxY));
-  finish(listingKey);
-}
-
 /**
- * Start (or continue) restoring window.scrollY for listingKey.
- * Loop lives outside React so remounts cannot cancel it.
- * After finish(), further calls are no-ops until the next product exit
- * (prevents infinite-scroll pagesReady flaps from yanking scroll mid-browse).
+ * Start (or finalize) restoring window.scrollY for listingKey.
+ * Call as early as possible on Back — do not wait for product rows to paint.
  */
 export function startListingScrollRestore(listingKey, { pagesReady = false } = {}) {
   if (!listingKey) return;
   if (typeof window === 'undefined') return;
 
-  // Continue an in-flight restore only.
   if (activeKey === listingKey) {
     if (pagesReady) pagesReadyFlag = true;
-    if (pagesReadyFlag) {
-      clearTimers();
-      tick();
-    } else if (!rafId) {
-      rafId = requestAnimationFrame(tick);
+    if (!pagesReadyFlag) return;
+    if (userInteracted) {
+      finish(listingKey);
+      return;
     }
+    const y = frozenTargetY;
+    if (typeof y !== 'number' || y <= 8) {
+      finish(listingKey);
+      return;
+    }
+    jumpToTarget(listingKey, y, { allowRetry: true });
     return;
   }
 
-  // Do not restart after this visit's restore already completed.
   if (finishedKeys.has(listingKey)) return;
 
   const mem = getListingMemory(listingKey);
-  // Prefer frozen exit Y; never fall back to live scrollY (that fights the user).
   const target = mem?.restoreScrollY;
   if (typeof target !== 'number' || target <= 8) return;
 
@@ -202,25 +202,33 @@ export function startListingScrollRestore(listingKey, { pagesReady = false } = {
   activeKey = listingKey;
   frozenTargetY = target;
   pagesReadyFlag = Boolean(pagesReady);
+  userInteracted = false;
   startedAt = Date.now();
+  setRestoringClass(true);
   bindUserScrollAbort();
 
-  // Immediate paint at best-effort Y so Back never flashes the top of the page.
-  applyY(Math.min(target, Math.max(maxScrollY(), 0)));
+  ensureSpacer(target);
+  applyY(target);
 
-  tick();
-
-  // Single safety timeout if pagesReady never arrives.
-  safetyTimer = window.setTimeout(() => {
-    if (activeKey === listingKey) tick();
-  }, MAX_MS);
+  if (pagesReadyFlag) {
+    jumpToTarget(listingKey, target, { allowRetry: true });
+  } else {
+    safetyTimer = window.setTimeout(() => {
+      if (activeKey !== listingKey) return;
+      if (userInteracted) {
+        finish(listingKey);
+        return;
+      }
+      jumpToTarget(listingKey, target, { allowRetry: false });
+      finish(listingKey);
+    }, MAX_MS);
+  }
 }
 
 export function shouldRestoreListing(listingKey, navigationType) {
   return navigationType === 'POP' || isExpectedListingReturn(listingKey);
 }
 
-/** True if href points at a storefront product route. */
 export function isProductListingHref(href) {
   if (!href || href.startsWith('#') || href.startsWith('javascript:')) return false;
   try {

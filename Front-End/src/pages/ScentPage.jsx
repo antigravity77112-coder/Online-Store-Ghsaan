@@ -63,7 +63,7 @@ const ScentPage = () => {
     [scent?.id, slug, committedSearch],
   );
   const shuffleSeed = useMemo(() => ensureShuffleSeed(listingKey), [listingKey]);
-  const filteredProducts = useListingProducts(searchedProducts, sortOrder, shuffleSeed);
+  const filteredProducts = useListingProducts(searchedProducts, sortOrder, shuffleSeed, listingKey);
 
   useListingScrollMemory({
     listingKey,

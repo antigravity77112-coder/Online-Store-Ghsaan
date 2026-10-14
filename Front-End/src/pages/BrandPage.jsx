@@ -74,7 +74,7 @@ const BrandPage = () => {
   const error = brandError?.message || '';
   const productCount = brand?.productsCount ?? (products || []).length;
 
-  const filteredProducts = useListingProducts(products || [], sortOrder, shuffleSeed);
+  const filteredProducts = useListingProducts(products || [], sortOrder, shuffleSeed, listingKey);
 
   const pagesReady = size >= rememberedSize && !isLoadingMore && filteredProducts.length > 0;
   const skipEnterMotion = navigationType === 'POP' || isExpectedListingReturn(listingKey);

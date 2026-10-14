@@ -52,6 +52,11 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
+  /* Instant jumps during listing Back-restore (overrides smooth scroll). */
+  html.listing-scroll-restoring {
+    scroll-behavior: auto !important;
+  }
+
   html[dir="rtl"] {
     direction: rtl;
   }

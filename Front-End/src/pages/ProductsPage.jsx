@@ -92,7 +92,7 @@ const ProductsPage = () => {
     )]
   ), [categories, activeProducts]);
 
-  const filteredProducts = useListingProducts(activeProducts, sortOrder, shuffleSeed);
+  const filteredProducts = useListingProducts(activeProducts, sortOrder, shuffleSeed, listingKey);
 
   const pagesReady = size >= rememberedSize && !isLoadingMore && filteredProducts.length > 0;
   const skipEnterMotion = navigationType === 'POP' || isExpectedListingReturn(listingKey);

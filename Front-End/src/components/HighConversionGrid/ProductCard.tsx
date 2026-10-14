@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { Heart } from 'lucide-react';
 import { getOptimizedImageUrl, getRawCloudinaryUrl, IMAGE_WIDTHS } from '../../utils/cloudinaryUrl';
 import { useFormatDisplayPrice } from '../../context/CurrencyContext';
+import { useReducedMotion } from '../../hooks/useReducedMotion';
 
 export interface Product {
   id: string | number;
@@ -61,6 +63,7 @@ export const ProductCard: React.FC<ProductCardProps> = React.memo(({
   onFavorite,
 }) => {
   const formatPrice = useFormatDisplayPrice();
+  const reduceMotion = useReducedMotion();
   const [isFavoriteLocal, setIsFavoriteLocal] = useState(product?.isFavorite ?? false);
   const [useRawImage, setUseRawImage] = useState(false);
 
@@ -142,7 +145,9 @@ export const ProductCard: React.FC<ProductCardProps> = React.memo(({
           className="absolute inset-0 z-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gold-500/40"
           aria-label={`عرض ${title}`}
         >
-          <img
+          <motion.img
+            layoutId={reduceMotion ? undefined : `product-hero-${product.id}`}
+            transition={{ type: 'spring', stiffness: 380, damping: 34, mass: 0.85 }}
             src={imageSrc}
             srcSet={imageSrcSet}
             sizes={useRawImage ? undefined : imageSizes}

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import {
   Heart,
   Share2,
@@ -15,6 +16,7 @@ import {
   Star,
   ZoomIn,
 } from "lucide-react";
+import { useReducedMotion } from "../hooks/useReducedMotion";
 import Layout from "../components/Layout";
 import SEO from "../components/SEO";
 import Breadcrumbs from "../components/Breadcrumbs";
@@ -189,6 +191,7 @@ const ProductDetailsPage = () => {
   const { addToCart } = useCart();
   const { isFavorite, toggleFavorite } = useFavorites();
   const formatPrice = useFormatDisplayPrice();
+  const reduceMotion = useReducedMotion();
   const reviewsRef = useRef(null);
   const trackedProductIdRef = useRef(null);
 
@@ -560,7 +563,12 @@ const ProductDetailsPage = () => {
   ].filter(Boolean);
 
   const purchaseBlock = (
-    <div className="flex flex-col px-3 sm:px-0 pt-3 sm:pt-0">
+    <motion.div
+      className="flex flex-col px-3 sm:px-0 pt-3 sm:pt-0"
+      initial={reduceMotion ? false : { opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={reduceMotion ? { duration: 0 } : { duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+    >
       <div className="mb-3">
         <h1 className="text-base sm:text-lg font-extrabold text-stone-900 dark:text-white leading-snug">
           {product.title}
@@ -802,8 +810,10 @@ const ProductDetailsPage = () => {
       )}
 
       <BannerRenderer placement="sidebar" className="w-full mb-4" />
-    </div>
+    </motion.div>
   );
+
+  const heroLayoutId = reduceMotion ? undefined : `product-hero-${product.id}`;
 
   const galleryBlock = (
     <div className="w-full">
@@ -832,8 +842,15 @@ const ProductDetailsPage = () => {
               || (safeIndex === 0 && idx === galleryImages.length - 1)
               || (safeIndex === galleryImages.length - 1 && idx === 0);
             if (!isActive && !isNear && idx > 2) return null;
+            const ImgTag = idx === 0 && heroLayoutId ? motion.img : 'img';
+            const layoutProps = idx === 0 && heroLayoutId
+              ? {
+                  layoutId: heroLayoutId,
+                  transition: { type: 'spring', stiffness: 380, damping: 34, mass: 0.85 },
+                }
+              : {};
             return (
-              <img
+              <ImgTag
                 key={`${url}-${idx}`}
                 src={sources.src}
                 srcSet={sources.srcSet}
@@ -854,11 +871,12 @@ const ProductDetailsPage = () => {
                   handleGalleryImageError(url);
                   if (isActive) setHeroImageLoaded(true);
                 }}
+                {...layoutProps}
               />
             );
           })}
         </button>
-        <span className="pointer-events-none absolute bottom-3 left-3 z-10 flex items-center justify-center w-8 h-8 rounded-full bg-black/40 text-white" aria-hidden="true">
+        <span className="pointer-events-none absolute bottom-3 left-3 z-10 flex items-center justify-center w-8 h-8 rounded-full bg-black/55 text-white shadow-sm ring-1 ring-white/20" aria-hidden="true">
           <ZoomIn className="w-4 h-4" />
         </span>
 
@@ -896,38 +914,50 @@ const ProductDetailsPage = () => {
 
         {galleryImages.length > 1 && (
           <>
-            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1 px-2 py-1 rounded-full bg-black/35">
+            <div
+              className="absolute bottom-3 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-black/60 shadow-md ring-1 ring-white/25 backdrop-blur-[2px]"
+              role="tablist"
+              aria-label="صور المنتج"
+            >
               {galleryImages.map((_, idx) => (
                 <button
                   key={idx}
                   type="button"
+                  role="tab"
+                  aria-selected={idx === safeIndex}
                   onClick={() => setSelectedImageIndex(idx)}
-                  className="min-w-[24px] min-h-[24px] flex items-center justify-center"
-                  aria-label={`صورة ${idx + 1}`}
+                  className="min-w-[28px] min-h-[28px] flex items-center justify-center"
+                  aria-label={`صورة ${idx + 1} من ${galleryImages.length}`}
                 >
                   <span
-                    className={`rounded-full transition-all ${idx === safeIndex ? "w-2 h-2 bg-white" : "w-1.5 h-1.5 bg-white/50"}`}
+                    className={`rounded-full transition-all duration-200 ${
+                      idx === safeIndex
+                        ? "w-5 h-2 bg-white shadow-sm"
+                        : "w-2 h-2 bg-white/55 hover:bg-white/80"
+                    }`}
                   />
                 </button>
               ))}
             </div>
-            <span className="absolute bottom-3 right-3 text-[10px] font-bold text-white bg-black/40 px-2 py-0.5 rounded-full">
-              {safeIndex + 1}/{galleryImages.length}
+            <span className="absolute bottom-3 right-3 z-10 text-[11px] font-extrabold tabular-nums text-white bg-black/65 px-2.5 py-1 rounded-full shadow-md ring-1 ring-white/20">
+              {safeIndex + 1} / {galleryImages.length}
             </span>
           </>
         )}
       </div>
 
       {galleryImages.length > 1 && (
-        <div className="hidden sm:flex gap-2 mt-2 overflow-x-auto scrollbar-hide px-3 sm:px-0">
+        <div className="flex gap-2 mt-2 overflow-x-auto scrollbar-hide px-3 sm:px-0 pb-0.5">
           {galleryImages.map((url, idx) => (
             <button
               key={idx}
               type="button"
               onClick={() => setSelectedImageIndex(idx)}
               aria-current={idx === safeIndex ? "true" : undefined}
-              className={`flex-shrink-0 w-14 h-14 rounded-sm overflow-hidden border-2 ${
-                idx === safeIndex ? "border-stone-900 dark:border-white" : "border-stone-200 opacity-70"
+              className={`flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 rounded-sm overflow-hidden border-2 transition-colors ${
+                idx === safeIndex
+                  ? "border-stone-900 dark:border-white ring-1 ring-stone-900/20 dark:ring-white/30"
+                  : "border-stone-200 dark:border-stone-700 opacity-75"
               }`}
             >
               <img

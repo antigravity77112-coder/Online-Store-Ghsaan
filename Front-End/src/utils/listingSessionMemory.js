@@ -11,7 +11,7 @@ let expectedReturnKey = null;
 
 /**
  * @param {string} key
- * @returns {{ scrollY?: number, size?: number, shuffleSeed?: string|number, restoreScrollY?: number } | undefined}
+ * @returns {{ scrollY?: number, size?: number, shuffleSeed?: string|number, restoreScrollY?: number, orderedIds?: string[] } | undefined}
  */
 export function getListingMemory(key) {
   if (!key) return undefined;
@@ -21,7 +21,7 @@ export function getListingMemory(key) {
 /**
  * Merge a patch into the memory entry for `key` (does not replace unrelated fields).
  * @param {string} key
- * @param {{ scrollY?: number, size?: number, shuffleSeed?: string|number, restoreScrollY?: number }} patch
+ * @param {{ scrollY?: number, size?: number, shuffleSeed?: string|number, restoreScrollY?: number, orderedIds?: string[] }} patch
  */
 export function setListingMemory(key, patch) {
   if (!key || !patch || typeof patch !== 'object') return;
@@ -43,6 +43,11 @@ export function markListingExitToProduct(listingKey) {
 
 export function isExpectedListingReturn(listingKey) {
   return Boolean(listingKey && expectedReturnKey === listingKey);
+}
+
+/** Listing key marked when opening a product (for earliest Back restore). */
+export function getExpectedListingReturnKey() {
+  return expectedReturnKey;
 }
 
 export function clearExpectedListingReturn(listingKey) {

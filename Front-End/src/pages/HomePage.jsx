@@ -80,7 +80,7 @@ const HomePage = () => {
     [isFavorite],
   );
 
-  const shuffledFeed = useListingProducts(feedRaw || [], 'default', feedShuffleSeed);
+  const shuffledFeed = useListingProducts(feedRaw || [], 'default', feedShuffleSeed, feedListingKey);
   const feedProducts = useMemo(
     () => mapWithFavorites(shuffledFeed),
     [shuffledFeed, mapWithFavorites],
