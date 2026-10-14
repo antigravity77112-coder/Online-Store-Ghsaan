@@ -2,7 +2,13 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Heart } from 'lucide-react';
-import { getOptimizedImageUrl, getRawCloudinaryUrl, IMAGE_WIDTHS } from '../../utils/cloudinaryUrl';
+import {
+  getRawCloudinaryUrl,
+  getResponsiveCloudinarySources,
+  IMAGE_WIDTHS,
+  RESPONSIVE_SIZES,
+  RESPONSIVE_WIDTHS,
+} from '../../utils/cloudinaryUrl';
 import { preloadProductDetailImage } from '../../utils/preloadProductImage';
 import { useFormatDisplayPrice } from '../../context/CurrencyContext';
 import { useReducedMotion } from '../../hooks/useReducedMotion';
@@ -66,13 +72,20 @@ export const ProductCard: React.FC<ProductCardProps> = React.memo(({
   const formatPrice = useFormatDisplayPrice();
   const reduceMotion = useReducedMotion();
   const [isFavoriteLocal, setIsFavoriteLocal] = useState(product?.isFavorite ?? false);
-  const [useRawImage, setUseRawImage] = useState(false);
+  /** 0 = optimized/srcSet, 1 = stored URL, 2 = stripped raw URL */
+  const [imgFallbackStep, setImgFallbackStep] = useState(0);
+  /** Only the card the user opens shares layoutId — duplicates hide other covers. */
+  const [shareLayout, setShareLayout] = useState(false);
 
   React.useEffect(() => {
     if (product?.isFavorite !== undefined) {
       setIsFavoriteLocal(product.isFavorite);
     }
   }, [product?.isFavorite]);
+
+  React.useEffect(() => {
+    setImgFallbackStep(0);
+  }, [product?.id, product?.image]);
 
   const handleFavoriteClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -131,38 +144,52 @@ export const ProductCard: React.FC<ProductCardProps> = React.memo(({
     : null;
 
   const imageAspect = compact ? 'aspect-[4/5]' : 'aspect-square';
-  const rawImage = getRawCloudinaryUrl(image);
-  const imageSrc = useRawImage ? rawImage : getOptimizedImageUrl(rawImage, IMAGE_WIDTHS.GRID_CARD);
-  const imageSrcSet = useRawImage ? undefined : [360, IMAGE_WIDTHS.GRID_CARD, IMAGE_WIDTHS.GRID_CARD_RETINA]
-    .map((w) => `${getOptimizedImageUrl(rawImage, w)} ${w}w`)
-    .join(', ');
-  const imageSizes = '(max-width: 640px) 46vw, (max-width: 1024px) 30vw, 16vw';
+  const rawImage = getRawCloudinaryUrl(image) || image;
+  const optimized = getResponsiveCloudinarySources(image, {
+    widths: RESPONSIVE_WIDTHS.GRID,
+    sizes: RESPONSIVE_SIZES.GRID,
+    fallbackWidth: IMAGE_WIDTHS.GRID_CARD,
+  });
+  const imageSrc = imgFallbackStep === 0
+    ? (optimized.src || image)
+    : imgFallbackStep === 1
+      ? image
+      : rawImage;
+  const imageSrcSet = imgFallbackStep === 0 ? optimized.srcSet : undefined;
+  const imageSizes = imgFallbackStep === 0 ? optimized.sizes : undefined;
+
+  const onProductIntent = () => {
+    if (!reduceMotion) setShareLayout(true);
+    if (image) preloadProductDetailImage(image);
+  };
 
   return (
     <article className="group flex flex-col h-full bg-white dark:bg-stone-900 rounded-md border border-stone-200/90 dark:border-stone-700/80 overflow-hidden shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
       <div className={`relative w-full overflow-hidden bg-white dark:bg-stone-900 border-b border-stone-100 dark:border-stone-800 ${imageAspect}`}>
         <Link
           to={productPath}
-          data-product-image={rawImage || undefined}
-          onPointerDown={() => { if (rawImage) preloadProductDetailImage(rawImage); }}
+          data-product-image={image || undefined}
+          onPointerDown={onProductIntent}
           className="absolute inset-0 z-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gold-500/40"
           aria-label={`عرض ${title}`}
         >
           <motion.img
-            layoutId={reduceMotion ? undefined : `product-hero-${product.id}`}
+            layoutId={shareLayout && !reduceMotion ? `product-hero-${product.id}` : undefined}
             transition={{ type: 'spring', stiffness: 380, damping: 34, mass: 0.85 }}
             src={imageSrc}
             srcSet={imageSrcSet}
-            sizes={useRawImage ? undefined : imageSizes}
+            sizes={imageSizes}
             alt=""
-            data-product-image={rawImage || undefined}
+            data-product-image={image || undefined}
             width={IMAGE_WIDTHS.GRID_CARD}
             height={Math.round(IMAGE_WIDTHS.GRID_CARD * (compact ? 5 / 4 : 1))}
             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02] motion-reduce:transform-none"
             loading={priority ? 'eager' : 'lazy'}
             fetchPriority={priority ? 'high' : 'auto'}
             decoding="async"
-            onError={() => { if (!useRawImage) setUseRawImage(true); }}
+            onError={() => {
+              setImgFallbackStep((step) => (step < 2 ? step + 1 : step));
+            }}
           />
         </Link>
 
@@ -208,8 +235,8 @@ export const ProductCard: React.FC<ProductCardProps> = React.memo(({
       <div className="flex flex-col flex-grow min-h-0 px-2 py-1.5">
         <Link
           to={productPath}
-          data-product-image={rawImage || undefined}
-          onPointerDown={() => { if (rawImage) preloadProductDetailImage(rawImage); }}
+          data-product-image={image || undefined}
+          onPointerDown={onProductIntent}
           className="text-[11px] sm:text-xs font-normal text-stone-700 dark:text-stone-300 line-clamp-2 leading-[1.3] hover:text-[#e6533d] dark:hover:text-[#ff7a62] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 rounded-sm"
         >
           {title}

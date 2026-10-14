@@ -7,7 +7,11 @@ const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1560472355-536de396260
  * Ratings and review counts are included only when provided by the API.
  */
 export function mapStorefrontProduct(p) {
-  const rawImage = p.imageUrl || p.mainImageUrl || FALLBACK_IMAGE;
+  const rawImage =
+    p.imageUrl
+    || p.mainImageUrl
+    || p.images?.[0]?.url
+    || FALLBACK_IMAGE;
   const mapped = {
     id: p.id,
     slug: p.slug || p.id,
