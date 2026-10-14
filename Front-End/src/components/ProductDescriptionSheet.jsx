@@ -160,21 +160,21 @@ export default function ProductDescriptionSheet({
 
         <div className="overflow-y-auto overscroll-contain px-5 sm:px-8 py-4 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
           {hasRows ? (
-            <ul className="mx-auto max-w-sm space-y-0">
+            <ul
+              dir={dir}
+              className="mx-auto max-w-sm grid grid-cols-[max-content_auto_minmax(0,1fr)] gap-x-2.5 items-start text-sm leading-[1.5]"
+            >
               {rows.map((row, idx) => (
-                <li
-                  key={`${row.label}-${idx}`}
-                  className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-start gap-x-2.5 py-2.5 text-sm leading-[1.5]"
-                >
-                  {/* Key: inline-start */}
-                  <span className="min-w-0 text-start font-semibold text-stone-800 dark:text-stone-100 break-words">
+                <li key={`${row.label}-${idx}`} className="contents">
+                  {/* Key column sized to longest label (RTL: right side) */}
+                  <span className="py-2.5 text-start font-semibold text-stone-800 dark:text-stone-100 whitespace-nowrap">
                     {row.label}
                   </span>
-                  <span className="select-none text-stone-300 dark:text-stone-600 font-light pt-px" aria-hidden="true">
+                  <span className="py-2.5 select-none text-stone-300 dark:text-stone-600 font-light" aria-hidden="true">
                     |
                   </span>
-                  {/* Value: right-aligned (flush toward separator in RTL Arabic) */}
-                  <span className="min-w-0 text-right text-stone-600 dark:text-stone-300 break-words">
+                  {/* Value takes all remaining width */}
+                  <span className="py-2.5 min-w-0 text-start text-stone-600 dark:text-stone-300 break-words">
                     {row.href ? (
                       <Link
                         to={row.href}

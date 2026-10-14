@@ -162,3 +162,16 @@ $env:MIGRATION_CONFIRM="YES"; npm run migrate:recompress-db-execute
 ```
 
 Rollback DB after recompress: `npm run migrate:recompress-db-rollback` with `MIGRATION_CONFIRM=YES`.
+
+---
+
+## Storefront: Cloudflare Image Resizing (optional)
+
+R2 stores full objects. For responsive `srcSet` (like Cloudinary `w_*`), put a **custom domain** on the bucket and enable **Cloudflare Image Resizing**, then set Front-End:
+
+```bash
+VITE_R2_PUBLIC_BASE_URL=https://media.yourdomain.com
+VITE_CF_IMAGE_RESIZING=1
+```
+
+Full runbook: [`Front-End/docs/image-delivery.md`](../../Front-End/docs/image-delivery.md).

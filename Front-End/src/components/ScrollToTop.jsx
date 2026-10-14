@@ -44,9 +44,12 @@ const ScrollToTop = () => {
     prevPathRef.current = pathname;
 
     if (navigationType === 'POP') {
-      // Kick restore before the listing paints at Y=0 (smooth climb).
+      // Only when arriving on a listing — never on product→product Back
+      // (that was clearing restoreScrollY / finishedKeys and breaking the next Back).
       const returnKey = getExpectedListingReturnKey();
-      if (returnKey) startListingScrollRestore(returnKey, { pagesReady: false });
+      if (returnKey && !pathname.startsWith('/product/')) {
+        startListingScrollRestore(returnKey, { pagesReady: false });
+      }
       return;
     }
     if (isListingScrollRestoreActive()) return;

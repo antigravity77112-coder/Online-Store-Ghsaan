@@ -8,6 +8,7 @@ import {
   shouldRestoreListing,
   startListingScrollRestore,
 } from '../utils/listingScrollRestore';
+import { preloadProductDetailImage, readProductImageFromAnchor } from '../utils/preloadProductImage';
 
 function readScrollY() {
   return window.scrollY || document.documentElement.scrollTop || 0;
@@ -45,10 +46,13 @@ export function useListingScrollMemory({ listingKey, ready = true, pagesReady = 
       const href = anchor.getAttribute('href') || '';
       if (!isProductListingHref(href)) return;
       captureListingExit(listingKeyRef.current);
+      const imageUrl = readProductImageFromAnchor(anchor);
+      if (imageUrl) preloadProductDetailImage(imageUrl);
     };
 
     window.addEventListener('scroll', persist, { passive: true });
     document.addEventListener('pointerdown', onProductIntent, true);
+    document.addEventListener('touchstart', onProductIntent, { capture: true, passive: true });
     document.addEventListener('click', onProductIntent, true);
 
     return () => {
@@ -58,6 +62,7 @@ export function useListingScrollMemory({ listingKey, ready = true, pagesReady = 
       }
       window.removeEventListener('scroll', persist);
       document.removeEventListener('pointerdown', onProductIntent, true);
+      document.removeEventListener('touchstart', onProductIntent, true);
       document.removeEventListener('click', onProductIntent, true);
     };
   }, [listingKey]);

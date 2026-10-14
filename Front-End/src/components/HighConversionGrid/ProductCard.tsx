@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Heart } from 'lucide-react';
 import { getOptimizedImageUrl, getRawCloudinaryUrl, IMAGE_WIDTHS } from '../../utils/cloudinaryUrl';
+import { preloadProductDetailImage } from '../../utils/preloadProductImage';
 import { useFormatDisplayPrice } from '../../context/CurrencyContext';
 import { useReducedMotion } from '../../hooks/useReducedMotion';
 
@@ -142,6 +143,8 @@ export const ProductCard: React.FC<ProductCardProps> = React.memo(({
       <div className={`relative w-full overflow-hidden bg-white dark:bg-stone-900 border-b border-stone-100 dark:border-stone-800 ${imageAspect}`}>
         <Link
           to={productPath}
+          data-product-image={rawImage || undefined}
+          onPointerDown={() => { if (rawImage) preloadProductDetailImage(rawImage); }}
           className="absolute inset-0 z-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gold-500/40"
           aria-label={`عرض ${title}`}
         >
@@ -152,6 +155,7 @@ export const ProductCard: React.FC<ProductCardProps> = React.memo(({
             srcSet={imageSrcSet}
             sizes={useRawImage ? undefined : imageSizes}
             alt=""
+            data-product-image={rawImage || undefined}
             width={IMAGE_WIDTHS.GRID_CARD}
             height={Math.round(IMAGE_WIDTHS.GRID_CARD * (compact ? 5 / 4 : 1))}
             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02] motion-reduce:transform-none"
@@ -204,6 +208,8 @@ export const ProductCard: React.FC<ProductCardProps> = React.memo(({
       <div className="flex flex-col flex-grow min-h-0 px-2 py-1.5">
         <Link
           to={productPath}
+          data-product-image={rawImage || undefined}
+          onPointerDown={() => { if (rawImage) preloadProductDetailImage(rawImage); }}
           className="text-[11px] sm:text-xs font-normal text-stone-700 dark:text-stone-300 line-clamp-2 leading-[1.3] hover:text-[#e6533d] dark:hover:text-[#ff7a62] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 rounded-sm"
         >
           {title}

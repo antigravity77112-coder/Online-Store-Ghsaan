@@ -207,6 +207,11 @@ const ProductDetailsPage = () => {
   const [brokenGalleryUrls, setBrokenGalleryUrls] = useState(() => new Set());
   /** URLs that have finished loading (incl. cache). Do not gate on active-only onLoad. */
   const [loadedGalleryUrls, setLoadedGalleryUrls] = useState(() => new Set());
+  /** Raw URLs upgraded from grid-card paint to DETAIL srcSet (after cache-friendly first paint). */
+  const [detailReadyUrls, setDetailReadyUrls] = useState(() => new Set());
+  const detailReadyUrlsRef = useRef(detailReadyUrls);
+  detailReadyUrlsRef.current = detailReadyUrls;
+  const detailUpgradeTimersRef = useRef(new Map());
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [orderMethod, setOrderMethod] = useState("whatsapp");
   const [feedbackMessage, setFeedbackMessage] = useState("");
@@ -227,6 +232,15 @@ const ProductDetailsPage = () => {
     setSelectedImageIndex(0);
     setBrokenGalleryUrls(new Set());
     setLoadedGalleryUrls(new Set());
+    setDetailReadyUrls(new Set());
+    detailUpgradeTimersRef.current.forEach((id) => {
+      if (typeof cancelIdleCallback === 'function' && typeof id === 'number') {
+        try { cancelIdleCallback(id); } catch { /* ignore */ }
+      } else {
+        clearTimeout(id);
+      }
+    });
+    detailUpgradeTimersRef.current.clear();
     setDescSheetOpen(false);
     setLightboxOpen(false);
     setOptionSelections({});
@@ -236,7 +250,51 @@ const ProductDetailsPage = () => {
 
   useEffect(() => {
     setLoadedGalleryUrls(new Set());
+    setDetailReadyUrls(new Set());
   }, [product?.id]);
+
+  const markDetailReady = useCallback((url) => {
+    if (!url) return;
+    setDetailReadyUrls((prev) => {
+      if (prev.has(url)) return prev;
+      const next = new Set(prev);
+      next.add(url);
+      return next;
+    });
+  }, []);
+
+  /** After card-sized paint, warm DETAIL bytes then swap srcSet (keeps listing cache hit). */
+  const scheduleDetailUpgrade = useCallback((url) => {
+    if (!url || brokenGalleryUrls.has(url)) return;
+    if (detailReadyUrlsRef.current.has(url)) return;
+    if (detailUpgradeTimersRef.current.has(url)) return;
+
+    const run = () => {
+      detailUpgradeTimersRef.current.delete(url);
+      if (detailReadyUrlsRef.current.has(url)) return;
+      const detailSrc = getOptimizedImageUrl(url, IMAGE_WIDTHS.DETAIL);
+      if (!detailSrc) {
+        markDetailReady(url);
+        return;
+      }
+      const img = new Image();
+      img.onload = () => markDetailReady(url);
+      img.onerror = () => markDetailReady(url);
+      img.src = detailSrc;
+      // If already cached (e.g. intent preload), complete may be true synchronously.
+      if (img.complete && img.naturalWidth > 0) {
+        markDetailReady(url);
+      }
+    };
+
+    let handle;
+    if (typeof requestIdleCallback === 'function') {
+      handle = requestIdleCallback(run, { timeout: 400 });
+    } else {
+      handle = setTimeout(run, 80);
+    }
+    detailUpgradeTimersRef.current.set(url, handle);
+  }, [brokenGalleryUrls, markDetailReady]);
 
   const markGalleryUrlLoaded = useCallback((url) => {
     if (!url) return;
@@ -246,7 +304,8 @@ const ProductDetailsPage = () => {
       next.add(url);
       return next;
     });
-  }, []);
+    scheduleDetailUpgrade(url);
+  }, [scheduleDetailUpgrade]);
 
   useEffect(() => {
     if (!product?.id || trackedProductIdRef.current === product.id) return;
@@ -481,7 +540,7 @@ const ProductDetailsPage = () => {
     enabled: imageCount > 1,
   });
 
-  // Preload current + neighbors so swipe/next doesn't keep showing the previous image.
+  // Preload current + neighbors: card width first (cache reuse), then DETAIL.
   useEffect(() => {
     if (!galleryImages.length) return undefined;
     const idxs = new Set([
@@ -493,7 +552,14 @@ const ProductDetailsPage = () => {
       const url = galleryImages[idx];
       if (!url) return null;
       const img = new Image();
-      img.src = getOptimizedImageUrl(url, IMAGE_WIDTHS.DETAIL);
+      const useDetail = detailReadyUrls.has(url);
+      img.src = getOptimizedImageUrl(
+        url,
+        useDetail ? IMAGE_WIDTHS.DETAIL : IMAGE_WIDTHS.GRID_CARD,
+      );
+      if (!useDetail) {
+        img.onload = () => scheduleDetailUpgrade(url);
+      }
       return img;
     });
     return () => {
@@ -501,7 +567,7 @@ const ProductDetailsPage = () => {
         if (img) img.src = '';
       });
     };
-  }, [galleryImages, selectedImageIndex]);
+  }, [galleryImages, selectedImageIndex, detailReadyUrls, scheduleDetailUpgrade]);
 
   const loading = Boolean(isLoading || (!product && !error && !isNotFound));
   const notFound = Boolean((isNotFound || (error && !product)) && !loading);
@@ -545,15 +611,25 @@ const ProductDetailsPage = () => {
     });
   };
 
-  const getGallerySources = (url) => (
-    brokenGalleryUrls.has(url)
-      ? { src: getRawCloudinaryUrl(url), srcSet: undefined, sizes: undefined }
-      : getResponsiveCloudinarySources(url, {
-          widths: RESPONSIVE_WIDTHS.DETAIL,
-          sizes: RESPONSIVE_SIZES.DETAIL,
-          fallbackWidth: IMAGE_WIDTHS.DETAIL,
-        })
-  );
+  const getGallerySources = (url) => {
+    if (brokenGalleryUrls.has(url)) {
+      return { src: getRawCloudinaryUrl(url), srcSet: undefined, sizes: undefined };
+    }
+    // First paint: grid-card URL (often already in HTTP cache from the listing).
+    // After idle upgrade: responsive DETAIL srcSet.
+    if (!detailReadyUrls.has(url)) {
+      return {
+        src: getOptimizedImageUrl(url, IMAGE_WIDTHS.GRID_CARD),
+        srcSet: undefined,
+        sizes: undefined,
+      };
+    }
+    return getResponsiveCloudinarySources(url, {
+      widths: RESPONSIVE_WIDTHS.DETAIL,
+      sizes: RESPONSIVE_SIZES.DETAIL,
+      fallbackWidth: IMAGE_WIDTHS.DETAIL,
+    });
+  };
 
   const getGalleryThumbUrl = (url) => (
     brokenGalleryUrls.has(url)
@@ -874,7 +950,7 @@ const ProductDetailsPage = () => {
                 className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-200 ease-out ${
                   isActive && isLoaded ? 'opacity-100 z-[1]' : 'opacity-0 z-0 pointer-events-none'
                 }`}
-                fetchPriority={isActive || idx === 0 ? 'high' : 'low'}
+                fetchPriority={isActive && idx === safeIndex ? 'high' : 'low'}
                 loading={isActive || isNear || idx < 2 ? 'eager' : 'lazy'}
                 decoding="async"
                 draggable={false}

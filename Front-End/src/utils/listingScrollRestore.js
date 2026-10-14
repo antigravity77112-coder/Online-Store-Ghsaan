@@ -176,6 +176,10 @@ export function startListingScrollRestore(listingKey, { pagesReady = false } = {
   if (!listingKey) return;
   if (typeof window === 'undefined') return;
 
+  // Listing restore must never run while a product page is showing (e.g. Back from
+  // related product A←B). Doing so clears restoreScrollY and breaks the next Back to the list.
+  if (window.location.pathname.startsWith('/product/')) return;
+
   if (activeKey === listingKey) {
     if (pagesReady) pagesReadyFlag = true;
     if (!pagesReadyFlag) return;
