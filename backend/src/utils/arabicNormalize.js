@@ -7,6 +7,9 @@
 const DIACRITICS = /[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED]/g;
 const TATWEEL = /\u0640/g;
 
+/** Substring stems shorter than this over-match the catalog. */
+const MIN_VARIANT_LENGTH = 3;
+
 function normalizeArabic(value) {
   if (value == null) return '';
   return String(value)
@@ -29,34 +32,43 @@ const SUFFIXES = ['ات', 'ين', 'ون', 'ان', 'ه'];
 /**
  * Spellings of one normalized query word that should still match it:
  * with / without the article «ال» and common plural / feminine suffixes.
- * Matching is substring-based, so shorter stems widen the match.
+ * Short stems (&lt; 3 chars) are dropped — they match too broadly via contains.
  */
 function tokenVariants(token) {
-  const variants = new Set([token]);
+  const variants = new Set();
+  if (!token || token.length < MIN_VARIANT_LENGTH) return [];
+
   const stems = [token];
   if (token.startsWith('ال') && token.length > 4) stems.push(token.slice(2));
   for (const stem of stems) {
-    variants.add(stem);
+    if (stem.length >= MIN_VARIANT_LENGTH) variants.add(stem);
     for (const suffix of SUFFIXES) {
-      if (stem.endsWith(suffix) && stem.length - suffix.length >= 3) {
+      if (stem.endsWith(suffix) && stem.length - suffix.length >= MIN_VARIANT_LENGTH) {
         variants.add(stem.slice(0, -suffix.length));
       }
     }
   }
-  return [...variants];
+  return [...variants].filter((v) => v.length >= MIN_VARIANT_LENGTH);
 }
 
-/** Normalized query words (max 6), each with its accepted spellings. */
+/** Normalized query words (max 6), each with its accepted spellings (non-empty only). */
 function searchTokens(query) {
   return normalizeArabic(query)
     .split(' ')
     .filter(Boolean)
     .slice(0, 6)
-    .map(tokenVariants);
+    .map(tokenVariants)
+    .filter((variants) => variants.length > 0);
 }
 
 function buildSearchText(parts) {
   return normalizeArabic(parts.filter(Boolean).join(' '));
 }
 
-module.exports = { normalizeArabic, tokenVariants, searchTokens, buildSearchText };
+module.exports = {
+  normalizeArabic,
+  tokenVariants,
+  searchTokens,
+  buildSearchText,
+  MIN_VARIANT_LENGTH,
+};

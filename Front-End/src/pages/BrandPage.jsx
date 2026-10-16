@@ -10,6 +10,7 @@ import Breadcrumbs from '../components/Breadcrumbs';
 import ProductListingToolbar from '../components/ProductListingToolbar';
 import ListingSearchField from '../components/listing/ListingSearchField';
 import ListingEmptyState from '../components/listing/ListingEmptyState';
+import SearchSimilarBanner from '../components/listing/SearchSimilarBanner';
 import QuickAddFeedback from '../components/QuickAddFeedback';
 import InfiniteScrollTrigger from '../components/InfiniteScrollTrigger';
 import { ProductGrid } from '../components/HighConversionGrid';
@@ -61,6 +62,7 @@ const BrandPage = () => {
     listingKey,
     shuffleSeed,
     rememberedSize,
+    searchMatch,
     error: productsError,
   } = useProductsInfinite({
     brandId: brand?.id || '',
@@ -74,7 +76,8 @@ const BrandPage = () => {
   const error = brandError?.message || '';
   const productCount = brand?.productsCount ?? (products || []).length;
 
-  const filteredProducts = useListingProducts(products || [], sortOrder, shuffleSeed, listingKey);
+  const listingSort = searchMatch === 'similar' && sortOrder === 'default' ? 'relevance' : sortOrder;
+  const filteredProducts = useListingProducts(products || [], listingSort, shuffleSeed, listingKey);
 
   const pagesReady = size >= rememberedSize && !isLoadingMore && filteredProducts.length > 0;
   const skipEnterMotion = navigationType === 'POP' || isExpectedListingReturn(listingKey);
@@ -236,6 +239,9 @@ const BrandPage = () => {
 
         {filteredProducts.length > 0 ? (
           <>
+            {searchMatch === 'similar' && committedSearch.trim() ? (
+              <SearchSimilarBanner searchTerm={committedSearch.trim()} />
+            ) : null}
             <ProductGrid
               products={mappedGridProducts}
               isLoadingMore={isLoadingMore}

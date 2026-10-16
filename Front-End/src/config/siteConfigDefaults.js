@@ -11,10 +11,11 @@ export const DEFAULT_SITE_CONFIG = {
     copyrightText: '© Smart Shopper المتسوق الذكي. جميع الحقوق محفوظة.',
   },
   media: {
-    logoUrl: '/Logo_light_192.png',
-    logoDarkUrl: '/Logo_dark_192.png',
-    logoMobileUrl: '/Logo_light_192.png',
-    logoMobileDarkUrl: '/Logo_dark_192.png',
+    // Logos: DB / admin upload only — never invent a local file.
+    logoUrl: null,
+    logoDarkUrl: null,
+    logoMobileUrl: null,
+    logoMobileDarkUrl: null,
     faviconUrl: '/favicon.png',
     ogImageUrl: null,
   },
@@ -225,33 +226,25 @@ function guessImageMime(url) {
   return 'image/png';
 }
 
-/** Pick light or dark logo for the website (logoUrl / logoDarkUrl only). Prefer DB over local defaults. */
+/** Pick light or dark logo for the website (logoUrl / logoDarkUrl only). DB / admin URLs only. */
 export function resolveSiteLogo(media, { dark = false } = {}) {
   const m = media || {};
   if (dark) {
-    return pickMediaUrl(m.logoDarkUrl, null)
-      || pickMediaUrl(m.logoUrl, null)
-      || DEFAULT_SITE_CONFIG.media.logoDarkUrl
-      || DEFAULT_SITE_CONFIG.media.logoUrl;
+    return pickMediaUrl(m.logoDarkUrl, null) || pickMediaUrl(m.logoUrl, null);
   }
-  return pickMediaUrl(m.logoUrl, null)
-    || pickMediaUrl(m.logoDarkUrl, null)
-    || DEFAULT_SITE_CONFIG.media.logoUrl;
+  return pickMediaUrl(m.logoUrl, null) || pickMediaUrl(m.logoDarkUrl, null);
 }
 
-/** Mobile logo — prefers app assets, falls back to website logos / local defaults. */
+/** Mobile logo — prefers app assets, falls back to website logos. DB / admin URLs only. */
 export function resolveMobileLogo(media, { dark = false } = {}) {
   const m = media || {};
   if (dark) {
     return pickMediaUrl(m.logoMobileDarkUrl, null)
       || pickMediaUrl(m.logoDarkUrl, null)
       || pickMediaUrl(m.logoMobileUrl, null)
-      || pickMediaUrl(m.logoUrl, null)
-      || DEFAULT_SITE_CONFIG.media.logoDarkUrl;
+      || pickMediaUrl(m.logoUrl, null);
   }
-  return pickMediaUrl(m.logoMobileUrl, null)
-    || pickMediaUrl(m.logoUrl, null)
-    || DEFAULT_SITE_CONFIG.media.logoUrl;
+  return pickMediaUrl(m.logoMobileUrl, null) || pickMediaUrl(m.logoUrl, null);
 }
 
 let manifestObjectUrl = null;

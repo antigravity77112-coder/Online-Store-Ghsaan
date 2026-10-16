@@ -98,6 +98,9 @@ export function sortProducts(products, sortOrder = 'default') {
       if (!a.isTrending && b.isTrending) return 1;
       return 0;
     });
+  } else if (sortOrder === 'relevance') {
+    // Fuzzy / similar search — preserve server similarity order.
+    return result;
   } else {
     // default: keep API order here — use useListingProducts for refresh shuffle
     result.sort((a, b) => {

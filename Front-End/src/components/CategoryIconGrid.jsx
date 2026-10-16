@@ -6,6 +6,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ChevronLeft } from 'lucide-react';
 import CategoryTile from './CategoryTile';
+import { isSiteLogoGateOpen, onSiteLogoGateOpen } from '../utils/preloadSiteLogo';
 
 const ROWS = 2;
 
@@ -84,7 +85,11 @@ export default function CategoryIconGrid({
   );
 
   const [activePage, setActivePage] = useState(0);
+  const [logoReady, setLogoReady] = useState(() => isSiteLogoGateOpen());
   const hasMultiplePages = pages.length > 1;
+
+  // Hold category icon network until splash/header logo has claimed bandwidth.
+  useEffect(() => onSiteLogoGateOpen(() => setLogoReady(true)), []);
 
   const goToPage = (pageIndex, behavior = 'smooth') => {
     const el = scrollRef.current;
@@ -166,13 +171,12 @@ export default function CategoryIconGrid({
             >
               {page.map((cat) => (
                 <div key={cat.id} role="listitem">
-                  {isLoading ? (
+                  {isLoading || !logoReady ? (
                     <CategoryTile isLoading />
                   ) : (
                     <CategoryTile
                       category={cat}
                       priority={pageIndex === 0}
-                      childCount={(cat.children || []).filter((c) => c.isActive !== false).length}
                     />
                   )}
                 </div>

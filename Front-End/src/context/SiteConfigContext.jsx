@@ -7,6 +7,8 @@ import {
   applySiteMediaToDocument,
   DEFAULT_SITE_CONFIG,
 } from '../config/siteConfigDefaults';
+import { preloadSiteLogo } from '../utils/preloadSiteLogo';
+import { useTheme } from './ThemeContext';
 
 const SiteConfigContext = createContext({
   config: DEFAULT_SITE_CONFIG,
@@ -17,6 +19,7 @@ const SiteConfigContext = createContext({
 export const SITE_CONFIG_KEY = 'siteConfig';
 
 export function SiteConfigProvider({ children }) {
+  const { isDark } = useTheme();
   const { data, error, isLoading, mutate } = useSWR(
     SITE_CONFIG_KEY,
     api.getSiteConfig,
@@ -24,7 +27,7 @@ export function SiteConfigProvider({ children }) {
       revalidateOnFocus: false,
       revalidateOnMount: true,
       dedupingInterval: 5000,
-      fallbackData: DEFAULT_SITE_CONFIG,
+      // No fallbackData — logos must come from the DB response, not local defaults.
     },
   );
 
@@ -33,11 +36,11 @@ export function SiteConfigProvider({ children }) {
   const contextValue = useMemo(
     () => ({
       config,
-      isLoading: isLoading && !data && !error,
+      isLoading: Boolean(isLoading && !error),
       mutate,
       error,
     }),
-    [config, isLoading, data, error, mutate],
+    [config, isLoading, error, mutate],
   );
 
   useEffect(() => {
@@ -47,6 +50,12 @@ export function SiteConfigProvider({ children }) {
   useEffect(() => {
     applySiteMediaToDocument(config);
   }, [config]);
+
+  // Warm DB logo as soon as config arrives (splash + header).
+  useEffect(() => {
+    if (!data) return;
+    preloadSiteLogo(config, { dark: isDark });
+  }, [data, config, isDark]);
 
   return (
     <SiteConfigContext.Provider value={contextValue}>

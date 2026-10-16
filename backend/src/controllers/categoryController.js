@@ -23,11 +23,28 @@ class CategoryController {
       
       let queryArgs = {
         include: {
-          products: { select: { id: true } },
-          productLinks: { select: { productId: true } },
-          children: true
+          // Lightweight child rows for storefront nav (no nested products).
+          children: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+              iconUrl: true,
+              parentId: true,
+              isActive: true,
+              sortOrder: true,
+            },
+            orderBy: { sortOrder: 'asc' },
+          },
+          // Admin badge only — never load product ID lists for counts.
+          _count: {
+            select: {
+              products: true,
+              productLinks: true,
+            },
+          },
         },
-        orderBy: { sortOrder: 'asc' }
+        orderBy: { sortOrder: 'asc' },
       };
 
       if (pageNumber && pageSize) {
@@ -36,14 +53,10 @@ class CategoryController {
       }
 
       const categories = await prisma.category.findMany(queryArgs);
-      
-      // Map to include productsCount for the admin dashboard
-      const mapped = categories.map(({ products, productLinks, ...cat }) => ({
+
+      const mapped = categories.map(({ _count, ...cat }) => ({
         ...cat,
-        productsCount: new Set([
-          ...(products || []).map((p) => p.id),
-          ...(productLinks || []).map((l) => l.productId),
-        ]).size,
+        productsCount: (_count?.products || 0) + (_count?.productLinks || 0),
       }));
 
       res.json(mapped);

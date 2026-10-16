@@ -74,8 +74,7 @@ const AuthPage = () => {
   const { isDark } = useTheme();
   const navigate = useNavigate();
   const { config } = useSiteConfig();
-  const logo = resolveMediaUrl(resolveSiteLogo(config.media, { dark: isDark }))
-    || resolveMediaUrl('/Logo_light_192.png');
+  const logo = resolveMediaUrl(resolveSiteLogo(config.media, { dark: isDark }));
   const brandName = config.brand?.siteShortName || 'Smart Shopper';
   const tagline = config.brand?.tagline || 'تجربة تسوق فاخرة';
 
@@ -233,9 +232,11 @@ const AuthPage = () => {
 
           <div className="relative z-10">
             <Link to="/" className="inline-flex items-center gap-3 group">
-              <div className="w-12 h-12 bg-transparent overflow-hidden">
-                <img src={logo} alt={brandName} className="w-full h-full object-contain scale-[1.14]" />
-              </div>
+              {logo ? (
+                <div className="w-12 h-12 bg-transparent overflow-hidden">
+                  <img src={logo} alt="" className="w-full h-full object-contain scale-[1.14]" />
+                </div>
+              ) : null}
               <span className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">{brandName}</span>
             </Link>
           </div>
@@ -307,9 +308,11 @@ const AuthPage = () => {
             {/* Mobile logo */}
             <div className="lg:hidden text-center mb-8">
               <Link to="/" className="inline-flex flex-col items-center gap-3">
-                <div className="w-16 h-16 bg-transparent overflow-hidden">
-                  <img src={logo} alt={brandName} className="w-full h-full object-contain scale-[1.14]" />
-                </div>
+                {logo ? (
+                  <div className="w-16 h-16 bg-transparent overflow-hidden">
+                    <img src={logo} alt="" className="w-full h-full object-contain scale-[1.14]" />
+                  </div>
+                ) : null}
                 <span className="text-2xl font-black text-slate-900 dark:text-white">{brandName}</span>
                 <p className="text-sm text-slate-500 dark:text-slate-400">
                   {isLogin ? "سجّل دخولك للمتابعة" : "أنشئ حسابك وابدأ التسوق"}

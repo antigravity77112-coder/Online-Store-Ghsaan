@@ -264,6 +264,8 @@ export function useProductsInfinite({
   const isEmpty = data?.[0]?.length === 0;
   const isReachingEnd =
     isEmpty || (data && data[data.length - 1]?.length < 15);
+  /** Backend X-Search-Match: exact | similar | none (when ?search= is set). */
+  const searchMatch = data?.[0]?.searchMatch || null;
 
   return {
     data: products,
@@ -271,6 +273,7 @@ export function useProductsInfinite({
     isLoadingMore,
     isValidating,
     isReachingEnd,
+    searchMatch,
     size,
     setSize,
     listingKey,

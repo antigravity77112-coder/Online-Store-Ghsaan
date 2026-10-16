@@ -82,7 +82,7 @@ function normalizeProductsListResponse(data) {
   return [];
 }
 
-async function request(url, options = {}) {
+async function requestWithHeaders(url, options = {}) {
   options.credentials = 'include'; // Ensure cookies are sent with every request
 
   const primaryUrl = `${BASE_URL}${url}`;
@@ -111,7 +111,7 @@ async function request(url, options = {}) {
     if (shouldAttemptRefresh) {
       try {
         await attemptTokenRefresh();
-        return request(url, { ...options, _retry: true });
+        return requestWithHeaders(url, { ...options, _retry: true });
       } catch {
         // Fall through to normal error handling below.
       }
@@ -140,11 +140,16 @@ async function request(url, options = {}) {
     throw errObj;
   }
 
-  if (res.status === 204) return null;
+  if (res.status === 204) return { data: null, headers: res.headers };
 
   const text = await res.text();
-  if (!text) return null;
-  return JSON.parse(text);
+  if (!text) return { data: null, headers: res.headers };
+  return { data: JSON.parse(text), headers: res.headers };
+}
+
+async function request(url, options = {}) {
+  const { data } = await requestWithHeaders(url, options);
+  return data;
 }
 
 async function parseFetchError(res) {
@@ -303,8 +308,20 @@ export async function getProducts({ city, maxPriceUsd, condition, specialOffers,
   if (brandId) params.set('brandId', brandId);
   params.set('pageNumber', pageNumber);
   params.set('pageSize', pageSize);
-  const data = await request(`/products?${params.toString()}`, { headers: jsonHeaders() });
-  return normalizeProductsListResponse(data).filter((product) => !product?.isHidden);
+
+  const path = `/products?${params.toString()}`;
+  // Use header-aware fetch so storefront can label exact vs similar matches.
+  const { data, headers } = await requestWithHeaders(path, { headers: jsonHeaders() });
+  const products = normalizeProductsListResponse(data).filter((product) => !product?.isHidden);
+  const searchMatch = headers?.get?.('X-Search-Match') || headers?.get?.('x-search-match') || null;
+  if (searchMatch) {
+    Object.defineProperty(products, 'searchMatch', {
+      value: searchMatch,
+      enumerable: false,
+      configurable: true,
+    });
+  }
+  return products;
 }
 
 export async function getProductById(id) {

@@ -5,6 +5,7 @@ import { preload } from "swr";
 import * as api from "./services/api";
 import HomePage from "./pages/HomePage";
 import ScrollToTop from "./components/ScrollToTop";
+import { openSiteLogoGate, preloadSiteLogo, waitForSiteLogo } from "./utils/preloadSiteLogo";
 
 // ─── Route-based code splitting ───
 // EN: Only HomePage is loaded eagerly (it's the landing page / LCP critical path).
@@ -129,14 +130,46 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
 };
 
 const App = () => {
-  // Storefront Warm-Up (Predictive Prefetching)
+  // Storefront warm-up: finish logo bytes first, then catalog (avoids logo loading last).
   React.useEffect(() => {
-    preload('categories', () => api.getCategories() || []);
-    preload('brands', () => api.getBrands() || []);
-    preload('siteConfig', api.getSiteConfig);
-    preload('home-products-offers', () => api.getProducts({ specialOffers: true, pageSize: 8 }));
-    preload('home-products-trending', () => api.getProducts({ trending: true, pageSize: 8 }));
-    preload('home-products-catalog', () => api.getProducts({ pageSize: 32 }));
+    let cancelled = false;
+    let restStarted = false;
+    const dark =
+      typeof document !== 'undefined' &&
+      document.documentElement.classList.contains('dark');
+
+    const warmRest = () => {
+      if (cancelled || restStarted) return;
+      restStarted = true;
+      preload('categories', () => api.getCategories() || []);
+      preload('brands', () => api.getBrands() || []);
+      preload('home-products-offers', () => api.getProducts({ specialOffers: true, pageSize: 8 }));
+      preload('home-products-trending', () => api.getProducts({ trending: true, pageSize: 8 }));
+      preload('home-products-catalog', () => api.getProducts({ pageSize: 32 }));
+    };
+
+    (async () => {
+      try {
+        const cfg = await preload('siteConfig', api.getSiteConfig);
+        if (cancelled) return;
+        const href = cfg ? preloadSiteLogo(cfg, { dark }) : null;
+        if (href) await waitForSiteLogo(href, 2000);
+        else openSiteLogoGate();
+      } catch {
+        openSiteLogoGate();
+      }
+      warmRest();
+    })();
+
+    // Hard cap so a stuck logo never blocks catalog forever.
+    const failsafe = window.setTimeout(() => {
+      openSiteLogoGate();
+      warmRest();
+    }, 2200);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(failsafe);
+    };
   }, []);
 
   return (

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useLayoutEffect, useState } from 'react';
+import { Link, useNavigationType } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Heart } from 'lucide-react';
 import {
@@ -10,6 +10,11 @@ import {
   RESPONSIVE_WIDTHS,
 } from '../../utils/cloudinaryUrl';
 import { preloadProductDetailImage } from '../../utils/preloadProductImage';
+import {
+  clearLastHeroProductId,
+  getLastHeroProductId,
+  setLastHeroProductId,
+} from '../../utils/listingSessionMemory';
 import { useFormatDisplayPrice } from '../../context/CurrencyContext';
 import { useReducedMotion } from '../../hooks/useReducedMotion';
 
@@ -71,6 +76,7 @@ export const ProductCard: React.FC<ProductCardProps> = React.memo(({
 }) => {
   const formatPrice = useFormatDisplayPrice();
   const reduceMotion = useReducedMotion();
+  const navigationType = useNavigationType();
   const [isFavoriteLocal, setIsFavoriteLocal] = useState(product?.isFavorite ?? false);
   /** 0 = optimized/srcSet, 1 = stored URL, 2 = stripped raw URL */
   const [imgFallbackStep, setImgFallbackStep] = useState(0);
@@ -86,6 +92,19 @@ export const ProductCard: React.FC<ProductCardProps> = React.memo(({
   React.useEffect(() => {
     setImgFallbackStep(0);
   }, [product?.id, product?.image]);
+
+  // On Back, reconnect layoutId before paint so Framer has a matching target (avoids blink).
+  useLayoutEffect(() => {
+    if (reduceMotion || !product?.id) return undefined;
+    if (navigationType !== 'POP') return undefined;
+    const lastId = getLastHeroProductId();
+    if (lastId == null || String(product.id) !== lastId) return undefined;
+    setShareLayout(true);
+    const clearTimer = window.setTimeout(() => {
+      clearLastHeroProductId(product.id);
+    }, 420);
+    return () => window.clearTimeout(clearTimer);
+  }, [product?.id, navigationType, reduceMotion]);
 
   const handleFavoriteClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -159,7 +178,10 @@ export const ProductCard: React.FC<ProductCardProps> = React.memo(({
   const imageSizes = imgFallbackStep === 0 ? optimized.sizes : undefined;
 
   const onProductIntent = () => {
-    if (!reduceMotion) setShareLayout(true);
+    if (!reduceMotion) {
+      setShareLayout(true);
+      setLastHeroProductId(product.id);
+    }
     if (image) preloadProductDetailImage(image);
   };
 

@@ -33,8 +33,13 @@ class ProductController {
         pageSize: parseInt(req.query.pageSize) || 10
       };
 
-      const result = await this.productService.getProducts(filters, pagination);
-      res.json(result);
+      const { products, searchMatch } = await this.productService.getProducts(filters, pagination);
+      if (searchMatch) {
+        res.set('X-Search-Match', searchMatch);
+        // Expose custom header to browser JS (storefront reads it for «نتائج مشابهة»).
+        res.set('Access-Control-Expose-Headers', 'X-Search-Match');
+      }
+      res.json(products);
     } catch (error) {
       throw error;
     }

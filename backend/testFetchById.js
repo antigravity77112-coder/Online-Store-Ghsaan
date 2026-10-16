@@ -3,7 +3,7 @@ const ProductService = require('./src/services/productService.js');
 const service = new ProductService();
 
 async function test() {
-  const products = await service.getProducts({}, { pageNumber: 1, pageSize: 100 });
+  const { products } = await service.getProducts({}, { pageNumber: 1, pageSize: 100 });
   console.log(`Fetched ${products.length} products`);
   
   for (const p of products) {

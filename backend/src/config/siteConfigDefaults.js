@@ -36,10 +36,11 @@ const DEFAULT_BRAND = {
 };
 
 const DEFAULT_MEDIA = {
-  logoUrl: '/Logo_light_192.png',
-  logoDarkUrl: '/Logo_dark_192.png',
-  logoMobileUrl: '/Logo_light_192.png',
-  logoMobileDarkUrl: '/Logo_dark_192.png',
+  // Logos come from DB / admin upload only.
+  logoUrl: null,
+  logoDarkUrl: null,
+  logoMobileUrl: null,
+  logoMobileDarkUrl: null,
   faviconUrl: '/favicon.png',
   ogImageUrl: null,
 };
@@ -245,7 +246,7 @@ function buildWebManifest(publicConfig, baseUrl = process.env.PUBLIC_SITE_URL ||
   const media = publicConfig?.media || DEFAULT_MEDIA;
   const theme = publicConfig?.theme || DEFAULT_THEME;
   const favicon = media.faviconUrl || DEFAULT_MEDIA.faviconUrl;
-  const logo512 = media.logoUrl || '/Logo_512.png';
+  const logo512 = media.logoUrl || media.faviconUrl || DEFAULT_MEDIA.faviconUrl;
 
   return {
     name: brand.siteName || brand.appName || DEFAULT_BRAND.siteName,

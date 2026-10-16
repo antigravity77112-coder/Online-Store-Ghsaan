@@ -13,6 +13,36 @@ import { HelmetProvider } from 'react-helmet-async';
 import { SWRConfig } from 'swr';
 import App from './App';
 import './index.css';
+import * as api from './services/api';
+import {
+  preloadSiteLogo,
+  warmSiteLogoFromCache,
+  waitForSiteLogo,
+  openSiteLogoGate,
+} from './utils/preloadSiteLogo';
+
+// Boot: paint last-known DB logo immediately, then refresh from /config before React effects.
+const __bootDark =
+  typeof document !== 'undefined' &&
+  document.documentElement.classList.contains('dark');
+const __cachedLogo = warmSiteLogoFromCache(__bootDark);
+if (__cachedLogo) {
+  waitForSiteLogo(__cachedLogo, 1800);
+} else {
+  // Failsafe if /config is slow on a cold first visit.
+  window.setTimeout(openSiteLogoGate, 2200);
+}
+api
+  .getSiteConfig()
+  .then((cfg) => {
+    if (!cfg) {
+      openSiteLogoGate();
+      return;
+    }
+    const href = preloadSiteLogo(cfg, { dark: __bootDark });
+    return href ? waitForSiteLogo(href, 2000) : openSiteLogoGate();
+  })
+  .catch(() => openSiteLogoGate());
 
 function localStorageProvider() {
   if (typeof window === 'undefined') return new Map();

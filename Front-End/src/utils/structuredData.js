@@ -122,7 +122,7 @@ export function buildOrganizationSchema(siteConfig = {}) {
   const contact = siteConfig.contact || {};
   const social = siteConfig.social || {};
 
-  const logoUrl = media.logoUrl || media.logoDarkUrl || '/Logo_light_192.png';
+  const logoUrl = media.logoUrl || media.logoDarkUrl || null;
   const ogImageRaw = media.ogImageUrl || seo.ogImageUrl || null;
   const ogImage = typeof ogImageRaw === 'string' && ogImageRaw.trim() ? ogImageRaw.trim() : null;
   const abs = (url) => {

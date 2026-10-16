@@ -272,11 +272,18 @@ class AdminController {
       }
 
       let products = await prisma.product.findMany(queryArgs);
-      if (trimmedSearch && products.length === 0) {
+      if (trimmedSearch && products.length === 0 && pageNumber <= 1) {
         const ids = await fuzzySearchIds(trimmedSearch, { activeOnly: false });
         if (ids.length > 0) {
-          whereClause.AND = [{ id: { in: ids } }];
-          products = await prisma.product.findMany(queryArgs);
+          const start = 0;
+          const pageIds = ids.slice(start, start + pageSize);
+          whereClause.AND = [{ id: { in: pageIds } }];
+          queryArgs.where = whereClause;
+          queryArgs.skip = 0;
+          queryArgs.take = pageIds.length;
+          const hydrated = await prisma.product.findMany(queryArgs);
+          const byId = new Map(hydrated.map((p) => [p.id, p]));
+          products = pageIds.map((id) => byId.get(id)).filter(Boolean);
         }
       }
       // Add flat fields for frontend compatibility

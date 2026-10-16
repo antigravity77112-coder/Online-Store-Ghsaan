@@ -9,7 +9,8 @@
  */
 
 import React, { useState, useMemo, useCallback } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigationType } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import useSWR from 'swr';
 import Layout from '../components/Layout';
 import SEO from '../components/SEO';
@@ -18,6 +19,7 @@ import InfiniteScrollTrigger from '../components/InfiniteScrollTrigger';
 import ProductListingToolbar from '../components/ProductListingToolbar';
 import ListingSearchField from '../components/listing/ListingSearchField';
 import ListingEmptyState from '../components/listing/ListingEmptyState';
+import SearchSimilarBanner from '../components/listing/SearchSimilarBanner';
 import QuickAddFeedback from '../components/QuickAddFeedback';
 import BannerRenderer from '../components/BannerRenderer';
 import CategorySubcategoryHub from '../components/CategorySubcategoryHub';
@@ -30,10 +32,14 @@ import { useUrlSearchDraft } from '../hooks/useUrlSearchDraft';
 import { useQuickAddFeedback } from '../hooks/useQuickAddFeedback';
 import { useListingProducts } from '../hooks/useListingProducts';
 import { useListingScrollMemory } from '../hooks/useListingScrollMemory';
+import { useReducedMotion } from '../hooks/useReducedMotion';
+import { isExpectedListingReturn } from '../utils/listingSessionMemory';
 import { mapStorefrontProduct } from '../utils/mapStorefrontProduct';
 
 const CategoryPage = () => {
   const { slug } = useParams();
+  const navigationType = useNavigationType();
+  const reduceMotion = useReducedMotion();
   const { addToCart } = useCart();
   const { isFavorite, toggleFavorite } = useFavorites();
   const {
@@ -105,6 +111,7 @@ const CategoryPage = () => {
     listingKey,
     shuffleSeed,
     rememberedSize,
+    searchMatch,
     error: productsError
   } = useProductsInfinite({
     categoryName,
@@ -118,9 +125,11 @@ const CategoryPage = () => {
   const activeProducts = productsError ? [] : (products || []);
   const showSkeleton = (categoryLoading || productsLoading) && activeProducts.length === 0;
 
-  const filteredProducts = useListingProducts(activeProducts, sortOrder, shuffleSeed, listingKey);
+  const listingSort = searchMatch === 'similar' && sortOrder === 'default' ? 'relevance' : sortOrder;
+  const filteredProducts = useListingProducts(activeProducts, listingSort, shuffleSeed, listingKey);
 
   const pagesReady = size >= rememberedSize && !isLoadingMore && filteredProducts.length > 0;
+  const skipEnterMotion = navigationType === 'POP' || isExpectedListingReturn(listingKey);
   useListingScrollMemory({
     listingKey,
     ready: filteredProducts.length > 0,
@@ -282,7 +291,15 @@ const CategoryPage = () => {
         {showSkeleton ? (
           <ProductGrid isLoading loadingCount={10} variant="listing" compact />
         ) : filteredProducts.length > 0 ? (
-          <>
+          <motion.div
+            className="w-full"
+            initial={reduceMotion || skipEnterMotion ? false : { opacity: 0 }}
+            animate={reduceMotion || skipEnterMotion ? undefined : { opacity: 1 }}
+            transition={{ duration: 0.25, ease: 'easeOut' }}
+          >
+            {searchMatch === 'similar' && committedSearch.trim() ? (
+              <SearchSimilarBanner searchTerm={committedSearch.trim()} />
+            ) : null}
             <ProductGrid
               products={mappedGridProducts}
               isLoadingMore={isLoadingMore}
@@ -303,7 +320,7 @@ const CategoryPage = () => {
                 وصلت إلى نهاية المنتجات في هذا القسم
               </p>
             )}
-          </>
+          </motion.div>
         ) : (
           <ListingEmptyState
             title="لا توجد منتجات حالياً"

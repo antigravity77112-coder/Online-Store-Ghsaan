@@ -137,8 +137,20 @@ function finish(listingKey) {
     finishedKeys.add(listingKey);
     clearListingRestoreScrollY(listingKey);
   }
-  stopListingScrollRestore();
+  // Tear down timers/class first, then defer spacer clear so reflow does not flash Y.
+  setRestoringClass(false);
+  activeKey = null;
+  frozenTargetY = null;
+  pagesReadyFlag = false;
+  userInteracted = false;
+  unbindUserScrollAbort();
+  clearTimers();
   clearExpectedListingReturn(listingKey);
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      clearSpacer();
+    });
+  });
 }
 
 function jumpToTarget(listingKey, y, { allowRetry = false } = {}) {
@@ -160,7 +172,8 @@ function jumpToTarget(listingKey, y, { allowRetry = false } = {}) {
       return;
     }
     const current = readScrollY();
-    if (Math.abs(current - y) <= THRESHOLD * 2) {
+    // Only re-jump when we are still meaningfully off target (avoids flashy second scroll).
+    if (Math.abs(current - y) > THRESHOLD) {
       ensureSpacer(y);
       applyY(y);
     }

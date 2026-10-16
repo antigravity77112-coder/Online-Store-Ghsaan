@@ -9,6 +9,9 @@ const listingMemory = new Map();
 /** Listing key we expect to restore after opening a product (SPA only). */
 let expectedReturnKey = null;
 
+/** Product id whose card↔PDP layoutId should reconnect on Back (SPA only). */
+let lastHeroProductId = null;
+
 /**
  * @param {string} key
  * @returns {{ scrollY?: number, size?: number, shuffleSeed?: string|number, restoreScrollY?: number, orderedIds?: string[] } | undefined}
@@ -85,4 +88,28 @@ export function ensureShuffleSeed(key) {
       : `${Date.now()}-${Math.random()}`;
   setListingMemory(key, { shuffleSeed: seed });
   return seed;
+}
+
+/** Call on product-card intent so Back can reconnect Framer layoutId. */
+export function setLastHeroProductId(productId) {
+  if (productId == null || productId === '') {
+    lastHeroProductId = null;
+    return;
+  }
+  lastHeroProductId = String(productId);
+}
+
+export function getLastHeroProductId() {
+  return lastHeroProductId;
+}
+
+/** Clear after Back morph settles (or when id matches). */
+export function clearLastHeroProductId(productId) {
+  if (productId == null || lastHeroProductId == null) {
+    lastHeroProductId = null;
+    return;
+  }
+  if (String(productId) === lastHeroProductId) {
+    lastHeroProductId = null;
+  }
 }

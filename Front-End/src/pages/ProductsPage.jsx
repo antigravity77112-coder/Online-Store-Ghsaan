@@ -16,6 +16,7 @@ import InfiniteScrollTrigger from '../components/InfiniteScrollTrigger';
 import ProductListingToolbar from '../components/ProductListingToolbar';
 import ListingSearchField from '../components/listing/ListingSearchField';
 import ListingEmptyState from '../components/listing/ListingEmptyState';
+import SearchSimilarBanner from '../components/listing/SearchSimilarBanner';
 import DiscoveryLinks from '../components/listing/DiscoveryLinks';
 import { ProductGrid } from '../components/HighConversionGrid';
 import { useCart } from '../context/CartContext';
@@ -71,6 +72,7 @@ const ProductsPage = () => {
     listingKey,
     shuffleSeed,
     rememberedSize,
+    searchMatch,
     error: productsError,
   } = useProductsInfinite({
     specialOffers: offersOnly,
@@ -92,7 +94,9 @@ const ProductsPage = () => {
     )]
   ), [categories, activeProducts]);
 
-  const filteredProducts = useListingProducts(activeProducts, sortOrder, shuffleSeed, listingKey);
+  // Keep similarity order from the API — do not shuffle «نتائج مشابهة».
+  const listingSort = searchMatch === 'similar' && sortOrder === 'default' ? 'relevance' : sortOrder;
+  const filteredProducts = useListingProducts(activeProducts, listingSort, shuffleSeed, listingKey);
 
   const pagesReady = size >= rememberedSize && !isLoadingMore && filteredProducts.length > 0;
   const skipEnterMotion = navigationType === 'POP' || isExpectedListingReturn(listingKey);
@@ -144,7 +148,9 @@ const ProductsPage = () => {
       : 'جميع المنتجات';
 
   const sectionTitle = committedSearch.trim()
-    ? `نتائج: "${committedSearch.trim()}"`
+    ? searchMatch === 'similar'
+      ? `نتائج مشابهة: "${committedSearch.trim()}"`
+      : `نتائج: "${committedSearch.trim()}"`
     : trendingOnly
       ? 'ترندات'
       : offersOnly
@@ -270,8 +276,11 @@ const ProductsPage = () => {
                 initial={reduceMotion || skipEnterMotion ? false : 'hidden'}
                 animate={reduceMotion || skipEnterMotion ? undefined : 'visible'}
                 exit={reduceMotion ? undefined : { opacity: 0 }}
-                key={`${activeCategory}-${committedSearch}-${sortOrder}-${trendingOnly ? 'trending' : 'all'}`}
+                key={`${activeCategory}-${committedSearch}-${sortOrder}-${trendingOnly ? 'trending' : 'all'}-${searchMatch || 'exact'}`}
               >
+                {searchMatch === 'similar' && committedSearch.trim() ? (
+                  <SearchSimilarBanner searchTerm={committedSearch.trim()} />
+                ) : null}
                 <ProductGrid
                   products={mappedGridProducts}
                   isLoadingMore={isLoadingMore}
