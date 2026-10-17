@@ -361,11 +361,9 @@ const ProductDetailsPage = () => {
   );
 
   const specRows = useMemo(
-    () => buildProductSpecRows(product, { selectedVariant, optionGroups }),
-    [product, selectedVariant, optionGroups],
+    () => buildProductSpecRows(product, { selectedVariant }),
+    [product, selectedVariant],
   );
-
-  const hasSpecContent = specRows.length > 0;
 
   const displayPrice = selectedVariant ? Number(selectedVariant.price) : Number(product?.price || 0);
   const displayDiscount = selectedVariant

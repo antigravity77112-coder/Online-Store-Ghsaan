@@ -1,7 +1,8 @@
 /**
- * One-time backfill after adding ProductCategory + Product.searchText.
+ * Rebuild ProductCategory links + Product.searchText (core|||description, whole-word index).
+ * Does NOT delete searchKeywords or product descriptions.
  *   node src/scripts/backfillSearchAndCategories.js
- * Safe to re-run.
+ * Safe to re-run after search algorithm changes.
  */
 require('dotenv').config();
 const prisma = require('../prismaClient');

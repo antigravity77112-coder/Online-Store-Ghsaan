@@ -4,7 +4,13 @@ const { uploadBuffer, deleteByUrl } = require('./storage');
 const { generateUniqueSlug } = require('../utils/slugify');
 const notificationService = require('./notificationService');
 const { withOptionGroups } = require('../utils/variantOptions');
-const { normalizeArabic, searchTokens, buildSearchText } = require('../utils/arabicNormalize');
+const {
+  normalizeArabic,
+  searchTokens,
+  composeStoredSearchText,
+  stripSearchNoise,
+} = require('../utils/arabicNormalize');
+const { Prisma } = require('@prisma/client');
 
 const SCENT_INCLUDE = {
   scents: {
@@ -122,7 +128,7 @@ async function syncProductScents(productId, scentIds) {
 
 // ─── Search Helpers ───────────────────────────────────────────────────────────
 
-/** Rebuild Product.searchText from everything a customer might type. */
+/** Rebuild Product.searchText: paddedCore|||paddedDescription (keywords preserved). */
 async function refreshSearchText(productId) {
   const p = await prisma.product.findUnique({
     where: { id: productId },
@@ -139,10 +145,11 @@ async function refreshSearchText(productId) {
         where: { categoryAttribute: { isSearchable: true } },
         select: { value: true },
       },
+      specs: { select: { name: true, value: true } },
     },
   });
   if (!p) return;
-  const searchText = buildSearchText([
+  const coreParts = [
     p.title,
     p.searchKeywords,
     p.sku,
@@ -151,8 +158,9 @@ async function refreshSearchText(productId) {
     p.category?.name,
     ...p.categories.map((c) => c.category?.name),
     ...p.attributes.map((a) => a.value),
-    p.description,
-  ]);
+    ...(p.specs || []).flatMap((s) => [s.name, s.value]),
+  ].map((part) => stripSearchNoise(part));
+  const searchText = composeStoredSearchText(coreParts, [stripSearchNoise(p.description)]);
   await prisma.product.update({ where: { id: productId }, data: { searchText } });
 }
 
@@ -198,54 +206,129 @@ function withCategoryLinks(p) {
 }
 
 /**
- * Prisma condition: SKU (high precision) OR title contains OR every query word
- * appears in searchText (accepted spellings only; short stems filtered out).
+ * Prisma fallback condition (SKU/title + whole-word needles in searchText).
+ * Prefer wordSearchIds() for precision; this remains for admin / simple filters.
  */
-function productSearchCondition(search) {
+function productSearchCondition(search, { layer = 'full' } = {}) {
   const raw = String(search).trim();
-  const normalized = normalizeArabic(raw);
   const or = [
     { sku: { contains: raw, mode: 'insensitive' } },
     { variants: { some: { sku: { contains: raw, mode: 'insensitive' } } } },
   ];
-  // Title contains only for meaningful typed phrases (avoids 1-char noise).
   if (raw.length >= 2) {
     or.push({ title: { contains: raw, mode: 'insensitive' } });
   }
-  // Token path requires normalized length ≥ 2 and at least one usable stem.
-  if (normalized.length >= 2) {
-    const tokens = searchTokens(raw);
-    if (tokens.length > 0) {
-      or.push({
-        AND: tokens.map((variants) => ({
-          OR: variants.map((v) => ({ searchText: { contains: v } })),
-        })),
-      });
-    }
+  const tokens = searchTokens(raw);
+  if (tokens.length > 0) {
+    or.push({
+      AND: tokens.map((variants) => ({
+        OR: variants.flatMap((v) => {
+          const needle = ` ${v} `;
+          if (layer === 'core') {
+            return [
+              { searchText: { contains: `${needle}|||` } },
+              { searchText: { startsWith: needle } },
+              { searchKeywords: { contains: v, mode: 'insensitive' } },
+            ];
+          }
+          return [{ searchText: { contains: needle } }];
+        }),
+      })),
+    });
   }
   return { OR: or };
 }
 
-const FUZZY_SIMILARITY_THRESHOLD = 0.58;
+const FUZZY_SIMILARITY_THRESHOLD = 0.65;
 const FUZZY_DEFAULT_LIMIT = 24;
 
-/** Typo-tolerant fallback via pg_trgm; returns product ids ordered by similarity. */
+/** Whole-word id lookup (AND across query tokens). layer: core | full */
+async function wordSearchIds(search, { layer = 'full', activeOnly = true, limit = 200 } = {}) {
+  const tokenGroups = searchTokens(search);
+  if (tokenGroups.length === 0) return [];
+
+  try {
+    const tokenAnds = tokenGroups.map((variants) => {
+      const variantOrs = variants.map((v) => {
+        const needle = `% ${v} %`;
+        if (layer === 'core') {
+          return Prisma.sql`(
+            (' ' || split_part(COALESCE(p."searchText", ''), '|||', 1) || ' ') LIKE ${needle}
+            OR (position('|||' in COALESCE(p."searchText", '')) = 0
+                AND (' ' || COALESCE(p."searchText", '') || ' ') LIKE ${needle})
+          )`;
+        }
+        return Prisma.sql`(' ' || replace(COALESCE(p."searchText", ''), '|||', ' ') || ' ') LIKE ${needle}`;
+      });
+      let orSql = variantOrs[0];
+      for (let i = 1; i < variantOrs.length; i += 1) {
+        orSql = Prisma.sql`(${orSql} OR ${variantOrs[i]})`;
+      }
+      return orSql;
+    });
+
+    let whereWords = tokenAnds[0];
+    for (let i = 1; i < tokenAnds.length; i += 1) {
+      whereWords = Prisma.sql`(${whereWords} AND ${tokenAnds[i]})`;
+    }
+
+    const statusClause = activeOnly ? Prisma.sql`AND p.status = 'Active'` : Prisma.empty;
+
+    const rows = await prisma.$queryRaw`
+      SELECT p.id
+      FROM "Product" p
+      WHERE p."searchText" IS NOT NULL
+        ${statusClause}
+        AND ${whereWords}
+      LIMIT ${limit}
+    `;
+    return rows.map((r) => r.id);
+  } catch (err) {
+    console.warn('[search] wordSearchIds unavailable:', err.message);
+    return [];
+  }
+}
+
+/** Typo-tolerant fallback: max word_similarity against individual tokens. */
 async function fuzzySearchIds(search, { activeOnly = true, limit = FUZZY_DEFAULT_LIMIT } = {}) {
   const q = normalizeArabic(search);
   if (q.length < 3) return [];
   try {
     const rows = activeOnly
       ? await prisma.$queryRaw`
-          SELECT id FROM "Product"
-          WHERE status = 'Active' AND "searchText" IS NOT NULL
-            AND word_similarity(${q}, "searchText") >= ${FUZZY_SIMILARITY_THRESHOLD}
-          ORDER BY word_similarity(${q}, "searchText") DESC
+          SELECT p.id
+          FROM "Product" p
+          CROSS JOIN LATERAL (
+            SELECT MAX(word_similarity(${q}, w)) AS score
+            FROM unnest(
+              string_to_array(
+                trim(both ' ' from replace(COALESCE(p."searchText", ''), '|||', ' ')),
+                ' '
+              )
+            ) AS w
+            WHERE length(w) >= 2
+          ) s
+          WHERE p.status = 'Active'
+            AND p."searchText" IS NOT NULL
+            AND s.score >= ${FUZZY_SIMILARITY_THRESHOLD}
+          ORDER BY s.score DESC
           LIMIT ${limit}`
       : await prisma.$queryRaw`
-          SELECT id FROM "Product"
-          WHERE "searchText" IS NOT NULL
-            AND word_similarity(${q}, "searchText") >= ${FUZZY_SIMILARITY_THRESHOLD}
-          ORDER BY word_similarity(${q}, "searchText") DESC
+          SELECT p.id
+          FROM "Product" p
+          CROSS JOIN LATERAL (
+            SELECT MAX(word_similarity(${q}, w)) AS score
+            FROM unnest(
+              string_to_array(
+                trim(both ' ' from replace(COALESCE(p."searchText", ''), '|||', ' ')),
+                ' '
+              )
+            ) AS w
+            WHERE length(w) >= 2
+          ) s
+          WHERE p."searchText" IS NOT NULL
+            AND s.score >= ${FUZZY_SIMILARITY_THRESHOLD}
+          ORDER BY s.score DESC
           LIMIT ${limit}`;
     return rows.map((r) => r.id);
   } catch (err) {
@@ -667,38 +750,65 @@ class ProductService {
 
     /** @type {'exact' | 'similar' | 'none' | null} */
     let searchMatch = hasSearch ? 'exact' : null;
-    const exactWhere = hasSearch ? whereWith(productSearchCondition(search)) : whereWith(null);
+    let products;
 
-    let products = await this._findProductCards(
-      exactWhere,
-      { trending, pageNumber, pageSize },
-    );
+    if (hasSearch) {
+      // Layer 1: whole-word on core (title/keywords/attrs/specs) — not description.
+      let ids = await wordSearchIds(search, { layer: 'core', activeOnly: true });
 
-    if (hasSearch && products.length === 0) {
-      // Empty page may mean "end of exact list" OR "no exact matches at all".
-      const exactTotal = pageNumber > 1
-        ? await prisma.product.count({ where: exactWhere })
-        : 0;
+      // SKU / raw title fallback when index miss (barcodes, unnormalized titles).
+      if (ids.length === 0) {
+        const coreCards = await this._findProductCards(
+          whereWith(productSearchCondition(search, { layer: 'core' })),
+          { trending, pageNumber, pageSize },
+        );
+        if (coreCards.length > 0) {
+          products = coreCards;
+          searchMatch = 'exact';
+        }
+      }
 
-      if (pageNumber > 1 && exactTotal > 0) {
+      // Layer 2: whole-word on full index (core + cleaned description).
+      if (!products && ids.length === 0) {
+        ids = await wordSearchIds(search, { layer: 'full', activeOnly: true });
+      }
+
+      if (!products && ids.length > 0) {
+        const start = (Math.max(1, pageNumber) - 1) * pageSize;
+        const pageIds = ids.slice(start, start + pageSize);
+        if (pageIds.length > 0) {
+          const hydrated = await this._findProductCards(
+            whereWith({ id: { in: pageIds } }),
+            { trending, pageNumber: 1, pageSize: pageIds.length, preserveInputOrder: true },
+          );
+          products = orderProductsByIds(hydrated, pageIds);
+        } else {
+          products = [];
+        }
         searchMatch = 'exact';
-      } else {
-        const ids = await fuzzySearchIds(search);
-        if (ids.length > 0) {
-          const start = (Math.max(1, pageNumber) - 1) * pageSize;
-          const pageIds = ids.slice(start, start + pageSize);
-          if (pageIds.length > 0) {
+      } else if (!products) {
+        // Layer 3: word-level fuzzy (similar only — never mixed with exact).
+        if (pageNumber <= 1) {
+          const fuzzyIds = await fuzzySearchIds(search);
+          if (fuzzyIds.length > 0) {
+            const pageIds = fuzzyIds.slice(0, pageSize);
             const hydrated = await this._findProductCards(
               whereWith({ id: { in: pageIds } }),
               { trending, pageNumber: 1, pageSize: pageIds.length, preserveInputOrder: true },
             );
             products = orderProductsByIds(hydrated, pageIds);
+            searchMatch = 'similar';
+          } else {
+            products = [];
+            searchMatch = 'none';
           }
-          searchMatch = 'similar';
         } else {
+          products = [];
           searchMatch = 'none';
         }
       }
+    } else {
+      products = await this._findProductCards(whereWith(null), { trending, pageNumber, pageSize });
     }
 
     let filtered = products;
@@ -1278,4 +1388,5 @@ class ProductService {
 module.exports = ProductService;
 module.exports.productSearchCondition = productSearchCondition;
 module.exports.fuzzySearchIds = fuzzySearchIds;
+module.exports.wordSearchIds = wordSearchIds;
 module.exports.refreshSearchText = refreshSearchText;

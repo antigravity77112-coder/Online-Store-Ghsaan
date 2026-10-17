@@ -12,7 +12,7 @@ export default function ListingEmptyState({
   showSuggestions,
   clearLabel = 'مسح البحث',
 }) {
-  const heading = title || (searchTerm ? 'غير متوفر حالياً' : 'لا توجد منتجات');
+  const heading = title || (searchTerm ? 'عذرًا، هذا المنتج غير متوفر' : 'لا توجد منتجات');
   const withSuggestions = showSuggestions ?? Boolean(searchTerm);
 
   return (

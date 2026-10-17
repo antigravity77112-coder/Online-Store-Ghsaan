@@ -22,11 +22,11 @@ export function formatAttributeDisplayValue(attr) {
 }
 
 /**
- * Build key/value rows for the product description sheet.
- * Order: التصنيف → SKU → البراند → variant options → free-form product specs.
- * Price, condition, stock quantity, and the long description stay outside the sheet.
+ * Build key/value rows for THIS product only.
+ * Includes filled product/variant attributes and free-form specs —
+ * not the category's full option catalog and not the long prose description.
  */
-export function buildProductSpecRows(product, { selectedVariant = null, optionGroups = [] } = {}) {
+export function buildProductSpecRows(product, { selectedVariant = null } = {}) {
   if (!product) return [];
   const rows = [];
   const seen = new Set();
@@ -41,7 +41,6 @@ export function buildProductSpecRows(product, { selectedVariant = null, optionGr
     rows.push(row);
   };
 
-  push('التصنيف', product.categoryName || product.category?.name);
   push('SKU', selectedVariant?.sku || product.sku);
   const brandName = product.brand?.name || product.brandName;
   const brandSlug = product.brand?.slug;
@@ -51,35 +50,21 @@ export function buildProductSpecRows(product, { selectedVariant = null, optionGr
     brandSlug ? `/brand/${encodeURIComponent(brandSlug)}` : null,
   );
 
-  // Product-level category attributes (key/value from admin)
+  // Product-level attributes: one key → one filled value for this product
   if (Array.isArray(product.attributes)) {
     for (const attr of product.attributes) {
       push(attr.categoryAttribute?.name || attr.name, formatAttributeDisplayValue(attr));
     }
   }
 
+  // Selected variant attributes: key → this variant's value only
   if (selectedVariant?.attributes?.length) {
     for (const attr of selectedVariant.attributes) {
-      push(attr.categoryAttribute?.name, formatAttributeDisplayValue(attr));
+      push(attr.categoryAttribute?.name || attr.name, formatAttributeDisplayValue(attr));
     }
   }
 
-  const groups =
-    (Array.isArray(optionGroups) && optionGroups.length
-      ? optionGroups
-      : product.optionGroups) || [];
-  for (const group of groups) {
-    if (!group?.name || !Array.isArray(group.values) || !group.values.length) continue;
-    const hasSelectedValue = selectedVariant?.attributes?.some(
-      (attr) => attr.categoryAttribute?.name === group.name,
-    );
-    push(
-      hasSelectedValue ? `${group.name} (المتاح)` : group.name,
-      group.values.join('، '),
-    );
-  }
-
-  // Free-form per-product specs (name/value) — not tied to the category
+  // Free-form per-product specs (name/value)
   if (Array.isArray(product.specs)) {
     for (const spec of product.specs) {
       const label = spec.name || spec.key || spec.label;
@@ -99,7 +84,7 @@ export function buildProductSpecRows(product, { selectedVariant = null, optionGr
 }
 
 /**
- * Bottom-sheet containing key/value specifications only.
+ * Bottom-sheet of per-product key/value specifications only (no prose description).
  */
 export default function ProductDescriptionSheet({
   open,
@@ -152,7 +137,7 @@ export default function ProductDescriptionSheet({
             className={`absolute top-1/2 -translate-y-1/2 min-w-[40px] min-h-[40px] flex items-center justify-center rounded-full text-stone-500 hover:bg-stone-100 dark:hover:bg-stone-800 ${
               isRtl ? 'left-3' : 'right-3'
             }`}
-            aria-label="إغلاق الوصف"
+            aria-label="إغلاق المواصفات"
           >
             <X className="w-5 h-5" aria-hidden="true" />
           </button>
@@ -166,14 +151,12 @@ export default function ProductDescriptionSheet({
             >
               {rows.map((row, idx) => (
                 <li key={`${row.label}-${idx}`} className="contents">
-                  {/* Key column sized to longest label (RTL: right side) */}
                   <span className="py-2.5 text-start font-semibold text-stone-800 dark:text-stone-100 whitespace-nowrap">
                     {row.label}
                   </span>
                   <span className="py-2.5 select-none text-stone-300 dark:text-stone-600 font-light" aria-hidden="true">
                     |
                   </span>
-                  {/* Value takes all remaining width */}
                   <span className="py-2.5 min-w-0 text-start text-stone-600 dark:text-stone-300 break-words">
                     {row.href ? (
                       <Link
