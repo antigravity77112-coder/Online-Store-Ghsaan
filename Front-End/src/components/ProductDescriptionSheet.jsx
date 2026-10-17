@@ -5,7 +5,7 @@ import { X } from 'lucide-react';
 import { useLocale } from '../context/LocaleContext';
 
 /**
- * Formats a product attribute value for display in the description sheet.
+ * Formats a variant attribute value for display in the description sheet.
  */
 export function formatAttributeDisplayValue(attr) {
   if (!attr) return '';
@@ -22,9 +22,13 @@ export function formatAttributeDisplayValue(attr) {
 }
 
 /**
- * Build key/value rows for THIS product only.
- * Includes filled product/variant attributes and free-form specs —
- * not the category's full option catalog and not the long prose description.
+ * Build key/value rows for the description sheet.
+ * Only this product's own specs, plus the selected variant's own values.
+ * Category attributes (product.attributes → CategoryAttribute) are shared across
+ * the category, so they stay out of the sheet.
+ *
+ * Order: التصنيف → SKU → البراند → selected variant values → product.specs → scents.
+ * Long description, price, stock, and condition stay on the product page.
  */
 export function buildProductSpecRows(product, { selectedVariant = null } = {}) {
   if (!product) return [];
@@ -41,6 +45,7 @@ export function buildProductSpecRows(product, { selectedVariant = null } = {}) {
     rows.push(row);
   };
 
+  push('التصنيف', product.categoryName || product.category?.name);
   push('SKU', selectedVariant?.sku || product.sku);
   const brandName = product.brand?.name || product.brandName;
   const brandSlug = product.brand?.slug;
@@ -50,23 +55,19 @@ export function buildProductSpecRows(product, { selectedVariant = null } = {}) {
     brandSlug ? `/brand/${encodeURIComponent(brandSlug)}` : null,
   );
 
-  // Product-level attributes: one key → one filled value for this product
-  if (Array.isArray(product.attributes)) {
-    for (const attr of product.attributes) {
-      push(attr.categoryAttribute?.name || attr.name, formatAttributeDisplayValue(attr));
-    }
-  }
-
-  // Selected variant attributes: key → this variant's value only
+  // Selected variant's own values only (Color × Size pickers) — not the category catalog.
   if (selectedVariant?.attributes?.length) {
     for (const attr of selectedVariant.attributes) {
       push(attr.categoryAttribute?.name || attr.name, formatAttributeDisplayValue(attr));
     }
   }
 
-  // Free-form per-product specs (name/value)
+  // Free-form per-product specs (ProductSpec) — each product owns its own names/values.
   if (Array.isArray(product.specs)) {
-    for (const spec of product.specs) {
+    const specs = [...product.specs].sort(
+      (a, b) => (Number(a.sortOrder) || 0) - (Number(b.sortOrder) || 0),
+    );
+    for (const spec of specs) {
       const label = spec.name || spec.key || spec.label;
       const value = spec.value ?? spec.val;
       push(label, value);
@@ -89,7 +90,7 @@ export function buildProductSpecRows(product, { selectedVariant = null } = {}) {
 export default function ProductDescriptionSheet({
   open,
   onClose,
-  title = 'المواصفات',
+  title = 'الوصف والمواصفات',
   rows = [],
 }) {
   const { dir, isRtl } = useLocale();

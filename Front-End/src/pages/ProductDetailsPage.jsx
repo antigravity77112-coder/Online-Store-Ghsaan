@@ -833,7 +833,7 @@ const ProductDetailsPage = () => {
         >
           <span className="inline-flex items-center gap-2 text-sm font-extrabold text-stone-900 dark:text-white leading-[1.45]">
             <FileText className="w-4 h-4 text-stone-500" aria-hidden="true" />
-            المواصفات
+            الوصف والمواصفات
           </span>
           <span className="inline-flex items-center gap-1 text-xs font-semibold text-stone-500">
             عرض التفاصيل
