@@ -90,7 +90,7 @@ export function buildProductSpecRows(product, { selectedVariant = null } = {}) {
 export default function ProductDescriptionSheet({
   open,
   onClose,
-  title = 'الوصف والمواصفات',
+  title = 'المواصفات',
   rows = [],
 }) {
   const { dir, isRtl } = useLocale();
