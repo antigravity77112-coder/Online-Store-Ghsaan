@@ -390,7 +390,7 @@ const AdminProductsTab = ({ openEditProductModal, hasProductDraft, onResumeProdu
 
                       <div className="flex items-center gap-3 min-w-0">
                         <div className="w-10 h-10 rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800 flex-shrink-0 border border-slate-200 dark:border-slate-700">
-                          <img src={p.imageUrl || 'https://images.unsplash.com/photo-1560472355-536de3962603?w=100&q=80'} alt="" className="w-full h-full object-cover" />
+                          <img src={p.imageUrl || '/product-placeholder.svg'} alt="" className="w-full h-full object-cover" />
                         </div>
                         <div className="min-w-0">
                           <p className="font-bold text-sm text-slate-900 dark:text-white truncate">{p.title}</p>

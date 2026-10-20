@@ -72,7 +72,7 @@ const FavoritesPage = () => {
                     >
                       <img
                         src={getOptimizedImageUrl(
-                          product.imageUrl || product.mainImageUrl || 'https://images.unsplash.com/photo-1560472355-536de3962603?w=800&q=80',
+                          product.imageUrl || product.mainImageUrl || '/product-placeholder.svg',
                           IMAGE_WIDTHS.GRID_CARD,
                         )}
                         alt=""

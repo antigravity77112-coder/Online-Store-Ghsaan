@@ -12,6 +12,7 @@ import { CurrencyProvider } from './context/CurrencyContext';
 import { HelmetProvider } from 'react-helmet-async';
 import { SWRConfig } from 'swr';
 import App from './App';
+import './fonts.css';
 import './index.css';
 import * as api from './services/api';
 import {
@@ -44,6 +45,19 @@ api
   })
   .catch(() => openSiteLogoGate());
 
+/** Persist only stable storefront keys — avoid dumping product/search filter cache. */
+const SWR_PERSIST_KEY_PREFIXES = ['siteConfig', 'categories', 'brands'];
+
+function shouldPersistSwrKey(key) {
+  if (typeof key === 'string') {
+    return SWR_PERSIST_KEY_PREFIXES.some((p) => key === p || key.startsWith(`${p}`));
+  }
+  if (Array.isArray(key) && typeof key[0] === 'string') {
+    return SWR_PERSIST_KEY_PREFIXES.some((p) => key[0] === p || key[0].startsWith(`${p}`));
+  }
+  return false;
+}
+
 function localStorageProvider() {
   if (typeof window === 'undefined') return new Map();
   let map = new Map();
@@ -56,8 +70,8 @@ function localStorageProvider() {
   }
   window.addEventListener('beforeunload', () => {
     try {
-      const appCache = JSON.stringify(Array.from(map.entries()).slice(0, 50));
-      localStorage.setItem('app-cache', appCache);
+      const stable = Array.from(map.entries()).filter(([key]) => shouldPersistSwrKey(key));
+      localStorage.setItem('app-cache', JSON.stringify(stable.slice(0, 30)));
     } catch { /* ignore quota / private mode */ }
   });
   return map;

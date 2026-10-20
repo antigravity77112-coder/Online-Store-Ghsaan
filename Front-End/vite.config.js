@@ -36,15 +36,17 @@ export default defineConfig({
         chunkFileNames: 'assets/js/[name]-[hash].js',
         entryFileNames: 'assets/js/[name]-[hash].js',
         assetFileNames: 'assets/[ext]/[name]-[hash].[ext]',
-        manualChunks: {
-          // Core React runtime — cached long-term, rarely changes
-          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
-          // Animation library — heavy (~95KB), loaded async by routes that need it
-          'vendor-motion': ['framer-motion'],
-          // Data fetching — lightweight but separate for caching
-          'vendor-swr': ['swr'],
-          // Icon library — tree-shaken but still shared across pages
-          'vendor-icons': ['lucide-react'],
+        manualChunks(id) {
+          if (!id.includes('node_modules')) return undefined;
+          if (id.includes('react-dom') || id.includes('react-router') || id.includes('/react/')) {
+            return 'vendor-react';
+          }
+          if (id.includes('framer-motion')) return 'vendor-motion';
+          if (id.includes('swr')) return 'vendor-swr';
+          if (id.includes('lucide-react')) return 'vendor-icons';
+          if (id.includes('recharts') || id.includes('d3-')) return 'vendor-charts';
+          if (id.includes('xlsx')) return 'vendor-xlsx';
+          return undefined;
         },
       },
     },

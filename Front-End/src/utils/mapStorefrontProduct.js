@@ -1,6 +1,7 @@
 import * as api from '../services/api';
 
-const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1560472355-536de3962603?w=800&q=80';
+/** Local branded placeholder — no third-party image CDN. */
+export const FALLBACK_IMAGE = '/product-placeholder.svg';
 
 /**
  * Maps an API product to the storefront card/grid shape.

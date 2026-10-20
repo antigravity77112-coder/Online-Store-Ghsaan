@@ -505,7 +505,7 @@ const ProductDetailsPage = () => {
     if (!product) return [];
     const productImages = product.images?.length > 0
       ? product.images.map((img) => img.url)
-      : (product.imageUrl ? [product.imageUrl] : ["https://images.unsplash.com/photo-1560472355-536de3962603?w=1000&q=80"]);
+      : (product.imageUrl ? [product.imageUrl] : ["/product-placeholder.svg"]);
     const variantImage = selectedVariant?.imageUrl;
     return variantImage
       ? [variantImage, ...productImages.filter((url) => url !== variantImage)]

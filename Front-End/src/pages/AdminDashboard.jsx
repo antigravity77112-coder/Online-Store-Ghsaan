@@ -51,9 +51,6 @@ import { confirmDiscardDraft } from "../utils/adminDraftConfirm";
 import { AdminSwitch, AdminProgressBar, AdminUploadProgress, AdminLoading } from "./admin/AdminUI";
 import { useTheme } from "../context/ThemeContext";
 import { themeStatusError, themeStatusSuccess } from "../config/themeTokens";
-/** Eager import — avoids Vite "Failed to fetch dynamically imported module" flakes on Arabic paths. */
-import AdminUsersTab from "./admin/AdminUsersTab";
-
 const ADMIN_TAB_IDS = new Set([
   "dashboard",
   "orders",
@@ -102,6 +99,7 @@ const AdminBannersTab = lazyWithRetry(() => import("./admin/AdminBannersTab"));
 const AdminBranchesTab = lazyWithRetry(() => import("./admin/AdminBranchesTab"));
 const AdminBrandsTab = lazyWithRetry(() => import("./admin/AdminBrandsTab"));
 const AdminCouponsTab = lazyWithRetry(() => import("./admin/AdminCouponsTab"));
+const AdminUsersTab = lazyWithRetry(() => import("./admin/AdminUsersTab"));
 
 const AdminTabFallback = () => (
   <AdminLoading label="جاري تحميل القسم..." />

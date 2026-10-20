@@ -145,7 +145,8 @@ const App = () => {
       preload('brands', () => api.getBrands() || []);
       preload('home-products-offers', () => api.getProducts({ specialOffers: true, pageSize: 8 }));
       preload('home-products-trending', () => api.getProducts({ trending: true, pageSize: 8 }));
-      preload('home-products-catalog', () => api.getProducts({ pageSize: 32 }));
+      preload('home-products-newest', () => api.getProducts({ pageSize: 24 }));
+      preload('home-products-featured', () => api.getProducts({ pageSize: 16 }));
     };
 
     (async () => {

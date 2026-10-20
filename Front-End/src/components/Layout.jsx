@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useMemo, Suspense, lazy } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import {
   Search,
@@ -13,21 +13,11 @@ import {
   User,
   Package,
   Crown,
-  Home,
-  BadgePercent,
-  Sparkles,
-  Flame,
-  Info,
-  Phone,
-  MapPin,
-  Settings,
-  LayoutGrid,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
 import { useFavorites } from "../context/FavoritesContext";
 import { useTheme } from "../context/ThemeContext";
-import * as api from "../services/api";
 import Footer from "./Footer";
 import BrandTrio from "./BrandTrio";
 import MobileBottomNav from "./MobileBottomNav";
@@ -41,6 +31,8 @@ import { useTranslation } from "react-i18next";
 import { useLocale } from "../context/LocaleContext";
 import { isShopChromeRoute } from "../utils/marketplaceNav";
 import { pushRecentSearch } from "../utils/recentSearches";
+
+const MobileNavDrawer = lazy(() => import("./MobileNavDrawer"));
 
 const Layout = React.memo(({ children, homeMarketplace = false, hideMobileHeader = false }) => {
   const { user, isAuthenticated, isAdmin, logout } = useAuth();
@@ -361,172 +353,27 @@ const Layout = React.memo(({ children, homeMarketplace = false, hideMobileHeader
           </div>
           )}
 
-          {/* قائمة الجوال / Mobile Menu */}
+          {/* قائمة الجوال / Mobile Menu — lazy chunk */}
           {isMobileMenuOpen && (
-            <div className={`md:hidden py-4 border-t space-y-3 max-h-[calc(100vh-4rem)] overflow-y-auto pb-[var(--mobile-current-bottom-offset)] ${
-              showShopChrome
-                ? 'border-gold-500/20 bg-white dark:bg-stone-900'
-                : 'border-gray-100 dark:border-slate-800'
-            }`}>
-
-              <div className="flex flex-col gap-1 px-2 pb-4">
-                
-                {/* 1. الرئيسية */}
-                <Link to="/" onClick={() => setIsMobileMenuOpen(false)} className={mobileNavLinkClass}>
-                  <Home className="w-5 h-5 text-gold-500" /> {t('nav.home')}
-                </Link>
-
-                <Link to="/categories" onClick={() => setIsMobileMenuOpen(false)} className={mobileNavLinkClass}>
-                  <LayoutGrid className="w-5 h-5 text-gold-500" /> {t('nav.categories')}
-                </Link>
-
-                <Link to="/brands" onClick={() => setIsMobileMenuOpen(false)} className={mobileNavLinkClass}>
-                  <Crown className="w-5 h-5 text-gold-500" /> {t('nav.brands')}
-                </Link>
-                
-                {/* 2. جميع المنتجات */}
-                <Link to="/products" onClick={() => setIsMobileMenuOpen(false)} className={mobileNavLinkClass}>
-                  <ShoppingBag className="w-5 h-5 text-gold-500" /> {t('nav.products')}
-                </Link>
-
-                {/* المفضلة — discovery section */}
-                <Link to="/favorites" onClick={() => setIsMobileMenuOpen(false)} className={`${mobileNavLinkClass} min-h-[44px]`}>
-                  <Heart className="w-5 h-5 text-rose-400" /> {t('nav.favorites')}
-                  {favoritesCount > 0 && (
-                    <span className="mr-auto text-xs font-bold text-rose-500 bg-rose-50 dark:bg-rose-500/10 px-2 py-0.5 rounded-full">
-                      {favoritesCount}
-                    </span>
-                  )}
-                </Link>
-                
-                {/* 3. العروض والخصومات */}
-                <Link to="/products?promoted=true" onClick={() => setIsMobileMenuOpen(false)} className={mobileNavLinkClass}>
-                  <BadgePercent className="w-5 h-5 text-rose-500" /> {t('nav.offers')}
-                </Link>
-
-                <Link to="/products?trending=true" onClick={() => setIsMobileMenuOpen(false)} className={mobileNavLinkClass}>
-                  <Flame className="w-5 h-5 text-gold-600" /> {t('nav.trending')}
-                </Link>
-                
-                {/* 4. المنتجات الجديدة */}
-                <Link to="/products?sort=newest" onClick={() => setIsMobileMenuOpen(false)} className={mobileNavLinkClass}>
-                  <Sparkles className="w-5 h-5 text-amber-500" /> {t('nav.newArrivals', 'المنتجات الجديدة')}
-                </Link>
-                
-                <div className={mobileMenuDividerClass} />
-
-                {/* 5. طلباتي */}
-                <Link to={isAuthenticated ? "/my-orders" : "/auth"} onClick={() => setIsMobileMenuOpen(false)} className={mobileNavLinkClass}>
-                  <Package className="w-5 h-5 text-slate-400" /> {t('nav.orders')}
-                </Link>
-
-                <div className={mobileMenuDividerClass} />
-
-                {/* 7. من نحن */}
-                <Link to="/about" onClick={() => setIsMobileMenuOpen(false)} className={mobileNavLinkClass}>
-                  <Info className="w-5 h-5 text-slate-400" /> {t('nav.about', 'من نحن')}
-                </Link>
-                
-                {/* 8. تواصل معنا */}
-                <Link to="/contact" onClick={() => setIsMobileMenuOpen(false)} className={mobileNavLinkClass}>
-                  <Phone className="w-5 h-5 text-slate-400" /> {t('nav.contact', 'تواصل معنا')}
-                </Link>
-                
-                {/* 9. فروعنا / موقعنا */}
-                <Link to="/branches" onClick={() => setIsMobileMenuOpen(false)} className={mobileNavLinkClass}>
-                  <MapPin className="w-5 h-5 text-slate-400" /> {t('nav.branches', 'فروعنا / موقعنا')}
-                </Link>
-                
-                <div className={mobileMenuDividerClass} />
-
-                {/* Language */}
-                <div className="px-4 py-2" role="group" aria-label={t('settings.language')}>
-                  <p className="text-xs font-bold text-slate-500 dark:text-slate-400 mb-2">{t('settings.language')}</p>
-                  <div className="grid grid-cols-2 gap-2">
-                    {['ar', 'en'].map((code) => (
-                      <button
-                        key={code}
-                        type="button"
-                        onClick={() => {
-                          changeLanguage(code, { syncBackend: isAuthenticated });
-                          setIsMobileMenuOpen(false);
-                        }}
-                        className={`py-2.5 rounded-xl text-xs font-bold border transition-all ${
-                          language === code
-                            ? 'border-gold-500 bg-gold-50 dark:bg-gold-900/30 text-gold-700 dark:text-gold-300'
-                            : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400'
-                        }`}
-                        aria-pressed={language === code}
-                      >
-                        {code === 'ar' ? t('settings.languageArabic') : t('settings.languageEnglish')}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Appearance / dark mode */}
-                <div className="px-4 py-2" role="group" aria-label={t('settings.appearance')}>
-                  <p className="text-xs font-bold text-slate-500 dark:text-slate-400 mb-2">{t('settings.appearance')}</p>
-                  <button
-                    type="button"
-                    onClick={toggleTheme}
-                    className="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/80 text-sm font-bold text-slate-700 dark:text-slate-200 hover:border-gold-300 dark:hover:border-gold-600 transition-all"
-                    aria-pressed={isDark}
-                  >
-                    <span className="flex items-center gap-3">
-                      {isDark ? (
-                        <Sun className="w-5 h-5 text-gold-500" aria-hidden="true" />
-                      ) : (
-                        <Moon className="w-5 h-5 text-slate-500" aria-hidden="true" />
-                      )}
-                      {t('settings.darkMode')}
-                    </span>
-                    <span
-                      className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${
-                        isDark ? 'bg-gold-500' : 'bg-slate-300 dark:bg-slate-600'
-                      }`}
-                      aria-hidden="true"
-                    >
-                      <span
-                        className={`absolute top-0.5 start-0.5 inline-block h-5 w-5 rounded-full bg-white shadow transition-[inset-inline-start] duration-200 ${
-                          isDark ? 'start-[1.375rem]' : 'start-0.5'
-                        }`}
-                      />
-                    </span>
-                  </button>
-                </div>
-
-                <div className={mobileMenuDividerClass} />
-
-                {/* 10. الإعدادات */}
-                <Link to={isAuthenticated ? "/profile" : "/auth"} onClick={() => setIsMobileMenuOpen(false)} className={mobileNavLinkClass}>
-                  <Settings className="w-5 h-5 text-slate-400" /> {t('nav.settings')}
-                </Link>
-
-                {/* Admin Dashboard */}
-                {isAdmin && (
-                  <>
-                    <div className={mobileMenuDividerClass} />
-                    <Link to="/admin" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 px-4 py-3 text-sm font-bold text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100 dark:hover:bg-purple-900/30 rounded-xl transition-colors">
-                      <Crown className="w-5 h-5" /> لوحة المسؤول
-                    </Link>
-                  </>
-                )}
-
-                {/* Auth actions */}
-                <div className="mt-2">
-                  {isAuthenticated ? (
-                    <button onClick={handleLogout} className="flex items-center gap-3 px-4 py-3 text-sm font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl transition-colors w-full text-right">
-                      <LogOut className="w-5 h-5" /> تسجيل الخروج
-                    </button>
-                  ) : (
-                    <Link to="/auth" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center justify-center gap-2 px-4 py-3 bg-gold-500 text-white font-bold rounded-xl text-sm hover:bg-gold-400 transition-all mx-2">
-                      <LogIn className="w-4 h-4" /> تسجيل الدخول
-                    </Link>
-                  )}
-                </div>
-              </div>
-            </div>
+            <Suspense fallback={<div className="md:hidden py-6 text-center text-sm text-slate-400" aria-busy="true">...</div>}>
+              <MobileNavDrawer
+                showShopChrome={showShopChrome}
+                favoritesCount={favoritesCount}
+                isAuthenticated={isAuthenticated}
+                isAdmin={isAdmin}
+                isDark={isDark}
+                language={language}
+                linkClass={mobileNavLinkClass}
+                dividerClass={mobileMenuDividerClass}
+                onClose={() => setIsMobileMenuOpen(false)}
+                onLogout={handleLogout}
+                onToggleTheme={toggleTheme}
+                onChangeLanguage={(code) => {
+                  changeLanguage(code, { syncBackend: isAuthenticated });
+                  setIsMobileMenuOpen(false);
+                }}
+              />
+            </Suspense>
           )}
 
           {/* Desktop main navigation */}

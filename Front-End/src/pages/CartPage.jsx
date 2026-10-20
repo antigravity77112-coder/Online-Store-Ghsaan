@@ -492,7 +492,7 @@ const CartPage = () => {
                   >
                     <img
                       src={getOptimizedImageUrl(
-                        item.imageUrl || item.mainImageUrl || 'https://images.unsplash.com/photo-1560472355-536de3962603?w=800&q=80',
+                        item.imageUrl || item.mainImageUrl || '/product-placeholder.svg',
                         IMAGE_WIDTHS.GRID_CARD,
                       )}
                       alt=""

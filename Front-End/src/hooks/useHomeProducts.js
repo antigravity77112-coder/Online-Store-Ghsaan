@@ -8,69 +8,9 @@ const SECTION_COUNT = 8;
 const CATEGORY_CAROUSEL_COUNT = 10;
 const MIN_PRODUCTS_PER_SECTION = 3;
 const MAX_CATEGORY_SECTIONS = 5;
-const CATALOG_POOL_SIZE = SECTION_COUNT * 4;
+/** Dedicated newest window — sorted by createdAt client-side (API default is promo-first). */
+const NEWEST_FETCH_SIZE = SECTION_COUNT * 3;
 const HOME_SECTIONS_SEED_KEY = 'home-sections';
-
-function partitionFeaturedProducts(products, sectionCount = SECTION_COUNT) {
-  const pools = new Map();
-
-  for (const p of products) {
-    const cat = p.categoryName || String(p.categoryId || 'other');
-    if (!pools.has(cat)) pools.set(cat, []);
-    pools.get(cat).push(p);
-  }
-
-  const diverseCandidates = [];
-  const categoryKeys = [...pools.keys()];
-  let hasMore = true;
-
-  while (diverseCandidates.length < sectionCount && hasMore) {
-    hasMore = false;
-    for (const cat of categoryKeys) {
-      const pool = pools.get(cat);
-      if (pool?.length) {
-        diverseCandidates.push(pool.shift());
-        hasMore = true;
-        if (diverseCandidates.length >= sectionCount) break;
-      }
-    }
-  }
-
-  return [...diverseCandidates, ...products];
-}
-
-function buildCategorySectionsFromCatalog(catalog, categories) {
-  const byCategory = new Map();
-
-  for (const product of catalog) {
-    const names = product.categoryNames?.length ? product.categoryNames : [product.categoryName];
-    for (const catName of names) {
-      if (!catName) continue;
-      if (!byCategory.has(catName)) byCategory.set(catName, []);
-      byCategory.get(catName).push(product);
-    }
-  }
-
-  const orderedNames = categories.length > 0
-    ? categories.map((c) => c.name).filter((name) => byCategory.has(name))
-    : [...byCategory.keys()].sort((a, b) => a.localeCompare(b, 'ar'));
-
-  return orderedNames
-    .map((name) => {
-      const meta = categories.find((c) => c.name === name);
-      const products = (byCategory.get(name) || []).slice(0, CATEGORY_CAROUSEL_COUNT);
-      if (products.length < MIN_PRODUCTS_PER_SECTION) return null;
-
-      return {
-        id: meta?.id || name,
-        name,
-        slug: meta?.slug,
-        products,
-      };
-    })
-    .filter(Boolean)
-    .slice(0, MAX_CATEGORY_SECTIONS);
-}
 
 function takeUniqueProducts(candidates, count, usedIds) {
   const result = [];
@@ -84,34 +24,32 @@ function takeUniqueProducts(candidates, count, usedIds) {
   return result;
 }
 
+function byCreatedAtDesc(a, b) {
+  return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+}
+
 /**
- * Targeted parallel product fetches for the homepage sections.
- * Cross-section deduplication prevents the same SKU appearing in multiple rails.
- * Shuffle seed lives in session memory so rails stay stable until F5.
+ * Targeted parallel product fetches for homepage rails.
+ * Each section has its own API query — not one shared catalog pool.
+ * Cross-section deduplication prevents the same SKU in multiple rails.
  */
 export function useHomeProducts(categories = []) {
+  const activeCategories = useMemo(
+    () => (categories || []).filter((c) => c?.isActive !== false && c?.name).slice(0, MAX_CATEGORY_SECTIONS),
+    [categories],
+  );
+  const categoryKey = activeCategories.map((c) => c.id || c.name).join('|');
+
   const {
     data: offersProducts,
     error: offersError,
     isLoading: offersLoading,
   } = useSWR('home-products-offers', () =>
     api.getProducts({ specialOffers: true, pageSize: SECTION_COUNT }),
-    {
-      revalidateOnFocus: false,
-      dedupingInterval: 60000,
-    },
-  );
-
-  const {
-    data: catalogProducts,
-    error: catalogError,
-    isLoading: catalogLoading,
-  } = useSWR('home-products-catalog', () =>
-    api.getProducts({ pageSize: CATALOG_POOL_SIZE }),
-    {
-      revalidateOnFocus: false,
-      dedupingInterval: 60000,
-    },
+  {
+    revalidateOnFocus: false,
+    dedupingInterval: 60000,
+  },
   );
 
   const {
@@ -126,17 +64,60 @@ export function useHomeProducts(categories = []) {
   },
   );
 
-  const catalog = catalogProducts || [];
+  const {
+    data: newestProducts,
+    error: newestError,
+    isLoading: newestLoading,
+  } = useSWR('home-products-newest', () =>
+    api.getProducts({ pageSize: NEWEST_FETCH_SIZE }),
+  {
+    revalidateOnFocus: false,
+    dedupingInterval: 60000,
+  },
+  );
+
+  const {
+    data: featuredPool,
+    error: featuredError,
+    isLoading: featuredLoading,
+  } = useSWR('home-products-featured', () =>
+    api.getProducts({ pageSize: SECTION_COUNT * 2 }),
+  {
+    revalidateOnFocus: false,
+    dedupingInterval: 60000,
+  },
+  );
+
+  const {
+    data: categoryResults,
+    error: categoryError,
+    isLoading: categoryLoading,
+  } = useSWR(
+    categoryKey ? ['home-products-by-category', categoryKey] : null,
+    () =>
+      Promise.all(
+        activeCategories.map(async (cat) => {
+          const products = await api.getProducts({
+            categoryName: cat.name,
+            pageSize: CATEGORY_CAROUSEL_COUNT,
+          });
+          return {
+            id: cat.id || cat.name,
+            name: cat.name,
+            slug: cat.slug,
+            products: products || [],
+          };
+        }),
+      ),
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 60000,
+    },
+  );
+
   const sessionSeed = ensureShuffleSeed(HOME_SECTIONS_SEED_KEY);
-  const catalogIdKey = catalog.map((p) => p.id).join('|');
 
-  // Id-rank order (not Fisher–Yates on API order) — stable across Back / SWR revalidate.
-  const shuffledCatalog = useMemo(() => {
-    if (!catalog.length) return [];
-    return rankProductsBySeed(catalog, sessionSeed);
-  }, [catalog, catalogIdKey, sessionSeed]);
-
-  const error = offersError || catalogError || trendingError;
+  const error = offersError || trendingError || newestError || featuredError || categoryError;
 
   const {
     featuredOffers,
@@ -144,45 +125,34 @@ export function useHomeProducts(categories = []) {
     featuredProducts,
     trending,
     categorySections,
+    sectionProducts,
   } = useMemo(() => {
     const rank = (list) => rankProductsBySeed(list, sessionSeed);
     const usedIds = new Set();
 
-    const onOffer = (offersProducts || []).length
-      ? offersProducts
-      : catalog.filter((p) => p.isPromoted || p.discountPrice);
+    const offers = takeUniqueProducts(rank(offersProducts || []), SECTION_COUNT, usedIds);
 
-    const offers = takeUniqueProducts(rank(onOffer), SECTION_COUNT, usedIds);
+    const trendingList = takeUniqueProducts(rank(trendingProducts || []), SECTION_COUNT, usedIds);
 
-    const trendingList = takeUniqueProducts(
-      rank(
-        (trendingProducts || []).length
-          ? trendingProducts
-          : catalog.filter((p) => p.isTrending),
-      ),
-      SECTION_COUNT,
-      usedIds,
-    );
+    const sortedNewest = [...(newestProducts || [])].sort(byCreatedAtDesc);
+    const arrivals = takeUniqueProducts(rank(sortedNewest), SECTION_COUNT, usedIds);
 
-    const sortedNew = [...catalog].sort(
-      (a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime(),
-    );
-    // Keep newest-first window, then stable rank within that window.
-    const arrivals = takeUniqueProducts(rank(sortedNew.slice(0, SECTION_COUNT * 3)), SECTION_COUNT, usedIds);
+    const featured = takeUniqueProducts(rank(featuredPool || []), SECTION_COUNT, usedIds);
 
-    const featuredCandidates = partitionFeaturedProducts(
-      shuffledCatalog.filter((p) => !usedIds.has(String(p.id))),
-      SECTION_COUNT * 2,
-    );
-    const featured = takeUniqueProducts(rank(featuredCandidates), SECTION_COUNT, usedIds);
-
-    const rawCategorySections = buildCategorySectionsFromCatalog(shuffledCatalog, categories);
-    const catSections = rawCategorySections
+    const catSections = (categoryResults || [])
       .map((section) => ({
         ...section,
         products: takeUniqueProducts(rank(section.products), CATEGORY_CAROUSEL_COUNT, usedIds),
       }))
       .filter((s) => s.products.length >= MIN_PRODUCTS_PER_SECTION);
+
+    const allSection = [
+      ...offers,
+      ...trendingList,
+      ...arrivals,
+      ...featured,
+      ...catSections.flatMap((s) => s.products),
+    ];
 
     return {
       featuredOffers: offers,
@@ -190,13 +160,23 @@ export function useHomeProducts(categories = []) {
       featuredProducts: featured,
       trending: trendingList,
       categorySections: catSections,
+      sectionProducts: allSection,
     };
-  }, [offersProducts, trendingProducts, catalog, shuffledCatalog, categories, sessionSeed]);
+  }, [
+    offersProducts,
+    trendingProducts,
+    newestProducts,
+    featuredPool,
+    categoryResults,
+    sessionSeed,
+  ]);
 
   const isLoading =
     (offersLoading && !offersProducts) ||
-    (catalogLoading && !catalogProducts) ||
-    (trendingLoading && !trendingProducts);
+    (trendingLoading && !trendingProducts) ||
+    (newestLoading && !newestProducts) ||
+    (featuredLoading && !featuredPool) ||
+    (Boolean(categoryKey) && categoryLoading && !categoryResults);
 
   return {
     /** Promoted / special-offer products — not sales-ranked data */
@@ -207,7 +187,8 @@ export function useHomeProducts(categories = []) {
     featuredProducts,
     trendingProducts: trending,
     categorySections,
-    catalogProducts: shuffledCatalog,
+    /** Flat list of products shown in home rails (for favorite toggle lookup). */
+    catalogProducts: sectionProducts,
     isLoading,
     error,
   };
