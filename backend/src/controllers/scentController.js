@@ -116,6 +116,24 @@ class ScentController {
             scent: { select: { id: true, name: true, slug: true, imageUrl: true } },
           },
         },
+        variants: {
+          where: { isActive: true },
+          orderBy: { sortOrder: 'asc' },
+          select: {
+            id: true,
+            imageUrl: true,
+            stockQuantity: true,
+            sortOrder: true,
+            price: true,
+            discountPrice: true,
+            attributes: {
+              select: {
+                value: true,
+                categoryAttribute: { select: { id: true, name: true, slug: true } },
+              },
+            },
+          },
+        },
       },
     });
 

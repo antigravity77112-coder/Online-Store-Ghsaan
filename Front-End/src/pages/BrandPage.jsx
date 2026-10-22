@@ -23,7 +23,8 @@ import { useProductsInfinite } from '../hooks/useProducts';
 import { useListingProducts } from '../hooks/useListingProducts';
 import { useListingScrollMemory } from '../hooks/useListingScrollMemory';
 import { isExpectedListingReturn } from '../utils/listingSessionMemory';
-import { mapStorefrontProduct } from '../utils/mapStorefrontProduct';
+import { mapListingProducts, listingProductId } from '../utils/mapStorefrontProduct';
+import { buildListingCartPayload } from '../utils/listingCart';
 import { getOptimizedImageUrl, IMAGE_WIDTHS } from '../utils/cloudinaryUrl';
 
 const BrandPage = () => {
@@ -87,21 +88,25 @@ const BrandPage = () => {
     pagesReady,
   });
 
-  const mappedGridProducts = useMemo(() => (
-    filteredProducts.map((p) => {
-      const mapped = mapStorefrontProduct(p);
-      mapped.isFavorite = isFavorite(p.id);
-      return mapped;
-    })
-  ), [filteredProducts, isFavorite]);
+  const mappedGridProducts = useMemo(
+    () => mapListingProducts(filteredProducts, { isFavorite }),
+    [filteredProducts, isFavorite],
+  );
 
   const handleQuickAdd = useCallback((p) => {
-    const originalProduct = products.find((prod) => String(prod.id) === String(p.id));
+    const payload = buildListingCartPayload(p);
+    if (payload) {
+      addToCart(payload, 1);
+      notifyQuickAdd();
+      return;
+    }
+    const pid = listingProductId(p);
+    const originalProduct = products.find((prod) => String(prod.id) === pid);
     if (originalProduct) {
       addToCart(originalProduct, 1);
     } else {
       addToCart({
-        id: p.id,
+        id: pid || p.id,
         title: p.title,
         description: p.description || null,
         categoryName: p.categoryName || null,
@@ -115,7 +120,7 @@ const BrandPage = () => {
   }, [products, addToCart, notifyQuickAdd]);
 
   const handleFavoriteToggle = useCallback((p) => {
-    const originalProduct = products.find((prod) => String(prod.id) === String(p.id));
+    const originalProduct = products.find((prod) => String(prod.id) === listingProductId(p));
     if (originalProduct) toggleFavorite(originalProduct);
   }, [products, toggleFavorite]);
 

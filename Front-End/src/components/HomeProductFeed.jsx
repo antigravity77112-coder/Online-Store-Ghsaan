@@ -17,6 +17,7 @@ export default function HomeProductFeed({
   onLoadMore,
   loadingCount = 12,
   onFavorite,
+  onQuickAdd,
   viewAllHref = '/products',
 }) {
   if (!isLoading && products.length === 0) return null;
@@ -45,6 +46,7 @@ export default function HomeProductFeed({
         loadingCount={loadingCount}
         variant="vertical"
         onFavorite={onFavorite}
+        onQuickAdd={onQuickAdd}
         priorityCount={0}
       />
 

@@ -23,6 +23,7 @@ import BrandTrio from "./BrandTrio";
 import MobileBottomNav from "./MobileBottomNav";
 import HomeCategoryTabs from "./HomeCategoryTabs";
 import BannerRenderer from "./BannerRenderer";
+import CartDrawer from "./CartDrawer";
 import ListingSearchField from "./listing/ListingSearchField";
 import { useLocation } from "react-router-dom";
 import { useSiteConfig } from "../context/SiteConfigContext";
@@ -442,6 +443,8 @@ const Layout = React.memo(({ children, homeMarketplace = false, hideMobileHeader
 
       {/* شريط التنقل السفلي للجوال / Mobile Bottom Nav */}
       <MobileBottomNav />
+
+      <CartDrawer />
 
       {/* نافذة منبثقة / Popup Banner */}
       <BannerRenderer placement="popup" />

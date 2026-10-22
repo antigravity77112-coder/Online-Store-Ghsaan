@@ -18,13 +18,17 @@ import { useCategories, useProductsInfinite } from '../hooks/useProducts';
 import { useHomeProducts } from '../hooks/useHomeProducts';
 import { useListingProducts } from '../hooks/useListingProducts';
 import { useListingScrollMemory } from '../hooks/useListingScrollMemory';
-import { mapStorefrontProduct } from '../utils/mapStorefrontProduct';
+import { mapListingProducts, listingProductId } from '../utils/mapStorefrontProduct';
+import { buildListingCartPayload } from '../utils/listingCart';
+import RecentlyViewedRail from '../components/RecentlyViewedRail';
+import { useCart } from '../context/CartContext';
 
 const SECTION_PREVIEW_COUNT = 6;
 const FEED_PAGE_SIZE = 15;
 
 const HomePage = () => {
   const { isFavorite, toggleFavorite } = useFavorites();
+  const { addToCart } = useCart();
   const { config } = useSiteConfig();
 
   const shippingOfferText = config.content?.shippingOfferText || '';
@@ -72,11 +76,7 @@ const HomePage = () => {
   const showSkeleton = productsLoading;
 
   const mapWithFavorites = useCallback(
-    (list) =>
-      list.map((p) => ({
-        ...mapStorefrontProduct(p),
-        isFavorite: isFavorite(p.id),
-      })),
+    (list) => mapListingProducts(list, { isFavorite }),
     [isFavorite],
   );
 
@@ -95,12 +95,21 @@ const HomePage = () => {
 
   const handleFavoriteToggle = useCallback(
     (p) => {
-      const fromFeed = (feedRaw || []).find((prod) => String(prod.id) === String(p.id));
-      const fromCatalog = catalogProducts.find((prod) => String(prod.id) === String(p.id));
+      const pid = listingProductId(p);
+      const fromFeed = (feedRaw || []).find((prod) => String(prod.id) === pid);
+      const fromCatalog = catalogProducts.find((prod) => String(prod.id) === pid);
       const originalProduct = fromFeed || fromCatalog;
       if (originalProduct) toggleFavorite(originalProduct);
     },
     [feedRaw, catalogProducts, toggleFavorite],
+  );
+
+  const handleQuickAdd = useCallback(
+    (p) => {
+      const payload = buildListingCartPayload(p);
+      if (payload) addToCart(payload, 1);
+    },
+    [addToCart],
   );
 
   const offersTitle = homeSections.bestSellers?.title || 'تخفيضات سريعة';
@@ -146,6 +155,7 @@ const HomePage = () => {
               loadingCount={SECTION_PREVIEW_COUNT}
               limit={SECTION_PREVIEW_COUNT}
               onFavorite={handleFavoriteToggle}
+              onQuickAdd={handleQuickAdd}
               priorityCount={4}
             />
           )}
@@ -159,6 +169,7 @@ const HomePage = () => {
               loadingCount={SECTION_PREVIEW_COUNT}
               limit={SECTION_PREVIEW_COUNT}
               onFavorite={handleFavoriteToggle}
+              onQuickAdd={handleQuickAdd}
               priorityCount={featuredOffers.length > 0 ? 0 : 4}
             />
           )}
@@ -172,6 +183,7 @@ const HomePage = () => {
               loadingCount={SECTION_PREVIEW_COUNT}
               limit={SECTION_PREVIEW_COUNT}
               onFavorite={handleFavoriteToggle}
+              onQuickAdd={handleQuickAdd}
             />
           )}
 
@@ -184,6 +196,7 @@ const HomePage = () => {
               loadingCount={SECTION_PREVIEW_COUNT}
               limit={SECTION_PREVIEW_COUNT}
               onFavorite={handleFavoriteToggle}
+              onQuickAdd={handleQuickAdd}
             />
           )}
 
@@ -203,10 +216,13 @@ const HomePage = () => {
                   loadingCount={SECTION_PREVIEW_COUNT}
                   limit={SECTION_PREVIEW_COUNT}
                   onFavorite={handleFavoriteToggle}
+                  onQuickAdd={handleQuickAdd}
                 />
               ))}
             </section>
           )}
+
+          <RecentlyViewedRail className="mb-3" limit={8} />
 
           <HomeProductFeed
             title="قد يعجبك"
@@ -217,6 +233,7 @@ const HomePage = () => {
             onLoadMore={() => setFeedSize(feedSize + 1)}
             loadingCount={FEED_PAGE_SIZE}
             onFavorite={handleFavoriteToggle}
+            onQuickAdd={handleQuickAdd}
             viewAllHref="/products"
           />
         </div>

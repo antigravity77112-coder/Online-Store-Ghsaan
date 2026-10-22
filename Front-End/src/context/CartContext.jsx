@@ -86,12 +86,16 @@ function resolveBrandName(product) {
 
 export const CartProvider = ({ children }) => {
   const [items, setItems] = useState(loadCart);
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   useEffect(() => {
     localStorage.setItem(CART_KEY, JSON.stringify(items));
   }, [items]);
 
-  const addToCart = useCallback((product, quantity = 1) => {
+  const openCartDrawer = useCallback(() => setDrawerOpen(true), []);
+  const closeCartDrawer = useCallback(() => setDrawerOpen(false), []);
+
+  const addToCart = useCallback((product, quantity = 1, { openDrawer = true } = {}) => {
     setItems((prev) => {
       const { baseProductId: splitBase, variantId: splitVariant } = splitCompositeId(product.id);
       const baseProductId = product.baseProductId || splitBase || product.id;
@@ -158,6 +162,7 @@ export const CartProvider = ({ children }) => {
         },
       ];
     });
+    if (openDrawer) setDrawerOpen(true);
   }, []);
 
   const removeFromCart = useCallback((productId) => {
@@ -199,8 +204,22 @@ export const CartProvider = ({ children }) => {
       clearCart,
       cartCount,
       cartTotal,
+      drawerOpen,
+      openCartDrawer,
+      closeCartDrawer,
     }),
-    [items, addToCart, removeFromCart, updateQuantity, clearCart, cartCount, cartTotal],
+    [
+      items,
+      addToCart,
+      removeFromCart,
+      updateQuantity,
+      clearCart,
+      cartCount,
+      cartTotal,
+      drawerOpen,
+      openCartDrawer,
+      closeCartDrawer,
+    ],
   );
 
   return (

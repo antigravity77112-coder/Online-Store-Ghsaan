@@ -34,7 +34,8 @@ import { useListingProducts } from '../hooks/useListingProducts';
 import { useListingScrollMemory } from '../hooks/useListingScrollMemory';
 import { useReducedMotion } from '../hooks/useReducedMotion';
 import { isExpectedListingReturn } from '../utils/listingSessionMemory';
-import { mapStorefrontProduct } from '../utils/mapStorefrontProduct';
+import { mapListingProducts, listingProductId } from '../utils/mapStorefrontProduct';
+import { buildListingCartPayload } from '../utils/listingCart';
 
 const CategoryPage = () => {
   const { slug } = useParams();
@@ -137,17 +138,24 @@ const CategoryPage = () => {
   });
 
   const mappedGridProducts = useMemo(
-    () => filteredProducts.map((p) => ({ ...mapStorefrontProduct(p), isFavorite: isFavorite(p.id) })),
-    [filteredProducts, isFavorite]
+    () => mapListingProducts(filteredProducts, { isFavorite }),
+    [filteredProducts, isFavorite],
   );
 
   const handleQuickAdd = useCallback((p) => {
-    const original = activeProducts.find((prod) => String(prod.id) === String(p.id));
+    const payload = buildListingCartPayload(p);
+    if (payload) {
+      addToCart(payload, 1);
+      notifyQuickAdd();
+      return;
+    }
+    const pid = listingProductId(p);
+    const original = activeProducts.find((prod) => String(prod.id) === pid);
     if (original) {
       addToCart(original, 1);
     } else {
       addToCart({
-        id: p.id,
+        id: pid || p.id,
         title: p.title,
         description: p.description || null,
         categoryName: p.categoryName || null,
@@ -161,7 +169,7 @@ const CategoryPage = () => {
   }, [activeProducts, addToCart, notifyQuickAdd]);
 
   const handleFavoriteToggle = useCallback((p) => {
-    const original = activeProducts.find((prod) => String(prod.id) === String(p.id));
+    const original = activeProducts.find((prod) => String(prod.id) === listingProductId(p));
     if (original) toggleFavorite(original);
   }, [activeProducts, toggleFavorite]);
 

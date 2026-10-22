@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   Heart,
@@ -46,9 +46,12 @@ import {
   isValueAvailable,
   isSelectionComplete,
   getVariantOptionsLabelMap,
+  getVariantSelectionMap,
   formatVariantLabel,
   variantsHaveStructuredAttributes,
 } from "../utils/variantOptions";
+import { pushRecentlyViewed } from "../utils/recentlyViewed";
+import RecentlyViewedRail from "../components/RecentlyViewedRail";
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -188,6 +191,8 @@ function AccordionSection({ title, children, defaultOpen = false }) {
 const ProductDetailsPage = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const variantFromUrl = searchParams.get('variant');
   const { addToCart } = useCart();
   const { isFavorite, toggleFavorite } = useFavorites();
   const formatPrice = useFormatDisplayPrice();
@@ -223,9 +228,10 @@ const ProductDetailsPage = () => {
 
   useEffect(() => {
     if (product?.slug && UUID_REGEX.test(slug) && product.slug !== slug) {
-      navigate(`/product/${product.slug}`, { replace: true });
+      const qs = searchParams.toString();
+      navigate(`/product/${product.slug}${qs ? `?${qs}` : ''}`, { replace: true });
     }
-  }, [product, slug, navigate]);
+  }, [product, slug, navigate, searchParams]);
 
   useEffect(() => {
     setAddedToCart(false);
@@ -308,20 +314,47 @@ const ProductDetailsPage = () => {
   }, [scheduleDetailUpgrade]);
 
   useEffect(() => {
-    if (!product?.id || trackedProductIdRef.current === product.id) return;
-    trackedProductIdRef.current = product.id;
-    setOptionSelections({});
-    if (product.hasVariants && product.variants?.length > 0) {
-      const structured = variantsHaveStructuredAttributes(product.variants);
-      if (!structured) {
-        setSelectedVariantId(product.variants[0].id);
-      } else {
-        setSelectedVariantId(null);
-      }
-    } else {
-      setSelectedVariantId(null);
+    if (product?.id) {
+      pushRecentlyViewed({
+        id: product.id,
+        slug: product.slug,
+        title: product.title,
+        imageUrl: product.imageUrl || product.images?.[0]?.url,
+        price: product.price,
+        discountPrice: product.discountPrice,
+        currency: product.currency,
+      });
     }
-  }, [product]);
+  }, [product?.id]);
+
+  useEffect(() => {
+    if (!product?.id) return;
+    // Re-run when URL variant changes (listing deep-link) or product loads.
+    const initKey = `${product.id}::${variantFromUrl || ''}`;
+    if (trackedProductIdRef.current === initKey) return;
+    trackedProductIdRef.current = initKey;
+    setOptionSelections({});
+    setSelectedVariantId(null);
+
+    if (!(product.hasVariants && product.variants?.length > 0)) return;
+
+    const fromUrl = variantFromUrl
+      ? product.variants.find((v) => String(v.id) === String(variantFromUrl))
+      : null;
+    const structured = variantsHaveStructuredAttributes(product.variants);
+
+    if (fromUrl) {
+      if (structured) {
+        setOptionSelections(getVariantSelectionMap(fromUrl));
+      }
+      setSelectedVariantId(fromUrl.id);
+      return;
+    }
+
+    if (!structured) {
+      setSelectedVariantId(product.variants[0].id);
+    }
+  }, [product, variantFromUrl]);
 
   useEffect(() => {
     setSelectedImageIndex(0);
@@ -1137,6 +1170,10 @@ const ProductDetailsPage = () => {
             />
           </div>
         )}
+
+        <div className="px-3 sm:px-6 lg:px-8 max-w-6xl mx-auto mt-4 pb-8">
+          <RecentlyViewedRail excludeId={product.id} limit={8} />
+        </div>
       </div>
 
       <div

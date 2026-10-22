@@ -1,7 +1,8 @@
-import React, { useLayoutEffect, useState } from 'react';
-import { Link, useNavigationType } from 'react-router-dom';
+import React, { useLayoutEffect, useMemo, useState } from 'react';
+import { Link, useNavigate, useNavigationType } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Heart } from 'lucide-react';
+import { Heart, Plus } from 'lucide-react';
+import { canQuickAddFromCard } from '../../utils/listingCart';
 import {
   getRawCloudinaryUrl,
   getResponsiveCloudinarySources,
@@ -17,9 +18,25 @@ import {
 } from '../../utils/listingSessionMemory';
 import { useFormatDisplayPrice } from '../../context/CurrencyContext';
 import { useReducedMotion } from '../../hooks/useReducedMotion';
+import { FALLBACK_IMAGE } from '../../utils/mapStorefrontProduct';
+
+export interface ColorSwatch {
+  color: string;
+  variantId?: string | null;
+  imageUrl?: string | null;
+  inStock?: boolean;
+  stockQuantity?: number;
+  price?: number | null;
+  discountPrice?: number | null;
+}
 
 export interface Product {
   id: string | number;
+  productId?: string | number;
+  listingVariantId?: string | null;
+  colorValue?: string | null;
+  colorSwatches?: ColorSwatch[];
+  href?: string;
   slug?: string | number;
   title: string;
   image: string;
@@ -67,14 +84,25 @@ function MarketplaceSkeleton({ compact }: { compact: boolean }) {
   );
 }
 
+function productHref(product: Product, variantId?: string | null) {
+  if (variantId) {
+    const slug = product.slug || product.productId || product.id;
+    return `/product/${encodeURIComponent(String(slug))}?variant=${encodeURIComponent(String(variantId))}`;
+  }
+  if (product.href) return product.href;
+  return `/product/${product.slug || product.productId || product.id}`;
+}
+
 export const ProductCard: React.FC<ProductCardProps> = React.memo(({
   product,
   isLoading = false,
   compact = false,
   priority = false,
   onFavorite,
+  onQuickAdd,
 }) => {
   const formatPrice = useFormatDisplayPrice();
+  const navigate = useNavigate();
   const reduceMotion = useReducedMotion();
   const navigationType = useNavigationType();
   const [isFavoriteLocal, setIsFavoriteLocal] = useState(product?.isFavorite ?? false);
@@ -82,6 +110,19 @@ export const ProductCard: React.FC<ProductCardProps> = React.memo(({
   const [imgFallbackStep, setImgFallbackStep] = useState(0);
   /** Only the card the user opens shares layoutId — duplicates hide other covers. */
   const [shareLayout, setShareLayout] = useState(false);
+
+  const swatches = useMemo(
+    () => (Array.isArray(product?.colorSwatches) ? product.colorSwatches : []),
+    [product?.colorSwatches],
+  );
+
+  const [activeColor, setActiveColor] = useState<string | null>(product?.colorValue || null);
+  const [activeImage, setActiveImage] = useState(product?.image || FALLBACK_IMAGE);
+  const [activeVariantId, setActiveVariantId] = useState<string | null>(
+    product?.listingVariantId || null,
+  );
+  const [activePrice, setActivePrice] = useState(product?.price);
+  const [activeDiscount, setActiveDiscount] = useState(product?.discountPrice);
 
   React.useEffect(() => {
     if (product?.isFavorite !== undefined) {
@@ -91,7 +132,19 @@ export const ProductCard: React.FC<ProductCardProps> = React.memo(({
 
   React.useEffect(() => {
     setImgFallbackStep(0);
-  }, [product?.id, product?.image]);
+    setActiveColor(product?.colorValue || null);
+    setActiveImage(product?.image || FALLBACK_IMAGE);
+    setActiveVariantId(product?.listingVariantId || null);
+    setActivePrice(product?.price);
+    setActiveDiscount(product?.discountPrice);
+  }, [
+    product?.id,
+    product?.image,
+    product?.colorValue,
+    product?.listingVariantId,
+    product?.price,
+    product?.discountPrice,
+  ]);
 
   // On Back, reconnect layoutId before paint so Framer has a matching target (avoids blink).
   useLayoutEffect(() => {
@@ -116,21 +169,52 @@ export const ProductCard: React.FC<ProductCardProps> = React.memo(({
     }
   };
 
+  const handleQuickAddClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!product) return;
+    const face = {
+      ...product,
+      listingVariantId: activeVariantId,
+      colorValue: activeColor,
+      image: activeImage,
+      price: activePrice ?? product.price,
+      discountPrice: activeDiscount,
+    };
+    if (!canQuickAddFromCard(face) || !onQuickAdd) {
+      navigate(productHref(product, activeVariantId));
+      return;
+    }
+    onQuickAdd(face);
+  };
+
+  const handleSwatchClick = (e: React.MouseEvent, swatch: ColorSwatch) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!swatch?.color) return;
+    setActiveColor(swatch.color);
+    setActiveVariantId(swatch.variantId || null);
+    if (swatch.imageUrl) {
+      setActiveImage(swatch.imageUrl);
+      setImgFallbackStep(0);
+    }
+    if (swatch.price != null) setActivePrice(Number(swatch.price));
+    if (swatch.discountPrice != null) setActiveDiscount(Number(swatch.discountPrice));
+    else if (swatch.price != null) setActiveDiscount(undefined);
+  };
+
   if (isLoading || !product) {
     return <MarketplaceSkeleton compact={compact} />;
   }
 
   const {
     title,
-    image,
-    price,
     currency,
     currencySymbol,
     originalPrice,
     badge,
     isPromoted,
     isTrending,
-    discountPrice,
     promotionLabel,
     remainingStock,
     stockQuantity,
@@ -141,10 +225,10 @@ export const ProductCard: React.FC<ProductCardProps> = React.memo(({
     ? Number(remainingStock)
     : (stockQuantity != null ? Number(stockQuantity) : null);
 
-  const productPath = `/product/${product.slug || product.id}`;
-  const numPrice = Number(price) || 0;
-  const numDiscountPrice = (discountPrice !== undefined && discountPrice !== null && String(discountPrice) !== '')
-    ? Number(discountPrice)
+  const linkTo = productHref(product, activeVariantId);
+  const numPrice = Number(activePrice ?? product.price) || 0;
+  const numDiscountPrice = (activeDiscount !== undefined && activeDiscount !== null && String(activeDiscount) !== '')
+    ? Number(activeDiscount)
     : null;
   const numOriginalPrice = (originalPrice !== undefined && originalPrice !== null)
     ? Number(originalPrice)
@@ -163,16 +247,16 @@ export const ProductCard: React.FC<ProductCardProps> = React.memo(({
     : null;
 
   const imageAspect = compact ? 'aspect-[4/5]' : 'aspect-square';
-  const rawImage = getRawCloudinaryUrl(image) || image;
-  const optimized = getResponsiveCloudinarySources(image, {
+  const rawImage = getRawCloudinaryUrl(activeImage) || activeImage;
+  const optimized = getResponsiveCloudinarySources(activeImage, {
     widths: RESPONSIVE_WIDTHS.GRID,
     sizes: RESPONSIVE_SIZES.GRID,
     fallbackWidth: IMAGE_WIDTHS.GRID_CARD,
   });
   const imageSrc = imgFallbackStep === 0
-    ? (optimized.src || image)
+    ? (optimized.src || activeImage)
     : imgFallbackStep === 1
-      ? image
+      ? activeImage
       : rawImage;
   const imageSrcSet = imgFallbackStep === 0 ? optimized.srcSet : undefined;
   const imageSizes = imgFallbackStep === 0 ? optimized.sizes : undefined;
@@ -182,18 +266,20 @@ export const ProductCard: React.FC<ProductCardProps> = React.memo(({
       setShareLayout(true);
       setLastHeroProductId(product.id);
     }
-    if (image) preloadProductDetailImage(image);
+    if (activeImage) preloadProductDetailImage(activeImage);
   };
+
+  const showSwatches = swatches.length > 1;
 
   return (
     <article className="group flex flex-col h-full bg-white dark:bg-stone-900 rounded-md border border-stone-200/90 dark:border-stone-700/80 overflow-hidden shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
       <div className={`relative w-full overflow-hidden bg-white dark:bg-stone-900 border-b border-stone-100 dark:border-stone-800 ${imageAspect}`}>
         <Link
-          to={productPath}
-          data-product-image={image || undefined}
+          to={linkTo}
+          data-product-image={activeImage || undefined}
           onPointerDown={onProductIntent}
           className="absolute inset-0 z-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gold-500/40"
-          aria-label={`عرض ${title}`}
+          aria-label={`عرض ${title}${activeColor ? ` — ${activeColor}` : ''}`}
         >
           <motion.img
             layoutId={shareLayout && !reduceMotion ? `product-hero-${product.id}` : undefined}
@@ -202,7 +288,7 @@ export const ProductCard: React.FC<ProductCardProps> = React.memo(({
             srcSet={imageSrcSet}
             sizes={imageSizes}
             alt=""
-            data-product-image={image || undefined}
+            data-product-image={activeImage || undefined}
             width={IMAGE_WIDTHS.GRID_CARD}
             height={Math.round(IMAGE_WIDTHS.GRID_CARD * (compact ? 5 / 4 : 1))}
             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02] motion-reduce:transform-none"
@@ -255,27 +341,85 @@ export const ProductCard: React.FC<ProductCardProps> = React.memo(({
       </div>
 
       <div className="flex flex-col flex-grow min-h-0 px-2 py-1.5">
+        {showSwatches ? (
+          <div
+            className="mb-1.5 flex flex-wrap items-center gap-1"
+            role="listbox"
+            aria-label="الألوان"
+            onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => e.stopPropagation()}
+          >
+            {swatches.slice(0, 6).map((swatch) => {
+              const selected = activeColor === swatch.color;
+              const thumb = swatch.imageUrl;
+              return (
+                <button
+                  key={swatch.color}
+                  type="button"
+                  role="option"
+                  aria-selected={selected}
+                  aria-label={swatch.color}
+                  title={swatch.color}
+                  disabled={swatch.inStock === false}
+                  onClick={(e) => handleSwatchClick(e, swatch)}
+                  className={`relative h-5 w-5 shrink-0 overflow-hidden rounded-full border transition-transform focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/50 ${
+                    selected
+                      ? 'border-stone-900 dark:border-white scale-110 ring-1 ring-offset-1 ring-stone-400 dark:ring-stone-500'
+                      : 'border-stone-300 dark:border-stone-600 hover:scale-105'
+                  } ${swatch.inStock === false ? 'opacity-35 cursor-not-allowed' : ''}`}
+                >
+                  {thumb ? (
+                    <img src={thumb} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" />
+                  ) : (
+                    <span className="block h-full w-full bg-stone-200 dark:bg-stone-700 text-[7px] font-bold leading-5 text-center text-stone-600 dark:text-stone-300">
+                      {String(swatch.color).slice(0, 1)}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+            {swatches.length > 6 ? (
+              <span className="text-[9px] font-semibold text-stone-400">+{swatches.length - 6}</span>
+            ) : null}
+          </div>
+        ) : null}
+
         <Link
-          to={productPath}
-          data-product-image={image || undefined}
+          to={linkTo}
+          data-product-image={activeImage || undefined}
           onPointerDown={onProductIntent}
           className="text-[11px] sm:text-xs font-normal text-stone-700 dark:text-stone-300 line-clamp-2 leading-[1.3] hover:text-[#e6533d] dark:hover:text-[#ff7a62] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/40 rounded-sm"
         >
           {title}
+          {activeColor ? (
+            <span className="block text-[10px] text-stone-400 dark:text-stone-500 mt-0.5 font-medium">
+              {activeColor}
+            </span>
+          ) : null}
         </Link>
 
-        <div className="mt-1 flex flex-wrap items-baseline gap-x-1.5 gap-y-0 min-w-0">
-          <span className={`text-sm sm:text-[15px] font-extrabold leading-none ${
-            hasDiscount || isPromoted ? 'text-[#e6533d] dark:text-[#ff7a62]' : 'text-stone-900 dark:text-white'
-          }`}
-          >
-            {priceLabel}
-          </span>
-          {compareLabel && (
-            <span className="text-[10px] text-stone-400 dark:text-stone-500 line-through">
-              {compareLabel}
+        <div className="mt-1 flex items-center justify-between gap-2 min-w-0">
+          <div className="flex flex-wrap items-baseline gap-x-1.5 gap-y-0 min-w-0">
+            <span className={`text-sm sm:text-[15px] font-extrabold leading-none ${
+              hasDiscount || isPromoted ? 'text-[#e6533d] dark:text-[#ff7a62]' : 'text-stone-900 dark:text-white'
+            }`}
+            >
+              {priceLabel}
             </span>
-          )}
+            {compareLabel && (
+              <span className="text-[10px] text-stone-400 dark:text-stone-500 line-through">
+                {compareLabel}
+              </span>
+            )}
+          </div>
+          <button
+            type="button"
+            onClick={handleQuickAddClick}
+            className="shrink-0 flex items-center justify-center w-7 h-7 rounded-md border border-stone-200 dark:border-stone-600 bg-white dark:bg-stone-800 text-stone-800 dark:text-stone-100 hover:border-[#e6533d] hover:text-[#e6533d] dark:hover:border-[#ff7a62] dark:hover:text-[#ff7a62] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500/50"
+            aria-label="إضافة سريعة للسلة"
+          >
+            <Plus size={15} strokeWidth={2.5} aria-hidden="true" />
+          </button>
         </div>
 
         {leftInStock != null && !Number.isNaN(leftInStock) && (showStock || leftInStock <= 0) ? (

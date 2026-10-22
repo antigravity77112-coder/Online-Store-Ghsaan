@@ -4,7 +4,7 @@ import { Sparkles } from 'lucide-react';
 import * as api from '../../services/api';
 import { ProductGrid } from '../HighConversionGrid';
 import { useFavorites } from '../../context/FavoritesContext';
-import { mapStorefrontProduct } from '../../utils/mapStorefrontProduct';
+import { mapListingProducts, listingProductId } from '../../utils/mapStorefrontProduct';
 import { useListingProducts } from '../../hooks/useListingProducts';
 
 const SUGGESTION_COUNT = 8;
@@ -27,12 +27,12 @@ export default function SearchSuggestions({ className = '' }) {
   const rawProducts = useMemo(() => data || [], [data]);
   const shuffled = useListingProducts(rawProducts, 'default');
   const products = useMemo(
-    () => shuffled.map((p) => ({ ...mapStorefrontProduct(p), isFavorite: isFavorite(p.id) })),
+    () => mapListingProducts(shuffled, { isFavorite }),
     [shuffled, isFavorite],
   );
 
   const handleFavorite = useCallback((p) => {
-    const original = rawProducts.find((prod) => String(prod.id) === String(p.id));
+    const original = rawProducts.find((prod) => String(prod.id) === listingProductId(p));
     if (original) toggleFavorite(original);
   }, [rawProducts, toggleFavorite]);
 

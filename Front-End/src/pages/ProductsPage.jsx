@@ -28,7 +28,9 @@ import { useReducedMotion } from '../hooks/useReducedMotion';
 import { useListingProducts } from '../hooks/useListingProducts';
 import { useListingScrollMemory } from '../hooks/useListingScrollMemory';
 import { isExpectedListingReturn } from '../utils/listingSessionMemory';
-import { mapStorefrontProduct } from '../utils/mapStorefrontProduct';
+import { mapListingProducts, listingProductId } from '../utils/mapStorefrontProduct';
+import { buildListingCartPayload } from '../utils/listingCart';
+import RecentlyViewedRail from '../components/RecentlyViewedRail';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -106,36 +108,19 @@ const ProductsPage = () => {
     pagesReady,
   });
 
-  const mappedGridProducts = useMemo(() => (
-    filteredProducts.map((p) => {
-      const mapped = mapStorefrontProduct(p);
-      mapped.isFavorite = isFavorite(p.id);
-      return mapped;
-    })
-  ), [filteredProducts, isFavorite]);
+  const mappedGridProducts = useMemo(
+    () => mapListingProducts(filteredProducts, { isFavorite }),
+    [filteredProducts, isFavorite],
+  );
 
   const handleQuickAdd = useCallback((p) => {
-    const originalProduct = activeProducts.find((prod) => String(prod.id) === String(p.id));
-    if (originalProduct) {
-      addToCart(originalProduct, 1);
-    } else {
-      const fallback = {
-        id: p.id,
-        title: p.title,
-        description: p.description || null,
-        categoryName: p.categoryName || null,
-        price: p.price,
-        currency: p.currency || 'USD',
-        mainImageUrl: p.image,
-        imageUrl: p.image,
-      };
-      addToCart(fallback, 1);
-    }
+    const payload = buildListingCartPayload(p);
+    if (payload) addToCart(payload, 1);
     notifyQuickAdd();
-  }, [activeProducts, addToCart, notifyQuickAdd]);
+  }, [addToCart, notifyQuickAdd]);
 
   const handleFavoriteToggle = useCallback((p) => {
-    const originalProduct = activeProducts.find((prod) => String(prod.id) === String(p.id));
+    const originalProduct = activeProducts.find((prod) => String(prod.id) === listingProductId(p));
     if (originalProduct) toggleFavorite(originalProduct);
   }, [activeProducts, toggleFavorite]);
 
@@ -309,16 +294,21 @@ const ProductsPage = () => {
                 )}
               </motion.div>
             ) : (
-              <ListingEmptyState
-                searchTerm={committedSearch.trim() || undefined}
-                description={
-                  !committedSearch.trim() && activeCategory !== 'الكل'
-                    ? `لم نتمكن من العثور على منتجات في قسم ${activeCategory} حالياً.`
-                    : undefined
-                }
-                onClear={hasActiveFilters ? clearAllFilters : undefined}
-                clearLabel="مسح الفلاتر وعرض الكل"
-              />
+              <>
+                <ListingEmptyState
+                  searchTerm={committedSearch.trim() || undefined}
+                  description={
+                    !committedSearch.trim() && activeCategory !== 'الكل'
+                      ? `لم نتمكن من العثور على منتجات في قسم ${activeCategory} حالياً.`
+                      : undefined
+                  }
+                  onClear={hasActiveFilters ? clearAllFilters : undefined}
+                  clearLabel="مسح الفلاتر وعرض الكل"
+                />
+                <div className="mt-8">
+                  <RecentlyViewedRail limit={8} />
+                </div>
+              </>
             )}
           </AnimatePresence>
         )}

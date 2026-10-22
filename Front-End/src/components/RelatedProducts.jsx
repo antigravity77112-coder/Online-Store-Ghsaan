@@ -7,7 +7,8 @@ import React, { useMemo, useCallback, useRef, useEffect } from 'react';
 import useSWR from 'swr';
 import { useCart } from '../context/CartContext';
 import { useFavorites } from '../context/FavoritesContext';
-import { mapStorefrontProduct } from '../utils/mapStorefrontProduct';
+import { mapListingProducts, listingProductId } from '../utils/mapStorefrontProduct';
+import { buildListingCartPayload } from '../utils/listingCart';
 import { useProductsInfinite } from '../hooks/useProducts';
 import { appendRankedProducts, rankProductsBySeed } from '../utils/productListingSort';
 import { ensureShuffleSeed } from '../utils/listingSessionMemory';
@@ -90,7 +91,7 @@ const RelatedProducts = React.memo(({ categoryName, categoryNames, currentId }) 
       ...restOrdered,
     ];
 
-    return ordered.map((p) => ({ ...mapStorefrontProduct(p), isFavorite: isFavorite(p.id) }));
+    return mapListingProducts(ordered, { isFavorite });
   }, [categoryProducts, catalogRaw, currentId, seed, isFavorite]);
 
   const sourcePool = useMemo(() => {
@@ -102,7 +103,12 @@ const RelatedProducts = React.memo(({ categoryName, categoryNames, currentId }) 
 
   const handleQuickAdd = useCallback(
     (p) => {
-      const original = sourcePool.get(String(p.id));
+      const payload = buildListingCartPayload(p);
+      if (payload) {
+        addToCart(payload, 1);
+        return;
+      }
+      const original = sourcePool.get(listingProductId(p));
       if (original) addToCart(original, 1);
     },
     [sourcePool, addToCart],

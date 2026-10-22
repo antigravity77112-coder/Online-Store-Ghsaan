@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo, useLayoutEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Upload, X, Loader2, ImagePlus, AlertCircle, Cloud, CheckCircle, Check, Sparkles, Star, Search, ChevronDown, Dices } from 'lucide-react';
+import { Upload, X, Loader2, ImagePlus, AlertCircle, Cloud, CheckCircle, Check, Sparkles, Star, Search, ChevronDown, ChevronUp, Dices } from 'lucide-react';
 import { matchesSearch } from '../utils/arabicSearch';
 import * as api from '../services/api';
 import { OptionPicker, BooleanPicker, parseAttrOptions, adminInputClass, adminSelectClass, AdminSwitch, AdminUploadProgress } from '../pages/admin/AdminUI';
@@ -703,6 +703,20 @@ const AddProductForm = ({ onSuccess, onCancel, editProduct, onDirtyChange }) => 
       ...prev,
       specs: (prev.specs || []).filter((_, i) => i !== index).map((s, i) => ({ ...s, sortOrder: i })),
     }));
+  };
+  const moveSpecRow = (index, direction) => {
+    setForm((prev) => {
+      const specs = [...(prev.specs || [])];
+      const target = index + direction;
+      if (target < 0 || target >= specs.length) return prev;
+      const tmp = specs[index];
+      specs[index] = specs[target];
+      specs[target] = tmp;
+      return {
+        ...prev,
+        specs: specs.map((s, i) => ({ ...s, sortOrder: i })),
+      };
+    });
   };
 
   const handleDeleteProductAttribute = async (attr) => {
@@ -1690,12 +1704,40 @@ const AddProductForm = ({ onSuccess, onCancel, editProduct, onDirtyChange }) => 
           <div>
             <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300">مواصفات الوصف</h3>
             <p className="text-[11px] text-slate-500">تظهر للزبون عند الضغط على «المواصفات». لكل منتج مواصفاته الخاصة (المادة، الأبعاد…).</p>
+            <p className="text-[11px] text-slate-400 mt-0.5">الترتيب هنا = ترتيب الظهور في المواصفات (الأولى، الثانية…).</p>
           </div>
         </div>
 
         <div className="space-y-2">
           {(form.specs || []).map((spec, index) => (
-            <div key={index} className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)_auto] gap-2 items-center">
+            <div key={index} className="grid grid-cols-1 sm:grid-cols-[auto_minmax(0,1fr)_minmax(0,1.4fr)_auto] gap-2 items-center">
+              <div className="flex items-center gap-1">
+                <span className="inline-flex items-center justify-center min-w-[1.75rem] h-8 px-1.5 rounded-lg bg-slate-200/80 dark:bg-slate-700 text-[11px] font-bold text-slate-600 dark:text-slate-300 tabular-nums" title={`الترتيب ${index + 1}`}>
+                  {index + 1}
+                </span>
+                <div className="flex flex-col">
+                  <button
+                    type="button"
+                    onClick={() => moveSpecRow(index, -1)}
+                    disabled={index === 0}
+                    className="inline-flex items-center justify-center w-7 h-4 text-slate-500 hover:text-gold-700 disabled:opacity-30 disabled:pointer-events-none"
+                    title="تحريك لأعلى"
+                    aria-label={`تحريك المواصفة ${index + 1} لأعلى`}
+                  >
+                    <ChevronUp className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => moveSpecRow(index, 1)}
+                    disabled={index >= (form.specs?.length || 0) - 1}
+                    className="inline-flex items-center justify-center w-7 h-4 text-slate-500 hover:text-gold-700 disabled:opacity-30 disabled:pointer-events-none"
+                    title="تحريك لأسفل"
+                    aria-label={`تحريك المواصفة ${index + 1} لأسفل`}
+                  >
+                    <ChevronDown className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
               <input
                 type="text"
                 value={spec.name}

@@ -8,6 +8,7 @@ import SEO from '../components/SEO';
 import OrderMethodSelector from '../components/OrderMethodSelector';
 import WhatsAppGlyph from '../components/WhatsAppGlyph';
 import DiscoveryLinks from '../components/listing/DiscoveryLinks';
+import RecentlyViewedRail from '../components/RecentlyViewedRail';
 import { useCart } from '../context/CartContext';
 import { useSiteConfig } from '../context/SiteConfigContext';
 import { useCurrency } from '../context/CurrencyContext';
@@ -278,6 +279,9 @@ const CartPage = () => {
             {t('common.browseProducts')}
           </Link>
           <DiscoveryLinks className="mt-8" compact />
+          <div className="mt-10 text-right max-w-3xl mx-auto">
+            <RecentlyViewedRail limit={8} />
+          </div>
         </div>
       </Layout>
     );

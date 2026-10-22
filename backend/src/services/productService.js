@@ -822,6 +822,27 @@ class ProductService {
         ? variants.reduce((sum, v) => sum + (Number(v.stockQuantity) || 0), 0)
         : 0;
       const remainingStock = p.hasVariants ? variantStockTotal : (Number(p.stockQuantity) || 0);
+      // Keep lean variant payload for Shein-style color listing cards / swatches.
+      const listingVariants = Array.isArray(variants)
+        ? variants.map((v) => ({
+            id: v.id,
+            imageUrl: v.imageUrl || null,
+            stockQuantity: v.stockQuantity,
+            sortOrder: v.sortOrder ?? 0,
+            price: v.price,
+            discountPrice: v.discountPrice ?? null,
+            attributes: (v.attributes || []).map((a) => ({
+              value: a.value,
+              categoryAttribute: a.categoryAttribute
+                ? {
+                    id: a.categoryAttribute.id,
+                    name: a.categoryAttribute.name,
+                    slug: a.categoryAttribute.slug,
+                  }
+                : null,
+            })),
+          }))
+        : [];
       return {
         ...rest,
         showStock: showStock !== false,
@@ -830,6 +851,7 @@ class ProductService {
         imageUrl: p.images?.[0]?.url ?? null,
         scents: [],
         remainingStock,
+        variants: listingVariants,
       };
     });
 
@@ -868,7 +890,23 @@ class ProductService {
         categories: { select: { category: { select: { name: true } } } },
         variants: {
           where: { isActive: true },
-          select: { stockQuantity: true },
+          orderBy: { sortOrder: 'asc' },
+          select: {
+            id: true,
+            imageUrl: true,
+            stockQuantity: true,
+            sortOrder: true,
+            price: true,
+            discountPrice: true,
+            attributes: {
+              select: {
+                value: true,
+                categoryAttribute: {
+                  select: { id: true, name: true, slug: true },
+                },
+              },
+            },
+          },
         },
       },
       skip: preserveInputOrder ? 0 : (pageNumber - 1) * pageSize,
